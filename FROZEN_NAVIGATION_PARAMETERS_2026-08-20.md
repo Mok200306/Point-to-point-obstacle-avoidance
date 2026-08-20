@@ -2,9 +2,9 @@
 
 ## 冻结状态
 
-当前仿真基线已经冻结为 `inflation_radius=0.55 m`，源码配置位于 [nav2_rgbd_params.yaml](src/rtabmap_tb3_nav/config/nav2_rgbd_params.yaml)，冻结提交为 `be1dabe`。
+当前仿真基线冻结为 `inflation_radius=0.45 m`，源码配置位于 [nav2_rgbd_params.yaml](src/rtabmap_tb3_nav/config/nav2_rgbd_params.yaml)。本次冻结用于后续规划器改进的可回退基线；优化实验必须在此提交之后单独记录。
 
-选择依据不是“0.55 一定最快”，而是六次回归中两组都 3/3 成功时，0.55 的近似净空和末端误差更稳健；0.45 仍作为对照数据，不覆盖、不删除。
+选择依据是当前六次回归中 `0.45 m` 组同样 3/3 成功，且平均墙钟时间略短；本项目当前目标优先级是无碰撞前提下缩短时间。`0.55 m` 历史结果保留在 benchmark 文档中，不覆盖、不删除。
 
 ## 必须保持的参数
 
@@ -30,8 +30,8 @@
 | footprint padding | `0.03 m` |
 | local costmap | `6 x 5 m`，resolution `0.05 m`，update `10 Hz`，publish `5 Hz` |
 | global costmap | `24 x 17 m`，origin `(-12,-8.5)`，resolution `0.05 m`，update `2 Hz`，publish `1 Hz` |
-| local inflation | `cost_scaling_factor=3.0`, `inflation_radius=0.55 m` |
-| global inflation | `cost_scaling_factor=3.0`, `inflation_radius=0.55 m` |
+| local inflation | `cost_scaling_factor=3.0`, `inflation_radius=0.45 m` |
+| global inflation | `cost_scaling_factor=3.0`, `inflation_radius=0.45 m` |
 | RGB-D obstacle cloud | `/camera/obstacles`，最大障碍距离 `3.8 m` |
 | collision monitor cloud | `/camera/cloud`，高度 `0.08--1.5 m`，`source_timeout=0.5 s` |
 | collision stop polygon | 前向约 `0.38 m`，横向约 `+/-0.29 m` |
@@ -40,7 +40,7 @@
 | velocity smoother accel | `[0.8, 0.0, 2.0]` |
 | velocity smoother decel | `[-1.0, 0.0, -2.0]` |
 
-`inflation_radius` 是障碍物周围的代价梯度范围，不是车体尺寸。车体硬约束由 footprint 和 padding 决定；0.55 m 的作用是让靠近障碍物的可行路径变贵，使 Smac 更倾向于开阔区域，同时不把通道几何尺寸直接扩大成 0.55 m。
+`inflation_radius` 是障碍物周围的代价梯度范围，不是车体尺寸。车体硬约束由 footprint 和 padding 决定；0.45 m 是本次优化前的速度优先基线，后续目标线偏好只作为全局规划器的软代价，不改变硬 footprint 和碰撞监视器。
 
 ## 运行冻结基线
 
@@ -56,7 +56,7 @@ sg docker -c './scripts/launch_demo.sh gazebo_gui:=true rviz:=true rtabmap_viz:=
 等待 Gazebo、RTAB-Map、Nav2 lifecycle 全部启动后发送 A -> B：
 
 ```bash
-sg docker -c './scripts/regression_leg.sh --x 8.5 --y 0.0 --yaw 0.0 --label manual/frozen_055_A_to_B --profile frozen_055'
+sg docker -c './scripts/regression_leg.sh --x 8.5 --y 0.0 --yaw 0.0 --label manual/frozen_045_A_to_B --profile frozen_045'
 ```
 
 这个命令会生成完整 metrics、CSV、双视图和 contacts 记录。若只想发送目标而不保存完整回归产物：

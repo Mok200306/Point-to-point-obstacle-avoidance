@@ -153,9 +153,9 @@ planner_server:
       # Smac's A* accumulates the costmap value along the route. A multiplier
       # above 1 makes a slightly longer open route preferable to a short route
       # grazing the inflated edge.
-      # Increase the accumulated penalty for traversing inflated cells. This
-      # favors the middle of a free corridor instead of grazing its boundary.
-      cost_travel_multiplier: 30.0
+      # Baseline value kept unchanged while testing the goal-line preference
+      # planner on top of the frozen 0.45 m inflation configuration.
+      cost_travel_multiplier: 6.0
       use_final_approach_orientation: false
       smoother:
         max_iterations: 1000
