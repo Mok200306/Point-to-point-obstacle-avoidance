@@ -10,6 +10,7 @@ goal_x=''
 goal_y='0.0'
 goal_yaw='0.0'
 label='navigation-leg'
+profile='unspecified'
 contact_timeout='300'
 startup_timeout='45'
 contact_pid=''
@@ -19,6 +20,7 @@ usage() {
   cat <<'EOF'
 Usage:
   scripts/regression_leg.sh --x X [--y Y] [--yaw RAD] [--label NAME]
+    [--profile NAME]
 
 The current container must already be running with demo.launch.py. The script
 returns non-zero when Nav2 does not finish with status 4 or when the leg has a
@@ -32,6 +34,7 @@ while [[ $# -gt 0 ]]; do
     --y) goal_y="$2"; shift 2 ;;
     --yaw) goal_yaw="$2"; shift 2 ;;
     --label) label="$2"; shift 2 ;;
+    --profile) profile="$2"; shift 2 ;;
     --contact-timeout) contact_timeout="$2"; shift 2 ;;
     --startup-timeout) startup_timeout="$2"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
@@ -111,6 +114,33 @@ wait_for_nav2() {
   return 1
 }
 
+snapshot_trial() {
+  local artifact_dir="results/${label}"
+  local commit
+  commit="$(git rev-parse HEAD 2>/dev/null || printf 'unknown')"
+  mkdir -p "${artifact_dir}"
+  cp src/rtabmap_tb3_nav/config/nav2_rgbd_params.yaml \
+    "${artifact_dir}/nav2_rgbd_params.yaml"
+  cp src/rtabmap_tb3_nav/config/collision_monitor_rgbd_params.yaml \
+    "${artifact_dir}/collision_monitor_rgbd_params.yaml"
+  cp src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_large.world \
+    "${artifact_dir}/world.sdf"
+  {
+    printf 'label: %s\n' "$label"
+    printf 'profile: %s\n' "$profile"
+    printf 'git_commit: %s\n' "$commit"
+    printf 'world: indoor_obstacle_course_large\n'
+    printf 'goal_frame: map\n'
+    printf 'goal_x_m: %s\n' "$goal_x"
+    printf 'goal_y_m: %s\n' "$goal_y"
+    printf 'goal_yaw_rad: %s\n' "$goal_yaw"
+    printf 'planner: nav2_smac_planner/SmacPlanner2D\n'
+    printf 'controller: nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController\n'
+    printf 'gazebo_view: SDF collision geometry plus /gazebo/model_states ground truth\n'
+    printf 'rviz_view: /map plus /global_costmap/costmap and map-frame trajectory\n'
+  } >"${artifact_dir}/experiment.yaml"
+}
+
 contact_log="$(mktemp "/tmp/rtabmap-${label}.XXXXXX")"
 contact_command="timeout ${contact_timeout}s gz topic -e /gazebo/indoor_obstacle_course_large/physics/contacts -u"
 compose_exec "$contact_command" >"$contact_log" 2>/dev/null &
@@ -119,7 +149,7 @@ contact_pid=$!
 sleep 2
 wait_for_nav2
 set +e
-compose_exec "source /opt/ros/humble/setup.bash && source /workspaces/rtabmap_tb3_nav/install/setup.bash && ros2 run rtabmap_tb3_nav send_goal.py --x ${goal_x} --y ${goal_y} --yaw ${goal_yaw}"
+compose_exec "source /opt/ros/humble/setup.bash && source /workspaces/rtabmap_tb3_nav/install/setup.bash && ros2 run rtabmap_tb3_nav navigation_trial.py --x ${goal_x} --y ${goal_y} --yaw ${goal_yaw} --label ${label} --output-dir /workspaces/rtabmap_tb3_nav/results --world-file /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_large.world"
 goal_exit=$?
 set -e
 
@@ -128,10 +158,26 @@ stop_contact_listener
 contact_pairs="$(grep -oE 'collision1: "[^"]+" collision2: "[^"]+"' "$contact_log" |
   grep waffle | grep -v ground_plane | sort -u || true)"
 contact_count="$(grep -o 'contact {' "$contact_log" | wc -l | tr -d ' ')"
+contact_pairs_one_line="$(printf '%s' "$contact_pairs" | tr '\n' ';' | sed 's/;$//')"
+
+snapshot_trial
+if [[ -f "results/${label}/metrics.yaml" ]]; then
+  {
+    printf 'gazebo_contact_messages: %s\n' "$contact_count"
+    if [[ -n "$contact_pairs" ]]; then
+      printf 'gazebo_non_ground_contact: true\n'
+      printf 'gazebo_contact_pairs: "%s"\n' "$contact_pairs_one_line"
+    else
+      printf 'gazebo_non_ground_contact: false\n'
+      printf 'gazebo_contact_pairs: "(none)"\n'
+    fi
+  } >>"results/${label}/metrics.yaml"
+fi
 
 printf 'label=%s\n' "$label"
 printf 'goal=(%s, %s, yaw=%s)\n' "$goal_x" "$goal_y" "$goal_yaw"
-printf 'send_goal_exit=%s\n' "$goal_exit"
+printf 'navigation_trial_exit=%s\n' "$goal_exit"
+printf 'profile=%s\n' "$profile"
 printf 'contact_messages=%s\n' "$contact_count"
 printf 'non_ground_contact_pairs:\n'
 if [[ -n "$contact_pairs" ]]; then

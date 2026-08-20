@@ -12,6 +12,7 @@ import math
 import os
 import sys
 import time
+import xml.etree.ElementTree as ET
 
 os.environ.setdefault('MPLCONFIGDIR', '/tmp/rtabmap_matplotlib')
 os.makedirs(os.environ['MPLCONFIGDIR'], exist_ok=True)
@@ -21,15 +22,18 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
+from gazebo_msgs.msg import ModelStates
 import rclpy
 from geometry_msgs.msg import PoseStamped
 from nav2_msgs.action import NavigateToPose
 from nav_msgs.msg import OccupancyGrid, Odometry
 from rclpy.action import ActionClient
 from rclpy.duration import Duration
+from rclpy.parameter import Parameter
 from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
 from rclpy.time import Time
 from tf2_ros import Buffer, TransformListener
+from matplotlib.patches import Circle, Polygon
 
 
 def quaternion_from_yaw(yaw):
@@ -64,10 +68,126 @@ def map_array(message):
     return values.reshape((message.info.height, message.info.width))
 
 
+def parse_pose(text):
+    """Read an SDF pose and keep the planar components used by the plot."""
+    values = [float(value) for value in (text or '0 0 0 0 0 0').split()]
+    values += [0.0] * (6 - len(values))
+    return values[0], values[1], values[5]
+
+
+def compose_pose(parent, child):
+    """Compose two planar SDF poses."""
+    px, py, pyaw = parent
+    cx, cy, cyaw = child
+    return (
+        px + math.cos(pyaw) * cx - math.sin(pyaw) * cy,
+        py + math.sin(pyaw) * cx + math.cos(pyaw) * cy,
+        math.atan2(math.sin(pyaw + cyaw), math.cos(pyaw + cyaw)),
+    )
+
+
+def world_color(name):
+    if name.startswith('wall'):
+        return '#697684'
+    if name.startswith('barrier'):
+        return {
+            'barrier_west': '#e67e22',
+            'barrier_center': '#3578c4',
+            'barrier_east': '#c94c50',
+        }.get(name, '#d9822b')
+    if name.startswith('crate'):
+        return '#3d9272'
+    if name.startswith('pillar'):
+        return '#565b66'
+    return '#9aa4ad'
+
+
+def load_world_objects(world_file):
+    """Extract static collision boxes from the Gazebo SDF for the left panel."""
+    objects = []
+    markers = {}
+    try:
+        root = ET.parse(world_file).getroot()
+    except (OSError, ET.ParseError):
+        return objects, markers
+
+    world = root.find('world')
+    if world is None:
+        return objects, markers
+
+    for model in world.findall('model'):
+        name = model.get('name', 'model')
+        model_pose = parse_pose(model.findtext('pose'))
+        if name in ('start_marker', 'goal_marker'):
+            markers[name] = model_pose
+
+        if model.findtext('static', 'false').strip().lower() != 'true':
+            continue
+
+        for link in model.findall('link'):
+            link_pose = parse_pose(link.findtext('pose'))
+            for collision in link.findall('collision'):
+                collision_pose = parse_pose(collision.findtext('pose'))
+                x, y, yaw = compose_pose(
+                    compose_pose(model_pose, link_pose), collision_pose)
+                geometry = collision.find('geometry')
+                if geometry is None:
+                    continue
+                box_size = geometry.findtext('box/size')
+                if box_size:
+                    values = [float(value) for value in box_size.split()]
+                    objects.append({
+                        'name': name,
+                        'kind': 'box',
+                        'x': x,
+                        'y': y,
+                        'yaw': yaw,
+                        'size_x': values[0],
+                        'size_y': values[1],
+                        'color': world_color(name),
+                    })
+                    continue
+                cylinder = geometry.find('cylinder')
+                if cylinder is not None and cylinder.findtext('radius'):
+                    objects.append({
+                        'name': name,
+                        'kind': 'circle',
+                        'x': x,
+                        'y': y,
+                        'yaw': yaw,
+                        'radius': float(cylinder.findtext('radius')),
+                        'color': world_color(name),
+                    })
+    return objects, markers
+
+
+def path_length(path):
+    return sum(
+        math.hypot(current['x'] - previous['x'], current['y'] - previous['y'])
+        for previous, current in zip(path, path[1:]))
+
+
+def point_to_box_distance(x, y, obstacle):
+    """Distance from a point to a planar, possibly rotated box."""
+    dx = x - obstacle['x']
+    dy = y - obstacle['y']
+    yaw = obstacle['yaw']
+    local_x = math.cos(yaw) * dx + math.sin(yaw) * dy
+    local_y = -math.sin(yaw) * dx + math.cos(yaw) * dy
+    outside_x = max(abs(local_x) - obstacle['size_x'] / 2.0, 0.0)
+    outside_y = max(abs(local_y) - obstacle['size_y'] / 2.0, 0.0)
+    return math.hypot(outside_x, outside_y)
+
+
 class NavigationTrial:
     def __init__(self, args):
         self.args = args
-        self.node = rclpy.create_node('rtabmap_navigation_trial')
+        self.node = rclpy.create_node(
+            'rtabmap_navigation_trial',
+            parameter_overrides=[
+                Parameter('use_sim_time', Parameter.Type.BOOL, True)])
+        self.world_objects, self.world_markers = load_world_objects(
+            self.args.world_file)
         self.tf_buffer = Buffer(cache_time=Duration(seconds=30.0))
         self.tf_listener = TransformListener(
             self.tf_buffer, self.node, spin_thread=False)
@@ -85,12 +205,15 @@ class NavigationTrial:
         )
         self.odom_subscription = self.node.create_subscription(
             Odometry, '/odom', self.odom_callback, 50)
+        self.gazebo_subscription = self.node.create_subscription(
+            ModelStates, '/gazebo/model_states', self.gazebo_callback, 50)
         self.map_subscription = self.node.create_subscription(
             OccupancyGrid, '/map', self.map_callback, map_qos)
         self.costmap_subscription = self.node.create_subscription(
             OccupancyGrid, '/global_costmap/costmap', self.costmap_callback,
             costmap_qos)
         self.path = []
+        self.gazebo_path = []
         self.map_message = None
         self.costmap_message = None
         self.last_feedback_distance = None
@@ -109,6 +232,25 @@ class NavigationTrial:
 
     def costmap_callback(self, message):
         self.costmap_message = message
+
+    def gazebo_callback(self, message):
+        """Record Gazebo ground-truth pose for the left comparison panel."""
+        if self.wall_start_mono is None or 'waffle' not in message.name:
+            return
+        index = message.name.index('waffle')
+        pose = message.pose[index]
+        sample = {
+            'wall_time': time.time(),
+            'wall_elapsed_s': time.monotonic() - self.wall_start_mono,
+            'sim_time': stamp_seconds(self.node.get_clock().now().to_msg()),
+            'x': pose.position.x,
+            'y': pose.position.y,
+            'yaw': yaw_from_quaternion(pose.orientation),
+        }
+        if not self.gazebo_path or math.hypot(
+                sample['x'] - self.gazebo_path[-1]['x'],
+                sample['y'] - self.gazebo_path[-1]['y']) >= 0.01:
+            self.gazebo_path.append(sample)
 
     def odom_callback(self, message):
         source_frame = message.header.frame_id or 'odom'
@@ -204,6 +346,22 @@ class NavigationTrial:
             if final is not None else None)
         wall_duration = self.wall_end_mono - self.wall_start_mono
         sim_duration = self.sim_end - self.sim_start
+        comparison_path = self.gazebo_path or self.path
+        robot_radius = math.hypot(0.30 + 0.03, 0.24 + 0.03)
+        minimum_clearance = None
+        if comparison_path and self.world_objects:
+            clearances = []
+            for sample in comparison_path:
+                for obstacle in self.world_objects:
+                    if obstacle['kind'] == 'box':
+                        distance = point_to_box_distance(
+                            sample['x'], sample['y'], obstacle)
+                    else:
+                        distance = math.hypot(
+                            sample['x'] - obstacle['x'],
+                            sample['y'] - obstacle['y']) - obstacle['radius']
+                    clearances.append(distance - robot_radius)
+            minimum_clearance = min(clearances) if clearances else None
         return {
             'label': self.args.label,
             'goal_frame': self.args.frame,
@@ -219,6 +377,12 @@ class NavigationTrial:
             'simulation_end_s': self.sim_end,
             'simulation_duration_s': sim_duration,
             'samples': len(self.path),
+            'trajectory_length_m': path_length(self.path),
+            'gazebo_samples': len(self.gazebo_path),
+            'gazebo_trajectory_length_m': path_length(self.gazebo_path),
+            'gazebo_ground_truth_received': bool(self.gazebo_path),
+            'minimum_approx_clearance_m': minimum_clearance,
+            'gazebo_world_file': self.args.world_file,
             'final_x_m': final['x'] if final else None,
             'final_y_m': final['y'] if final else None,
             'final_xy_error_m': goal_error,
@@ -227,12 +391,19 @@ class NavigationTrial:
             'global_costmap_received': self.costmap_message is not None,
         }
 
-    def write_csv(self, path):
+    @staticmethod
+    def write_path_csv(path, samples):
         with open(path, 'w', newline='', encoding='utf-8') as stream:
             fields = ['wall_time', 'wall_elapsed_s', 'sim_time', 'x', 'y', 'yaw']
             writer = csv.DictWriter(stream, fieldnames=fields)
             writer.writeheader()
-            writer.writerows(self.path)
+            writer.writerows(samples)
+
+    def write_csv(self, path):
+        self.write_path_csv(path, self.path)
+
+    def write_gazebo_csv(self, path):
+        self.write_path_csv(path, self.gazebo_path)
 
     @staticmethod
     def draw_grid(axis, message, alpha, label):
@@ -241,7 +412,8 @@ class NavigationTrial:
             return False
         display = np.full(values.shape, 210, dtype=np.uint8)
         known_free = values >= 0
-        display[known_free] = np.clip(255 - values[known_free], 0, 255)
+        display[known_free] = np.clip(
+            255 - values[known_free].astype(np.float32) * 2.55, 0, 255)
         origin = message.info.origin.position
         extent = [
             origin.x,
@@ -255,34 +427,151 @@ class NavigationTrial:
             label=label)
         return True
 
-    def write_plot(self, path):
-        figure, axis = plt.subplots(figsize=(11, 8), constrained_layout=True)
-        drew_map = self.draw_grid(axis, self.map_message, 0.88, 'RTAB-Map occupancy')
-        if not drew_map:
-            self.draw_grid(axis, self.costmap_message, 0.45, 'global costmap')
+    @staticmethod
+    def draw_costmap(axis, message, alpha=0.48):
+        values = map_array(message)
+        if values is None:
+            return False
+        known_cost = values >= 1
+        rgba = plt.get_cmap('inferno')(
+            np.clip(np.maximum(values, 0) / 100.0, 0.0, 1.0))
+        rgba[..., 3] = np.where(known_cost, alpha, 0.0)
+        origin = message.info.origin.position
+        extent = [
+            origin.x,
+            origin.x + message.info.width * message.info.resolution,
+            origin.y,
+            origin.y + message.info.height * message.info.resolution,
+        ]
+        axis.imshow(
+            rgba, origin='lower', extent=extent, interpolation='nearest',
+            label='global costmap')
+        return True
 
-        if self.path:
-            x_values = [sample['x'] for sample in self.path]
-            y_values = [sample['y'] for sample in self.path]
+    @staticmethod
+    def draw_path(axis, samples, args, label):
+        if samples:
+            x_values = [sample['x'] for sample in samples]
+            y_values = [sample['y'] for sample in samples]
             axis.plot(x_values, y_values, color='#d62728', linewidth=2.2,
-                      label='robot trajectory', zorder=5)
+                      label=label, zorder=8)
             axis.scatter(x_values[0], y_values[0], color='#2ca02c', s=75,
-                         marker='o', label='recorded start', zorder=6)
+                         marker='o', label='recorded start', zorder=9)
             axis.scatter(x_values[-1], y_values[-1], color='#1f77b4', s=75,
-                         marker='x', label='recorded end', zorder=6)
+                         marker='x', label='recorded end', zorder=9)
 
-        axis.scatter(self.args.x, self.args.y, facecolors='none',
+        axis.scatter(args.x, args.y, facecolors='none',
                      edgecolors='#ff7f0e', s=150, linewidths=2,
-                     marker='*', label='goal', zorder=7)
-        axis.set_title(
-            f'{self.args.label}: status={self.status}, '
-            f'wall={self.wall_end_mono - self.wall_start_mono:.1f}s')
+                     marker='*', label='goal', zorder=10)
+
+    def world_bounds(self):
+        points = []
+        for obstacle in self.world_objects:
+            if obstacle['kind'] == 'circle':
+                radius = obstacle['radius']
+                points.extend([
+                    (obstacle['x'] - radius, obstacle['y'] - radius),
+                    (obstacle['x'] + radius, obstacle['y'] + radius),
+                ])
+                continue
+            for local_x, local_y in (
+                    (-obstacle['size_x'] / 2.0, -obstacle['size_y'] / 2.0),
+                    (-obstacle['size_x'] / 2.0, obstacle['size_y'] / 2.0),
+                    (obstacle['size_x'] / 2.0, -obstacle['size_y'] / 2.0),
+                    (obstacle['size_x'] / 2.0, obstacle['size_y'] / 2.0)):
+                points.append((
+                    obstacle['x'] + math.cos(obstacle['yaw']) * local_x -
+                    math.sin(obstacle['yaw']) * local_y,
+                    obstacle['y'] + math.sin(obstacle['yaw']) * local_x +
+                    math.cos(obstacle['yaw']) * local_y))
+        for samples in (self.path, self.gazebo_path):
+            points.extend((sample['x'], sample['y']) for sample in samples)
+        if not points:
+            return (-10.5, 10.5, -7.5, 7.5)
+        x_values, y_values = zip(*points)
+        return (
+            min(x_values) - 0.5, max(x_values) + 0.5,
+            min(y_values) - 0.5, max(y_values) + 0.5)
+
+    def set_axis_style(self, axis):
+        min_x, max_x, min_y, max_y = self.world_bounds()
+        axis.set_xlim(min_x, max_x)
+        axis.set_ylim(min_y, max_y)
         axis.set_xlabel('x [m]')
         axis.set_ylabel('y [m]')
         axis.set_aspect('equal', adjustable='box')
         axis.grid(True, alpha=0.25)
-        axis.legend(loc='best')
+
+    def draw_gazebo_view(self, axis):
+        axis.set_facecolor('#edf1f4')
+        for obstacle in self.world_objects:
+            if obstacle['kind'] == 'circle':
+                axis.add_patch(Circle(
+                    (obstacle['x'], obstacle['y']), obstacle['radius'],
+                    facecolor=obstacle['color'], edgecolor='#263238',
+                    linewidth=1.0, alpha=0.88, zorder=3))
+                continue
+            corners = []
+            for local_x, local_y in (
+                    (-obstacle['size_x'] / 2.0, -obstacle['size_y'] / 2.0),
+                    (-obstacle['size_x'] / 2.0, obstacle['size_y'] / 2.0),
+                    (obstacle['size_x'] / 2.0, obstacle['size_y'] / 2.0),
+                    (obstacle['size_x'] / 2.0, -obstacle['size_y'] / 2.0)):
+                corners.append((
+                    obstacle['x'] + math.cos(obstacle['yaw']) * local_x -
+                    math.sin(obstacle['yaw']) * local_y,
+                    obstacle['y'] + math.sin(obstacle['yaw']) * local_x +
+                    math.cos(obstacle['yaw']) * local_y))
+            axis.add_patch(Polygon(
+                corners, closed=True, facecolor=obstacle['color'],
+                edgecolor='#263238', linewidth=1.0, alpha=0.88, zorder=3))
+            if not obstacle['name'].startswith('wall'):
+                axis.text(obstacle['x'], obstacle['y'], obstacle['name'],
+                          fontsize=6, ha='center', va='center', zorder=4)
+
+        for marker_name, (x, y, _) in self.world_markers.items():
+            color = '#2ca02c' if marker_name == 'start_marker' else '#d62728'
+            axis.scatter(x, y, color=color, s=90, marker='o', zorder=6)
+
+        self.draw_path(axis, self.gazebo_path or self.path, self.args,
+                       'Gazebo ground-truth trajectory' if self.gazebo_path
+                       else 'map trajectory (fallback)')
+        self.set_axis_style(axis)
+        axis.set_title('Gazebo top-down world + ground truth')
+        axis.legend(loc='upper right', fontsize=8)
+
+    def draw_rviz_view(self, axis):
+        axis.set_facecolor('#edf1f4')
+        drew_map = self.draw_grid(
+            axis, self.map_message, 0.86, 'RTAB-Map occupancy')
+        drew_costmap = self.draw_costmap(axis, self.costmap_message)
+        if not drew_map and not drew_costmap:
+            axis.text(0.5, 0.5, 'No map or costmap received',
+                      transform=axis.transAxes, ha='center')
+        self.draw_path(axis, self.path, self.args, 'RViz map trajectory')
+        self.set_axis_style(axis)
+        axis.set_title('RViz-style /map + global costmap')
+        axis.legend(loc='upper right', fontsize=8)
+
+    def write_plot(self, path):
+        figure, axis = plt.subplots(figsize=(11, 8), constrained_layout=True)
+        self.draw_rviz_view(axis)
+        axis.set_title(
+            f'{self.args.label}: RViz view, status={self.status}, '
+            f'wall={self.wall_end_mono - self.wall_start_mono:.1f}s')
         figure.savefig(path, dpi=160)
+        plt.close(figure)
+
+    def write_comparison_plot(self, path):
+        figure, axes = plt.subplots(
+            1, 2, figsize=(18, 8), constrained_layout=True)
+        self.draw_gazebo_view(axes[0])
+        self.draw_rviz_view(axes[1])
+        figure.suptitle(
+            f'{self.args.label} | status={self.status} | '
+            f'wall={self.wall_end_mono - self.wall_start_mono:.1f}s | '
+            f'map path={path_length(self.path):.2f}m', fontsize=14)
+        figure.savefig(path, dpi=170)
         plt.close(figure)
 
     def write_metrics(self, path):
@@ -299,7 +588,9 @@ class NavigationTrial:
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Run Nav2 and save trajectory.png, trajectory.csv and metrics.yaml.')
+        description=(
+            'Run Nav2 and save metrics, map trajectory, Gazebo ground truth, '
+            'and a two-panel comparison plot.'))
     parser.add_argument('--x', type=float, required=True, help='Goal X in map frame.')
     parser.add_argument('--y', type=float, required=True, help='Goal Y in map frame.')
     parser.add_argument('--yaw', type=float, default=0.0, help='Goal yaw in radians.')
@@ -307,6 +598,11 @@ def main():
     parser.add_argument('--label', default='navigation_trial', help='Output folder name.')
     parser.add_argument('--output-dir', default='/workspaces/rtabmap_tb3_nav/results',
                         help='Parent directory for trial artifacts.')
+    parser.add_argument(
+        '--world-file',
+        default='/workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/'
+                'indoor_obstacle_course_large.world',
+        help='Gazebo SDF used to render the top-down scene panel.')
     args = parser.parse_args()
 
     output_dir = os.path.join(args.output_dir, args.label)
@@ -318,7 +614,11 @@ def main():
         trial.run()
         metrics = trial.write_metrics(os.path.join(output_dir, 'metrics.yaml'))
         trial.write_csv(os.path.join(output_dir, 'trajectory.csv'))
+        trial.write_gazebo_csv(
+            os.path.join(output_dir, 'gazebo_trajectory.csv'))
         trial.write_plot(os.path.join(output_dir, 'trajectory.png'))
+        trial.write_comparison_plot(
+            os.path.join(output_dir, 'trajectory_comparison.png'))
         trial.node.get_logger().info(
             f"Trial {args.label}: status={metrics['nav2_status']} "
             f"wall={metrics['wall_duration_s']:.2f}s "

@@ -34,6 +34,9 @@ results/*
 !results/smac_rpp_055_final_B_to_A/metrics.yaml
 !results/smac_rpp_055_final_B_to_A/trajectory.csv
 !results/smac_rpp_055_final_B_to_A/trajectory.png
+# Keep the six-run benchmark and its parameter snapshots reviewable.
+!results/benchmark_2026-08-20/
+!results/benchmark_2026-08-20/**
 
 # Local environment overrides
 .env
