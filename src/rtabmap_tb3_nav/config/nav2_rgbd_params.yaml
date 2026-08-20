@@ -280,7 +280,7 @@ local_costmap:
         # Keep the hard footprint unchanged and use a wider gradient so the
         # center of an opening is cheaper than its boundary.
         cost_scaling_factor: 3.0
-        inflation_radius: 0.45
+        inflation_radius: 0.55
       always_send_full_costmap: true
 
 global_costmap:
@@ -331,7 +331,7 @@ global_costmap:
       inflation_layer:
         plugin: nav2_costmap_2d::InflationLayer
         cost_scaling_factor: 3.0
-        inflation_radius: 0.45
+        inflation_radius: 0.55
       always_send_full_costmap: true
 
 robot_state_publisher:
