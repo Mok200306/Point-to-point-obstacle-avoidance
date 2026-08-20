@@ -155,7 +155,7 @@ planner_server:
       # grazing the inflated edge.
       # Increase the accumulated penalty for traversing inflated cells. This
       # favors the middle of a free corridor instead of grazing its boundary.
-      cost_travel_multiplier: 12.0
+      cost_travel_multiplier: 30.0
       use_final_approach_orientation: false
       smoother:
         max_iterations: 1000
