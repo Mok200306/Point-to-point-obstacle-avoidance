@@ -11,7 +11,8 @@
 | 项目 | 冻结值 |
 | --- | --- |
 | profile | `fast_goalline_045_v4` |
-| 代码实验基线 | `452b45f` |
+| 运行时 HEAD | `452b45f` |
+| 最终可复现代码 | `78bb860` |
 | world | `indoor_obstacle_course_large.world` |
 | 起点 / 目标 | `(-8.5, 0.0, 0)` -> `(8.5, 0.0, 0)` |
 | mode | `online=true`, `localization=false`, `reset_db=true` |
@@ -96,4 +97,3 @@ sg docker -c './scripts/launch_demo.sh gazebo_gui:=true rviz:=true rtabmap_viz:=
 若要代码级精确复现旧实验，应读取对应目录的 `experiment.yaml`，使用记录的
 `git_commit` 建立独立 worktree 后再构建容器工作区。仅在新代码上选择同名 profile
 可以恢复参数意图，但不能保证 C++ planner 或 launch 行为与旧提交逐字一致。
-

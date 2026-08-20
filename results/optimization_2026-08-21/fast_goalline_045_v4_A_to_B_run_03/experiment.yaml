@@ -1,6 +1,7 @@
 label: optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_03
 profile: fast_goalline_045_v4
 git_commit: 452b45fb45d89df6d760d1cc4a89f0878d55d6be
+reproducible_commit: 78bb860f5b34f1ae25e54f18404a657a5d237dc1
 world: indoor_obstacle_course_large
 goal_frame: map
 goal_x_m: 8.5

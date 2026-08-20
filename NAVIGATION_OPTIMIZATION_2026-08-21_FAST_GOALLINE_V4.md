@@ -32,7 +32,8 @@
 | 传感器 | Gazebo RGB-D，未使用 `/scan` |
 | planner | `rtabmap_tb3_nav/GoalLineSmacPlanner` / SmacPlanner2D |
 | controller | `RegulatedPurePursuitController` |
-| 代码实验基线 | `452b45f` |
+| 运行时 HEAD | `452b45f` |
+| 最终可复现代码 | `78bb860` |
 | 启动稳定期 | `5 s`，不计入导航 wall 时间 |
 
 ## v4 改动
@@ -133,4 +134,3 @@ sg docker -c './scripts/regression_leg.sh \
 极限。下一轮若继续优化，应一次只改一个因素，例如把第一段目标带的代价强度作为
 独立实验，或增加地图稳定期；每个候选仍必须完整跑 3 次。不要用缩小 footprint、
 关闭 RPP collision check 或削弱 `PolygonStop` 来换取速度。
-
