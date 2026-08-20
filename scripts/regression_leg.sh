@@ -141,7 +141,8 @@ snapshot_trial() {
   } >"${artifact_dir}/experiment.yaml"
 }
 
-contact_log="$(mktemp "/tmp/rtabmap-${label}.XXXXXX")"
+contact_label="${label//\//_}"
+contact_log="$(mktemp "/tmp/rtabmap-${contact_label}.XXXXXX")"
 contact_command="timeout ${contact_timeout}s gz topic -e /gazebo/indoor_obstacle_course_large/physics/contacts -u"
 compose_exec "$contact_command" >"$contact_log" 2>/dev/null &
 contact_pid=$!
