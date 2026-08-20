@@ -8,23 +8,34 @@ import yaml
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, SetEnvironmentVariable
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, SetEnvironmentVariable, TimerAction
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 
-def online_nav2_params(source_file):
-    """Create an online-only Nav2 file without the map-resizing StaticLayer."""
+def nav2_params_for_mode(source_file, package_share, online):
+    """Select the online padded map or saved-map localization configuration."""
     with open(source_file, 'r', encoding='utf-8') as stream:
         params = yaml.safe_load(stream)
 
     global_params = params['global_costmap']['global_costmap']['ros__parameters']
-    global_params['plugins'] = [
-        plugin for plugin in global_params['plugins'] if plugin != 'static_layer'
-    ]
-    global_params.pop('static_layer', None)
+    # A fixed-size copy of RTAB-Map's growing map allows online planning to
+    # retain already-observed obstacles without StaticLayer resizing the
+    # global costmap on every map expansion. Localization uses the original
+    # saved map topic.
+    global_params['rolling_window'] = False
+    global_params['static_layer']['map_topic'] = '/nav_map' if online else '/map'
+    global_params['static_layer']['subscribe_to_updates'] = False
+
+    bt_path = os.path.join(
+        package_share, 'behavior_trees', 'navigate_to_pose_stable_replanning.xml')
+    through_poses_bt_path = os.path.join(
+        package_share, 'behavior_trees', 'navigate_through_poses_stable_replanning.xml')
+    bt_params = params['bt_navigator']['ros__parameters']
+    bt_params['default_nav_to_pose_bt_xml'] = bt_path
+    bt_params['default_nav_through_poses_bt_xml'] = through_poses_bt_path
 
     rewritten = tempfile.NamedTemporaryFile(
         mode='w', suffix='.yaml', prefix='rtabmap_nav2_online_', delete=False)
@@ -94,15 +105,30 @@ def launch_setup(context, *args, **kwargs):
             }.items(),
         )]
 
-    # RTAB-Map starts with a small map and grows it as the robot moves. In
-    # online mode remove Nav2's StaticLayer entirely: in Humble, setting its
-    # enabled parameter false still lets it subscribe and resize on map growth.
-    # The fixed rolling obstacle costmap keeps unknown cells traversable for
-    # NavFn while the RGB-D obstacle layer updates the local route in real time.
-    # Localization mode keeps the saved map and the StaticLayer.
-    nav2_params_file = nav2_params
+    # RTAB-Map starts with a small map and grows it as the robot moves. Online
+    # mode uses a fixed-size padded copy of that map; localization mode uses
+    # the saved RTAB-Map map through StaticLayer.
+    nav2_params_file = nav2_params_for_mode(nav2_params, package_share, online)
+
+    online_map_padder = []
     if online:
-        nav2_params_file = online_nav2_params(nav2_params)
+        online_map_padder = [Node(
+            package='rtabmap_tb3_nav',
+            executable='map_padder.py',
+            name='online_map_padder',
+            output='screen',
+            parameters=[{
+                'use_sim_time': use_sim_time,
+                'source_topic': '/map',
+                'output_topic': '/nav_map',
+                'width': 480,
+                'height': 340,
+                'resolution': 0.05,
+                'origin_x': -12.0,
+                'origin_y': -8.5,
+            }],
+        )]
+        online_map_padder = [TimerAction(period=4.0, actions=online_map_padder)]
 
     nav2 = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(nav2_share, 'launch', 'navigation_launch.py')),
@@ -237,12 +263,16 @@ def launch_setup(context, *args, **kwargs):
         output='screen',
     )
 
+    delayed_collision_monitor = TimerAction(
+        period=2.0, actions=[collision_monitor])
+
     return [
         SetEnvironmentVariable('TURTLEBOT3_MODEL', 'waffle'),
         *gazebo,
         *rtabmap_nodes,
+        *online_map_padder,
         nav2,
-        collision_monitor,
+        delayed_collision_monitor,
         rviz,
     ]
 
@@ -303,7 +333,7 @@ def generate_launch_description():
                 get_package_share_directory('rtabmap_tb3_nav'),
                 'config',
                 'nav2_rgbd_params.yaml'),
-            description='Nav2 parameter file. Online mode removes StaticLayer from a temporary copy.'),
+            description='Nav2 parameter file. Online mode uses fixed /nav_map through StaticLayer.'),
         DeclareLaunchArgument(
             'collision_monitor_params',
             default_value=os.path.join(

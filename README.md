@@ -21,14 +21,13 @@ B = ( 8.5, 0.0)   场景目标位置
 不再把 `explore_demo.py` 作为导航前置步骤；它现在只是可选的地图覆盖路线。
 
 在线模式能解决“机器人边走边建图”，但不能让全局规划器知道相机尚未看到的
-房间细节。当前配置使用 40 m x 30 m rolling global costmap、`allow_unknown:
-true` 和 `track_unknown_space:true`，因此可以在地图还没有完全长出来时发送
-目标；机器人前方遇到未知区域时，RTAB-Map 和 RGB-D 局部代价地图会边走边更新。
-在线模式还会由 `demo.launch.py` 从全局 costmap 的 `plugins` 列表中移除
-`StaticLayer`：在 Humble 中仅设置 `enabled=false` 仍可能让它订阅 `/map` 并触发
-resize。这样 `/map` 每次扩展不会触发全局网格反复重建，NavFn 可以持续使用固定尺寸
-的 rolling 网格；定位模式（`online:=false localization:=true`）则重新使用保存地图的
-`StaticLayer`。
+房间细节。当前配置使用固定 `24 m x 17 m` 的 global costmap：`map_padder.py` 将
+RTAB-Map 不断增长的 `/map` 复制为固定 `/nav_map`，再由 `StaticLayer` 叠加实时
+RGB-D obstacle layer。`allow_unknown:true` 和 `track_unknown_space:true` 允许在地图
+尚未完整长出时发送目标；机器人前方遇到未知区域时，RTAB-Map 和 RGB-D 局部代价地图
+会边走边更新。固定尺寸的 `/nav_map` 避免 Humble 因 `/map` 尺寸变化反复 resize；定位
+模式（`online:=false localization:=true`）才让 `StaticLayer` 直接读取保存的 `/map`。
+未知区域的安全性仍依赖前向深度观测。
 如果目标被障碍物完全隔开，仍建议先发送附近目标或使用可选探索路线，这是
 未知环境导航的正常边界。
 
@@ -52,7 +51,7 @@ RGB-D depth
     Gazebo robot       Nav2 costmaps
                               |
                               v
-                         DWB /cmd_vel
+              SmacPlanner2D + RPP /cmd_vel
 ```
 
 本项目不订阅 `/scan`。新增的 `nav2_collision_monitor` 会在机器人前方建立
@@ -66,27 +65,29 @@ RGB-D depth
 
 - 使用约 `0.60 m x 0.48 m` 的矩形 footprint，并额外 padding `0.03 m`；
 - RGB-D 障碍高度提高到 `1.5 m`，最大深度范围约 `3.8 m`；
-- 局部 costmap 扩大到 `6 m x 5 m`，更新频率 `10 Hz`；DWB 控制频率为 `10 Hz`，
-  与 RGB-D 点云和当前仿真 CPU 负载匹配；
-- 全局/局部 inflation radius 为 `0.50 m`，`cost_scaling_factor=3.0`；更宽且更平滑的代价梯度让 DWB 更愿意走开阔区域，真实机器人必须重新验证；
-- 最大线速度降为 `0.18 m/s`，最大角速度降为 `0.75 rad/s`；
-- DWB 同时启用 `BaseObstacle` 和 `ObstacleFootprint`，权重分别为 `2.0/2.0`；路径跟随权重降为 `PathAlign=12`、`PathDist=16`，允许局部轨迹为了安全距离偏离全局路径；
+- 局部 costmap 为 `6 m x 5 m`，更新频率 `10 Hz`；
+- 全局/局部 inflation radius 当前为 clearance-first 配置的 `0.55 m`，
+  `cost_scaling_factor=3.0`；它只改变障碍物外侧的软代价梯度，不会缩小车体 footprint；
+  `0.30 m` 对当前约 `0.27 m` 内切半径的 Waffle 几乎没有可用梯度；
+- 全局规划器使用 `SmacPlanner2D`，`cost_travel_multiplier=6.0`，对贴近高代价边缘
+  的路径施加更强的累计代价；
+- 局部控制器使用 Regulated Pure Pursuit（RPP），直线目标速度 `0.22 m/s`，前视距离
+  `0.52--1.10 m`，普通弯道不主动原地对齐（阈值 `1.20 rad`），根据曲率和 cost 调速，
+  提前沿平滑路径弧形转弯，同时保留终点姿态对齐；
 - 目标误差收紧为 XY `0.12 m`、yaw `0.15 rad`。
 - 模拟相机默认降为 `320 x 240 @ 15 Hz`，为 RTAB-Map、Nav2 和安全层保留 CPU
   余量；这不是 RGB-D 原理上的限制，接入 D435i 时再按实际帧率调节。
 
-窄路口停车问题已经针对“膨胀层 + 硬停止区 + DWB 角速度采样”造成的停止死锁调整：
-全局/局部 `inflation_radius` 为 `0.50 m`，`cost_scaling_factor=3.0`，`PolygonStop`
-约 `0.38 m`，`PolygonSlow` 约 `1.05 m` 且保留 `65%` 速度；进度检查器为 `0.20 m / 20 s`，DWB 采样为
-`8 x 1 x 7`、`sim_time=1.25 s`。`vtheta_samples=7` 让角速度样本包含约
-`-0.75/-0.50/-0.25/0/0.25/0.50/0.75 rad/s`，避免旧版 `vtheta_samples=20`
-选到约 `+/-0.0395 rad/s` 后左右摆动。这样机器人有机会在障碍拐角处先减速、转向
-并重新规划，同时仍保留近距离硬停止保护。
+窄路口停车问题现在从三处处理：固定 `/nav_map` 不让 `StaticLayer` 随 `/map` resize，稳定
+行为树每 `2 s` 检查路径且有效路径约 `20 s` 才重算，RPP 使用更长前视点提前转弯，只有
+大角度姿态误差才原地对齐。全局
+`SmacPlanner2D` 负责选择更开阔的绕行方向，RPP 负责连续跟踪；`PolygonSlow` 前方约
+`1.05 m` 保留 `65%` 速度，`PolygonStop` 约 `0.38 m` 仍是最后一道硬停止保护。
 
 RViz 中的紫红色区域是 `inflation_radius` 产生的代价梯度，不等于同样大小的实体
 墙，也不等于所有这些格子都禁止通行；真正的碰撞判定还会检查 footprint、
-`ObstacleFootprint` 和前方 `PolygonStop`。当前 `0.50 m` 是仿真场景的安全折中值，
-优先保留它而不是为了让画面变窄直接降低安全余量。若只想让显示更易读，可暂时关闭
+RPP 的前向碰撞预测和前方 `PolygonStop`。当前 `0.55 m` 是路径偏好，不是允许车体
+贴近障碍的许可证；若只想让显示更易读，可暂时关闭
 RViz 的 Global/Local Costmap 图层，不能据此判断实体障碍消失。
 
 看到机器人在窄口短暂停顿时，先区分三种状态：
@@ -96,7 +97,7 @@ RViz 的 Global/Local Costmap 图层，不能据此判断实体障碍消失。
 - `PolygonStop` 持续触发：安全层认为障碍已经进入硬停止区，应检查 `/camera/cloud`
   的频率、时间戳和 TF，不能直接缩小 footprint 来强行通过；
 - Nav2 返回非 `4`、日志出现 `Failed to make progress` 或 `Aborting handle`：这才是
-  本次任务失败，需要清理重复 launch 后重新检查 costmap 和 DWB 参数。
+  本次任务失败，需要清理重复 launch 后重新检查 costmap、Smac 和 RPP 参数。
 
 ## 2. 构建和启动
 
@@ -332,9 +333,9 @@ RTAB-Map 数据库位于宿主机：
 - 安全层漏检或持续停住：检查 `/camera/cloud` 和时间戳，确认其 TF 能变换到
   `base_footprint`，然后再调整 `collision_monitor_rgbd_params.yaml` 中的
   `source_timeout`、`PolygonStop` 和高度范围；
-- 障碍物已经看见但仍靠近：提高 `BaseObstacle.scale`，或扩大 collision monitor
-  的 `PolygonStop`；若只是全局路径贴边，先降低 `PathAlign/PathDist`，不要先缩小
-  footprint；
+- 障碍物已经看见但仍靠近：先提高 Smac 的 `cost_travel_multiplier`，或降低
+  `cost_scaling_factor` 让较远位置保留代价；若是转弯太晚，再增大 RPP 的
+  `lookahead_dist`，不要先缩小 footprint；
 - 目标附近不够精确：调整 `xy_goal_tolerance` 和 `yaw_goal_tolerance`，同时
   保持足够的进场空间。
 - 机器人在窄口停住：先检查是否同时运行了两套 launch；执行
@@ -342,9 +343,9 @@ RTAB-Map 数据库位于宿主机：
   `ros2 node list | sort` 中是否只有一个 `/collision_monitor`、`/camera_cloud` 和
   `/camera_obstacles`。如果日志是 `Robot to slowdown`，这是安全层看到近距离障碍
   后的预期减速；如果是 `Robot to stop`，先检查 `/camera/cloud` 的 TF 和时间戳。
-  如果 `/cmd_vel` 长时间只在约 `+/-0.0395 rad/s` 摆动，说明运行中的参数不是当前
-  配置，确认 `/controller_server` 的 `FollowPath.vtheta_samples` 为 `7`。不要直接
-  无限增大 `source_timeout`，也不要为了“挤过”通道继续缩小真实机器人的 footprint。
+  如果日志出现 `StaticLayer: Resizing`，说明在线启动仍加载了旧配置；如果 RPP 长时间
+  输出零速度，再检查路径是否有效和 `/cmd_vel_safe` 是否被安全层拦截。不要直接无限
+  增大 `source_timeout`，也不要为了“挤过”通道继续缩小真实机器人的 footprint。
 
 碰撞安全区在 [collision_monitor_rgbd_params.yaml](src/rtabmap_tb3_nav/config/collision_monitor_rgbd_params.yaml)，
 场景在 [indoor_obstacle_course_large.world](src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_large.world)，
@@ -383,9 +384,9 @@ Docker 镜像；因为相机分辨率、帧率、LDS 删除和 `cmd_vel_safe` re
 ./scripts/start.sh
 ```
 
-### 本轮回归证据
+### 历史 DWB 对照
 
-本次“障碍距离优先”参数的可复现实验记录如下：
+下面是旧版 NavFn + DWB 的历史对照，不代表当前 Smac + RPP 配置：
 
 | 方向 | Nav2 | action 墙钟/仿真时间 | 末端 XY 误差 | 轨迹样本 | contacts（过滤地面） |
 | --- | ---: | ---: | ---: | ---: | --- |
@@ -398,34 +399,47 @@ Docker 镜像；因为相机分辨率、帧率、LDS 删除和 `cmd_vel_safe` re
 Gazebo contacts 监听并发送目标。这里的 `(none)` 指过滤地面后没有机器人与墙、栏杆、
 箱体或柱体的接触对。
 
-这组结果可以作为论文中的“仿真 RGB-D 在线建图 + Nav2 DWB 基线”，但需要同时报告
+这组历史结果可以作为论文中的“仿真 RGB-D 在线建图 + Nav2 DWB 对照组”，但需要同时报告
 场景、速度、footprint、膨胀层、目标容差和无障碍接触判据。它不是“真实 D435i 基线”，
 也不代表任意未知布局都能零碰撞；当前单次耗时仍包含在线建图和局部重规划带来的低速，
 后续应增加多次重复实验并统计均值、标准差、成功率和最小障碍距离。
 
-窄口调参后，Gazebo + RViz2 开启时的 A -> B 返回 Nav2 状态 `4`，末端距离约
+旧版窄口调参后，Gazebo + RViz2 开启时的 A -> B 返回 Nav2 状态 `4`，末端距离约
 `0.12 m`；约 `307587` 条 Gazebo contacts 记录过滤地面后没有机器人与障碍物接触。
 干净重启并从 B 出发的 B -> A 也返回状态 `4`，末端距离约 `0.10 m`；约 `350431`
 条 contacts 记录同样没有非地面障碍接触。两次验证时 `/controller_server`、
 `/planner_server` 和 `/collision_monitor` 都是 `active [3]`。
 
-随后使用 `vtheta_samples=7` 做了无 GUI 双向回归：A -> B 返回 status `4`、末端距离
+随后使用旧 DWB 的 `vtheta_samples=7` 做了无 GUI 双向回归：A -> B 返回 status `4`、末端距离
 约 `0.10 m`，约 `346295` 条 contacts 过滤后无障碍接触；B -> A 返回 status `4`、
 末端距离约 `0.12 m`，约 `373473` 条 contacts 过滤后无障碍接触。两次最新控制器日志
 均没有 `Failed to make progress` 或 `Aborting handle`；窄口附近出现的短暂停顿对应
 安全层 slowdown 和 RGB-D 障碍层更新后的局部路径重规划，不是碰撞。
 
-最终修复重新启动后，在线全局插件列表只剩 `obstacle_layer` 和 `inflation_layer`，
-不再加载会随 `/map` 增长而 resize 的 `StaticLayer`。Gazebo + RViz2 下 A -> B 返回
-status `4`、末端约 `0.12 m`、`358524` 条 contacts 过滤后无障碍接触；B -> A
-返回 status `4`、末端约 `0.12 m`、`342705` 条 contacts 过滤后无障碍接触。两次日志
-都没有 `StaticLayer: Resizing`、`PolygonStop`、`Failed to make progress` 或
-`Aborting handle`。
+旧版固定地图过渡方案曾临时移除 `StaticLayer`，这段记录保留作历史排查依据；当前方案
+已经改为 `map_padder.py -> /nav_map -> StaticLayer`，请以本节下面的 clearance-first
+结果和 [本轮文档](NAVIGATION_UPDATE_2026-08-20_CLEARANCE_FIRST.md) 为准。
 
 如果 GUI 测试时出现 `Failed to change state for node: collision_monitor`，通常是旧
 launch 没有完全退出而产生了重复节点，不是新的避障参数本身失败。先执行
 `sg docker -c './scripts/stop.sh'`，确认 `ros2 node list | sort` 中每个关键节点只
 出现一次，再重新启动一套仿真。
+
+### 当前 Smac + RPP clearance-first 回归
+
+| 方向 | Nav2 status | 墙钟/仿真时间 | trial 最后采样 XY 误差 | contacts（过滤地面） |
+| --- | ---: | ---: | ---: | --- |
+| A -> B | `4` | `114.52 s` | `0.152 m` | `280327`，`(none)` |
+| B -> A | `4` | `110.82 s` | `0.208 m` | `285301`，`(none)` |
+
+轨迹和指标位于 `results/smac_rpp_055_final_A_to_B/` 与
+`results/smac_rpp_055_final_B_to_A/`。`(none)` 表示过滤 `ground_plane` 后没有
+`waffle` 与墙、barrier、crate 或 pillar 的接触对。
+
+`navigation_trial.py` 的末端误差是 action result 前后收到的最后一条 TF/odom 轨迹采样，
+不是 Nav2 内部 goal checker 的判定值；本轮以 Nav2 `status=4` 作为成功标准。论文中应
+同时报告 action status、配置的 goal tolerance 和独立末端停稳误差，不能把这两个采样值
+简单写成“没有到达目标”。
 
 ## 8. 真实 Intel RealSense D435i
 

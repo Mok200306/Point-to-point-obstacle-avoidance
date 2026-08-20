@@ -25,6 +25,15 @@ results/*
 !results/B_to_A_clearance/metrics.yaml
 !results/B_to_A_clearance/trajectory.csv
 !results/B_to_A_clearance/trajectory.png
+# Keep the current clearance-first Smac + RPP regression evidence reviewable.
+!results/smac_rpp_055_final_A_to_B/
+!results/smac_rpp_055_final_A_to_B/metrics.yaml
+!results/smac_rpp_055_final_A_to_B/trajectory.csv
+!results/smac_rpp_055_final_A_to_B/trajectory.png
+!results/smac_rpp_055_final_B_to_A/
+!results/smac_rpp_055_final_B_to_A/metrics.yaml
+!results/smac_rpp_055_final_B_to_A/trajectory.csv
+!results/smac_rpp_055_final_B_to_A/trajectory.png
 
 # Local environment overrides
 .env
