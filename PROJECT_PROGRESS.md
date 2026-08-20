@@ -420,3 +420,17 @@ sg docker -c 'docker compose exec ros2 bash -lc "source /opt/ros/humble/setup.ba
 - `allow_unknown:true` 允许规划穿过未知区，但安全性仍依赖实时深度更新；
 - 真实 D435i 的深度反光、黑色物体、阳光和遮挡需要单独标定；
 - Docker 当前终端若没有 docker group 权限，需要使用 `sg docker -c '...'`。
+
+## 2026-08-20 六次参数基准已完成
+
+本轮严格按固定规则完成了同一大场景、同一 A -> B 目标、每组 3 次干净重启的对比：
+
+- `inflation_radius=0.55 m`：3/3 成功，墙钟 `116.425 +/- 1.569 s`，平均近似净空 `0.0711 m`，无非地面 Gazebo 接触；
+- `inflation_radius=0.45 m`：3/3 成功，墙钟 `114.913 +/- 0.793 s`，平均近似净空 `0.0146 m`，无非地面 Gazebo 接触；
+- 当前冻结基线为 `0.55 m`，0.45 作为完整对照组保留。
+
+每次实验均保存了 `metrics.yaml`、map/Gazebo 两条轨迹 CSV、单图、左右双视图、参数快照、世界文件、contacts 摘要和 `experiment.yaml`。详细表格见
+[BENCHMARK_2026-08-20_SUMMARY.md](BENCHMARK_2026-08-20_SUMMARY.md)，冻结参数与复现命令见
+[FROZEN_NAVIGATION_PARAMETERS_2026-08-20.md](FROZEN_NAVIGATION_PARAMETERS_2026-08-20.md)。
+
+冻结配置提交：`be1dabe`；0.45 对照切换提交：`a1389ff`。后续参数实验应从冻结基线创建新提交，一次只改变一个变量，并保持同样的 3 次回归与物理 contacts 证据。
