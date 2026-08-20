@@ -6,7 +6,9 @@
 
 - `inflation_radius=0.55 m`：3/3 成功，成功率 100%，无过滤到的非地面 Gazebo 物理接触。
 - `inflation_radius=0.45 m`：3/3 成功，成功率 100%，无过滤到的非地面 Gazebo 物理接触。
-- 当前冻结的仿真基线为 `0.55 m`。原因是它在相同成功率下保留了更大的近似净空，且平均末端 XY 误差更小；`0.45 m` 作为对照配置保留。
+- 本文记录的是历史 `0.55 m` clearance-first 与 `0.45 m` 原生 Smac 对照，不覆盖后续
+  的目标线优化实验。当前源码冻结为 0.45 目标线候选，见
+  [NAVIGATION_OPTIMIZATION_2026-08-20.md](NAVIGATION_OPTIMIZATION_2026-08-20.md)。
 
 这只是每组 3 次的工程回归对比，不足以证明统计显著性，也不能据此声称对所有场景都达到工程级零碰撞。
 
@@ -71,12 +73,13 @@ gazebo_contact_pairs: "(none)"
 
 `gazebo_contact_messages` 是原始 contacts 消息数量，不是碰撞次数；本次六次均已过滤地面并没有留下 `waffle` 与房间障碍物的接触对。
 
-## 当前冻结结论
+## 历史对照结论
 
-- 冻结值：local costmap 和 global costmap 都使用 `inflation_radius: 0.55`。
-- 对照值：0.45 的完整结果和参数快照保留在 `smac_rpp_045_A_to_B_run_01..03`。
+- 历史 clearance-first 值：local costmap 和 global costmap 都使用 `inflation_radius: 0.55`。
+- 原生 0.45 的完整结果和参数快照保留在 `smac_rpp_045_A_to_B_run_01..03`。
 - 其他规划器、控制器、速度、footprint、世界、起点终点和感知参数不因本次对比改变。
 - 可复现参数表见 [FROZEN_NAVIGATION_PARAMETERS_2026-08-20.md](FROZEN_NAVIGATION_PARAMETERS_2026-08-20.md)。
+- 当前目标线优化参数见 [FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-20.md](FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-20.md)。
 
 ## 后续实验边界
 

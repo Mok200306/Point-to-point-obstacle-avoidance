@@ -1,6 +1,18 @@
 # 项目进度总结
 
-更新时间：2026-08-20（clearance-first 调参、双向计时与 contacts 回归）
+更新时间：2026-08-20（目标线规划优化、三次回归与参数冻结）
+
+## 当前结论（最新）
+
+当前源码已经从提交 `be04483` 的原生 Smac + RPP 0.45 回退基线，推进到提交
+`c18894e` 的目标线优化候选。`GoalLineSmacPlanner` 在 Smac 可行路径上对已知自由栅格
+增加偏离起终点线的二次软代价，同时保持障碍、footprint、RPP 和 collision monitor
+硬约束不变。三次干净 A -> B 回归均为 `status=4`，Gazebo contacts 过滤地面后均无
+非地面接触，平均墙钟 `113.63 s`，因此当前冻结为 0.45 目标线候选。
+
+详细实验表和双视图：[NAVIGATION_OPTIMIZATION_2026-08-20.md](NAVIGATION_OPTIMIZATION_2026-08-20.md)
+
+冻结参数：[FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-20.md](FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-20.md)
 
 ## 当前目标
 
@@ -19,7 +31,7 @@ Humble，复现无真实 LiDAR 的 TurtleBot3 RGB-D + RTAB-Map + Nav2 室内 A -
 | RGB-D 局部避障 | 已完成 | `/camera/obstacles` -> voxel costmap |
 | 在线建图在线导航 | 本次实现 | 默认启动即同时运行，不再强制预建图 |
 | 碰撞安全层 | 已完成双向回归 | `nav2_collision_monitor` 读取降采样 `/camera/cloud`，输出 `/cmd_vel_safe`；A -> B / B -> A 物理接触过滤均未发现障碍碰撞 |
-| 贴边路径优化 | 已完成一轮 clearance-first 回归 | Smac `cost_travel_multiplier=6.0`，inflation `0.55 m`，RPP 使用 `0.52--1.10 m` 前视；仍需多场景统计 |
+| 贴边路径优化 | 已完成目标线候选三次回归 | `GoalLineSmacPlanner`，inflation `0.45 m`，二次目标线偏好，RPP 使用 `0.52--1.10 m` 前视 |
 | 轨迹与计时记录 | 已完成 | `navigation_trial.py` 自动输出 PNG、CSV、YAML，记录墙钟和 Gazebo 仿真时间 |
 | 大型障碍场景 | 本次实现 | 20 m x 14 m，错位障碍栏 + 10 个箱体/柱体 |
 | 真实 D435i | 软件启动链路已准备，尚未接入实际硬件 | 已加入 RealSense 驱动、USB 映射、相机参数和真实启动文件；仍需真实底盘、TF 与 D435i 实测 |
@@ -43,7 +55,7 @@ Humble，复现无真实 LiDAR 的 TurtleBot3 RGB-D + RTAB-Map + Nav2 室内 A -
 因此，准确的结论是：点到点避障导航在当前仿真验证场景中已经实现；泛化到未知布局、
 复杂遮挡、窄通道和真实 D435i 的部分仍属于下一阶段。
 
-## 2026-08-20 Smac + RPP clearance-first 优化结论
+## 历史 Smac + RPP clearance-first 阶段（0.55 对照）
 
 旧版 `NavFn + DWB` 的问题不是没有全局/局部规划，而是全局路径可能贴着膨胀层边缘，
 DWB 又会较强地追随这条路径；在线模式中直接订阅增长中的 `/map` 也会让 StaticLayer
@@ -59,7 +71,7 @@ DWB 又会较强地追随这条路径；在线模式中直接订阅增长中的 
   误差仍允许原地对齐；
 - 稳定行为树每 `2 s` 检查路径，路径有效时约 `20 s` 才重算，目标改变或路径失效时
   立即重规划；
-- 当前 clearance-first 值为全局/局部 `inflation_radius=0.55 m`、
+- 该历史 clearance-first 对照使用全局/局部 `inflation_radius=0.55 m`、
   `cost_scaling_factor=3.0`；`0.30 m` 对约 `0.27 m` 内切半径的 Waffle 只剩约 `3 cm`
   软梯度，容易让路径贴边；
   `footprint=0.60 x 0.48 m` 和 padding `0.03 m` 仍是安全边界。
@@ -421,16 +433,19 @@ sg docker -c 'docker compose exec ros2 bash -lc "source /opt/ros/humble/setup.ba
 - 真实 D435i 的深度反光、黑色物体、阳光和遮挡需要单独标定；
 - Docker 当前终端若没有 docker group 权限，需要使用 `sg docker -c '...'`。
 
-## 2026-08-20 六次参数基准已完成
+## 2026-08-20 六次参数基准（历史对照）
 
 本轮严格按固定规则完成了同一大场景、同一 A -> B 目标、每组 3 次干净重启的对比：
 
 - `inflation_radius=0.55 m`：3/3 成功，墙钟 `116.425 +/- 1.569 s`，平均近似净空 `0.0711 m`，无非地面 Gazebo 接触；
 - `inflation_radius=0.45 m`：3/3 成功，墙钟 `114.913 +/- 0.793 s`，平均近似净空 `0.0146 m`，无非地面 Gazebo 接触；
-- 当前冻结基线为 `0.55 m`，0.45 作为完整对照组保留。
+- 当时的 clearance-first 冻结值为 `0.55 m`；后续依据速度优先规则冻结 0.45，
+  并在此基础上验证目标线优化候选。六次结果仍作为历史对照保留。
 
 每次实验均保存了 `metrics.yaml`、map/Gazebo 两条轨迹 CSV、单图、左右双视图、参数快照、世界文件、contacts 摘要和 `experiment.yaml`。详细表格见
 [BENCHMARK_2026-08-20_SUMMARY.md](BENCHMARK_2026-08-20_SUMMARY.md)，冻结参数与复现命令见
 [FROZEN_NAVIGATION_PARAMETERS_2026-08-20.md](FROZEN_NAVIGATION_PARAMETERS_2026-08-20.md)。
 
-冻结配置提交：`be1dabe`；0.45 对照切换提交：`a1389ff`。后续参数实验应从冻结基线创建新提交，一次只改变一个变量，并保持同样的 3 次回归与物理 contacts 证据。
+历史冻结配置提交：`be1dabe`；0.45 对照切换提交：`a1389ff`。当前优化提交为
+`c18894e`，后续参数实验应从当前冻结版本创建新提交，一次只改变一个变量，并保持同样的
+3 次回归与物理 contacts 证据。

@@ -2,7 +2,9 @@
 
 ## 冻结状态
 
-当前仿真基线冻结为 `inflation_radius=0.45 m`，源码配置位于 [nav2_rgbd_params.yaml](src/rtabmap_tb3_nav/config/nav2_rgbd_params.yaml)。本次冻结用于后续规划器改进的可回退基线；优化实验必须在此提交之后单独记录。
+本文件记录提交 `be04483` 的原生 Smac + RPP 仿真基线，冻结值为
+`inflation_radius=0.45 m`。它是后续规划器改进的可回退版本；当前目标线优化参数另见
+[FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-20.md](FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-20.md)。
 
 选择依据是当前六次回归中 `0.45 m` 组同样 3/3 成功，且平均墙钟时间略短；本项目当前目标优先级是无碰撞前提下缩短时间。`0.55 m` 历史结果保留在 benchmark 文档中，不覆盖、不删除。
 

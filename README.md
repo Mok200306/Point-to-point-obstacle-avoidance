@@ -12,6 +12,12 @@ A = (-8.5, 0.0)   Gazebo 初始位置，车头朝 +X
 B = ( 8.5, 0.0)   场景目标位置
 ```
 
+当前源码冻结为 `0.45 m` 目标线优化候选：全局规划器是
+`rtabmap_tb3_nav/GoalLineSmacPlanner`（继承 SmacPlanner2D）。参数和三次回归见
+[NAVIGATION_OPTIMIZATION_2026-08-20.md](NAVIGATION_OPTIMIZATION_2026-08-20.md) 与
+[FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-20.md](FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-20.md)。
+原生 Smac 的 0.45 配置仍由提交 `be04483` 保留为回退基线。
+
 ## 1. 这次改动解决什么问题
 
 ### 在线建图和导航
@@ -66,11 +72,12 @@ RGB-D depth
 - 使用约 `0.60 m x 0.48 m` 的矩形 footprint，并额外 padding `0.03 m`；
 - RGB-D 障碍高度提高到 `1.5 m`，最大深度范围约 `3.8 m`；
 - 局部 costmap 为 `6 m x 5 m`，更新频率 `10 Hz`；
-- 全局/局部 inflation radius 当前为 clearance-first 配置的 `0.55 m`，
+- 全局/局部 inflation radius 当前为速度优先冻结配置的 `0.45 m`，
   `cost_scaling_factor=3.0`；它只改变障碍物外侧的软代价梯度，不会缩小车体 footprint；
   `0.30 m` 对当前约 `0.27 m` 内切半径的 Waffle 几乎没有可用梯度；
-- 全局规划器使用 `SmacPlanner2D`，`cost_travel_multiplier=6.0`，对贴近高代价边缘
-  的路径施加更强的累计代价；
+- 全局规划器使用目标线偏好的 `GoalLineSmacPlanner`，底层仍是 `SmacPlanner2D`，
+  `cost_travel_multiplier=6.0`；已知自由栅格按偏离起终点线的二次距离增加软代价，
+  障碍物和硬 footprint 约束不被覆盖；
 - 局部控制器使用 Regulated Pure Pursuit（RPP），直线目标速度 `0.22 m/s`，前视距离
   `0.52--1.10 m`，普通弯道不主动原地对齐（阈值 `1.20 rad`），根据曲率和 cost 调速，
   提前沿平滑路径弧形转弯，同时保留终点姿态对齐；
@@ -81,12 +88,12 @@ RGB-D depth
 窄路口停车问题现在从三处处理：固定 `/nav_map` 不让 `StaticLayer` 随 `/map` resize，稳定
 行为树每 `2 s` 检查路径且有效路径约 `20 s` 才重算，RPP 使用更长前视点提前转弯，只有
 大角度姿态误差才原地对齐。全局
-`SmacPlanner2D` 负责选择更开阔的绕行方向，RPP 负责连续跟踪；`PolygonSlow` 前方约
+`GoalLineSmacPlanner` 负责在 Smac 可行路径中偏好回到目标方向，RPP 负责连续跟踪；`PolygonSlow` 前方约
 `1.05 m` 保留 `65%` 速度，`PolygonStop` 约 `0.38 m` 仍是最后一道硬停止保护。
 
 RViz 中的紫红色区域是 `inflation_radius` 产生的代价梯度，不等于同样大小的实体
 墙，也不等于所有这些格子都禁止通行；真正的碰撞判定还会检查 footprint、
-RPP 的前向碰撞预测和前方 `PolygonStop`。当前 `0.55 m` 是路径偏好，不是允许车体
+RPP 的前向碰撞预测和前方 `PolygonStop`。当前 `0.45 m` 是路径偏好，不是允许车体
 贴近障碍的许可证；若只想让显示更易读，可暂时关闭
 RViz 的 Global/Local Costmap 图层，不能据此判断实体障碍消失。
 
@@ -362,9 +369,9 @@ sg docker -c './scripts/run_navigation_trial.sh --x -8.5 --y 0.0 --yaw 3.1415926
 
 每次会在 `results/<label>/` 生成 `trajectory.png`、`trajectory.csv` 和 `metrics.yaml`。
 PNG 背景来自最终 `/map`，红线是 map 坐标系中的实际 odom 轨迹；YAML 同时记录
-action 墙钟时间和 Gazebo 仿真时间。结果目录默认被 `.gitignore` 排除，避免日志和
-二进制污染源码；本轮 `A_to_B_clearance` 和 `B_to_A_clearance` 基线证据已显式提交，
-其他新试验仍需按需归档。基线摘要会写入 `PROJECT_PROGRESS.md`。
+action 墙钟时间和 Gazebo 仿真时间。一般结果目录默认被 `.gitignore` 排除，避免日志污染源码；
+六次 benchmark 和本次目标线优化回归目录已显式纳入版本库。双视图、参数快照和 contacts
+证据见对应实验目录，汇总会写入 `PROJECT_PROGRESS.md`。
 
 修改 ROS 文件后：
 
@@ -417,15 +424,15 @@ Gazebo contacts 监听并发送目标。这里的 `(none)` 指过滤地面后没
 安全层 slowdown 和 RGB-D 障碍层更新后的局部路径重规划，不是碰撞。
 
 旧版固定地图过渡方案曾临时移除 `StaticLayer`，这段记录保留作历史排查依据；当前方案
-已经改为 `map_padder.py -> /nav_map -> StaticLayer`，请以本节下面的 clearance-first
-结果和 [本轮文档](NAVIGATION_UPDATE_2026-08-20_CLEARANCE_FIRST.md) 为准。
+已经改为 `map_padder.py -> /nav_map -> StaticLayer`；下面的 clearance-first 数值是
+历史 0.55 对照，当前目标线优化结果见 [优化文档](NAVIGATION_OPTIMIZATION_2026-08-20.md)。
 
 如果 GUI 测试时出现 `Failed to change state for node: collision_monitor`，通常是旧
 launch 没有完全退出而产生了重复节点，不是新的避障参数本身失败。先执行
 `sg docker -c './scripts/stop.sh'`，确认 `ros2 node list | sort` 中每个关键节点只
 出现一次，再重新启动一套仿真。
 
-### 当前 Smac + RPP clearance-first 回归
+### 历史 Smac + RPP clearance-first 回归（0.55）
 
 | 方向 | Nav2 status | 墙钟/仿真时间 | trial 最后采样 XY 误差 | contacts（过滤地面） |
 | --- | ---: | ---: | ---: | --- |
@@ -440,6 +447,12 @@ launch 没有完全退出而产生了重复节点，不是新的避障参数本�
 不是 Nav2 内部 goal checker 的判定值；本轮以 Nav2 `status=4` 作为成功标准。论文中应
 同时报告 action status、配置的 goal tolerance 和独立末端停稳误差，不能把这两个采样值
 简单写成“没有到达目标”。
+
+### 当前目标线优化回归（0.45）
+
+目标线候选三次 A -> B 均为 `status=4`，平均墙钟 `113.63 s`，平均 Gazebo 轨迹
+`17.977 m`，contacts 过滤地面后均为 none。详细参数、每次轨迹双视图和与原生 0.45
+基线的比较见 [NAVIGATION_OPTIMIZATION_2026-08-20.md](NAVIGATION_OPTIMIZATION_2026-08-20.md)。
 
 ## 8. 真实 Intel RealSense D435i
 
