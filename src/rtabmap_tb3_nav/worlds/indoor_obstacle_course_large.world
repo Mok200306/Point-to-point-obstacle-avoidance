@@ -34,6 +34,16 @@
       </ode>
     </physics>
 
+    <!-- Publish Gazebo ground truth for benchmark plots. This is observation
+         only; navigation still uses RGB-D, RTAB-Map and simulated odometry. -->
+    <plugin name="gazebo_ros_state" filename="libgazebo_ros_state.so">
+      <ros>
+        <namespace>/gazebo</namespace>
+        <remapping>model_states:=model_states</remapping>
+      </ros>
+      <update_rate>30.0</update_rate>
+    </plugin>
+
     <!-- A 20 m x 14 m enclosed room. The A and B markers are at (-8.5, 0)
          and (8.5, 0); the straight line is blocked by three offset bars. -->
     <model name="wall_north">
