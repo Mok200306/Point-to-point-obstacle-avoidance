@@ -1,0 +1,43 @@
+services:
+  ros2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: rtabmap-tb3:humble
+    container_name: rtabmap_tb3_humble
+    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
+    working_dir: /workspaces/rtabmap_tb3_nav
+    network_mode: host
+    ipc: host
+    stdin_open: true
+    tty: true
+    gpus: all
+    group_add:
+      - "44"
+      - "46"
+      - "109"
+    # Required when the real D435i is connected through USB. Gazebo-only runs
+    # do not use this device mapping.
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+    environment:
+      HOME: /tmp/ros_home
+      ROS_HOME: /tmp/ros_home/.ros
+      GAZEBO_HOME: /tmp/ros_home/.gazebo
+      XDG_CONFIG_HOME: /tmp/ros_home/.config
+      DISPLAY: "${DISPLAY:-:0}"
+      QT_X11_NO_MITSHM: "1"
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: all
+      ROS_DOMAIN_ID: "${ROS_DOMAIN_ID:-0}"
+      TURTLEBOT3_MODEL: waffle
+      GAZEBO_MODEL_PATH: /opt/ros/humble/share/turtlebot3_gazebo/models
+      GAZEBO_MODEL_DATABASE_URI: ""
+    volumes:
+      - .:/workspaces/rtabmap_tb3_nav:rw
+      - ./.ros:/tmp/ros_home/.ros:rw
+      - ./.gazebo:/tmp/ros_home/.gazebo:rw
+      - ./.config:/tmp/ros_home/.config:rw
+      - ./.rviz2:/tmp/ros_home/.rviz2:rw
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    command: ["bash", "-lc", "tail -f /dev/null"]

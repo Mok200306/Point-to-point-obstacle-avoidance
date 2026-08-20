@@ -68,16 +68,16 @@ RGB-D depth
 - RGB-D 障碍高度提高到 `1.5 m`，最大深度范围约 `3.8 m`；
 - 局部 costmap 扩大到 `6 m x 5 m`，更新频率 `10 Hz`；DWB 控制频率为 `10 Hz`，
   与 RGB-D 点云和当前仿真 CPU 负载匹配；
-- 全局/局部 inflation radius 为 `0.40 m`；这是当前仿真场景的安全折中值，真实机器人必须重新验证；
+- 全局/局部 inflation radius 为 `0.50 m`，`cost_scaling_factor=3.0`；更宽且更平滑的代价梯度让 DWB 更愿意走开阔区域，真实机器人必须重新验证；
 - 最大线速度降为 `0.18 m/s`，最大角速度降为 `0.75 rad/s`；
-- DWB 同时启用 `BaseObstacle` 和 `ObstacleFootprint`；
+- DWB 同时启用 `BaseObstacle` 和 `ObstacleFootprint`，权重分别为 `2.0/2.0`；路径跟随权重降为 `PathAlign=12`、`PathDist=16`，允许局部轨迹为了安全距离偏离全局路径；
 - 目标误差收紧为 XY `0.12 m`、yaw `0.15 rad`。
 - 模拟相机默认降为 `320 x 240 @ 15 Hz`，为 RTAB-Map、Nav2 和安全层保留 CPU
   余量；这不是 RGB-D 原理上的限制，接入 D435i 时再按实际帧率调节。
 
 窄路口停车问题已经针对“膨胀层 + 硬停止区 + DWB 角速度采样”造成的停止死锁调整：
-全局/局部 `inflation_radius` 为 `0.40 m`，`PolygonStop` 约 `0.38 m`，`PolygonSlow`
-约 `0.95 m` 且保留 `50%` 速度；进度检查器为 `0.20 m / 20 s`，DWB 采样为
+全局/局部 `inflation_radius` 为 `0.50 m`，`cost_scaling_factor=3.0`，`PolygonStop`
+约 `0.38 m`，`PolygonSlow` 约 `1.05 m` 且保留 `65%` 速度；进度检查器为 `0.20 m / 20 s`，DWB 采样为
 `8 x 1 x 7`、`sim_time=1.25 s`。`vtheta_samples=7` 让角速度样本包含约
 `-0.75/-0.50/-0.25/0/0.25/0.50/0.75 rad/s`，避免旧版 `vtheta_samples=20`
 选到约 `+/-0.0395 rad/s` 后左右摆动。这样机器人有机会在障碍拐角处先减速、转向
@@ -85,13 +85,13 @@ RGB-D depth
 
 RViz 中的紫红色区域是 `inflation_radius` 产生的代价梯度，不等于同样大小的实体
 墙，也不等于所有这些格子都禁止通行；真正的碰撞判定还会检查 footprint、
-`ObstacleFootprint` 和前方 `PolygonStop`。当前 `0.40 m` 是仿真场景的安全折中值，
+`ObstacleFootprint` 和前方 `PolygonStop`。当前 `0.50 m` 是仿真场景的安全折中值，
 优先保留它而不是为了让画面变窄直接降低安全余量。若只想让显示更易读，可暂时关闭
 RViz 的 Global/Local Costmap 图层，不能据此判断实体障碍消失。
 
 看到机器人在窄口短暂停顿时，先区分三种状态：
 
-- `PolygonSlow` 或速度从正常值降到约 `50%`：安全层看到了前方点云，这是预期的减速，
+- `PolygonSlow` 或速度从正常值降到约 `65%`：安全层看到了前方点云，这是预期的减速，
   不是导航失败；
 - `PolygonStop` 持续触发：安全层认为障碍已经进入硬停止区，应检查 `/camera/cloud`
   的频率、时间戳和 TF，不能直接缩小 footprint 来强行通过；
@@ -322,7 +322,8 @@ RTAB-Map 数据库位于宿主机：
 
 ## 7. 调参入口
 
-主要参数在 [nav2_rgbd_params.yaml](src/rtabmap_tb3_nav/config/nav2_rgbd_params.yaml)：
+完整参数表和调参顺序见 [PARAMETERS.md](PARAMETERS.md)，主要参数在
+[nav2_rgbd_params.yaml](src/rtabmap_tb3_nav/config/nav2_rgbd_params.yaml)：
 
 - 想更安全：先降低 `max_vel_x`，再增大 `inflation_radius` 和 footprint；
 - 想通过更窄的通道：只小幅减小 footprint/inflation，必须保持真实车体有余量；
@@ -332,7 +333,8 @@ RTAB-Map 数据库位于宿主机：
   `base_footprint`，然后再调整 `collision_monitor_rgbd_params.yaml` 中的
   `source_timeout`、`PolygonStop` 和高度范围；
 - 障碍物已经看见但仍靠近：提高 `BaseObstacle.scale`，或扩大 collision monitor
-  的 `PolygonStop`；
+  的 `PolygonStop`；若只是全局路径贴边，先降低 `PathAlign/PathDist`，不要先缩小
+  footprint；
 - 目标附近不够精确：调整 `xy_goal_tolerance` 和 `yaw_goal_tolerance`，同时
   保持足够的进场空间。
 - 机器人在窄口停住：先检查是否同时运行了两套 launch；执行
@@ -347,6 +349,21 @@ RTAB-Map 数据库位于宿主机：
 碰撞安全区在 [collision_monitor_rgbd_params.yaml](src/rtabmap_tb3_nav/config/collision_monitor_rgbd_params.yaml)，
 场景在 [indoor_obstacle_course_large.world](src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_large.world)，
 启动链路在 [demo.launch.py](src/rtabmap_tb3_nav/launch/demo.launch.py)。
+
+### 轨迹图和导航耗时
+
+需要记录一次完整实验时，使用下面的脚本代替只发送 action 的 `send_goal.py`：
+
+```bash
+sg docker -c './scripts/run_navigation_trial.sh --x 8.5 --y 0.0 --yaw 0.0 --label A_to_B_trial01'
+sg docker -c './scripts/run_navigation_trial.sh --x -8.5 --y 0.0 --yaw 3.14159265 --label B_to_A_trial01'
+```
+
+每次会在 `results/<label>/` 生成 `trajectory.png`、`trajectory.csv` 和 `metrics.yaml`。
+PNG 背景来自最终 `/map`，红线是 map 坐标系中的实际 odom 轨迹；YAML 同时记录
+action 墙钟时间和 Gazebo 仿真时间。结果目录默认被 `.gitignore` 排除，避免日志和
+二进制污染源码；本轮 `A_to_B_clearance` 和 `B_to_A_clearance` 基线证据已显式提交，
+其他新试验仍需按需归档。基线摘要会写入 `PROJECT_PROGRESS.md`。
 
 修改 ROS 文件后：
 
@@ -367,6 +384,24 @@ Docker 镜像；因为相机分辨率、帧率、LDS 删除和 `cmd_vel_safe` re
 ```
 
 ### 本轮回归证据
+
+本次“障碍距离优先”参数的可复现实验记录如下：
+
+| 方向 | Nav2 | action 墙钟/仿真时间 | 末端 XY 误差 | 轨迹样本 | contacts（过滤地面） |
+| --- | ---: | ---: | ---: | ---: | --- |
+| A -> B | `4` | `182.87 s` | `0.108 m` | `900` | `464223`，`(none)` |
+| B -> A | `4` | `161.07 s` | `0.111 m` | `723` | `424417`，`(none)` |
+
+轨迹文件为 `results/A_to_B_clearance/` 和 `results/B_to_A_clearance/`。B 起点的接触
+回归都使用干净重启并从对应端点开始；`scripts/regression_leg.sh` 会先等待
+`/controller_server` 和 `/planner_server` 都处于 `active [3]`，再开始 300 s 的
+Gazebo contacts 监听并发送目标。这里的 `(none)` 指过滤地面后没有机器人与墙、栏杆、
+箱体或柱体的接触对。
+
+这组结果可以作为论文中的“仿真 RGB-D 在线建图 + Nav2 DWB 基线”，但需要同时报告
+场景、速度、footprint、膨胀层、目标容差和无障碍接触判据。它不是“真实 D435i 基线”，
+也不代表任意未知布局都能零碰撞；当前单次耗时仍包含在线建图和局部重规划带来的低速，
+后续应增加多次重复实验并统计均值、标准差、成功率和最小障碍距离。
 
 窄口调参后，Gazebo + RViz2 开启时的 A -> B 返回 Nav2 状态 `4`，末端距离约
 `0.12 m`；约 `307587` 条 Gazebo contacts 记录过滤地面后没有机器人与障碍物接触。

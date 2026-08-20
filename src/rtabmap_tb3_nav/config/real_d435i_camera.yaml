@@ -1,0 +1,17 @@
+# Intel RealSense D435i settings for the real-robot launch.
+# Keep camera_frame in real_d435i_nav.launch.py equal to base_frame_id below.
+enable_color: true
+enable_depth: true
+enable_sync: true
+enable_gyro: true
+enable_accel: true
+unite_imu_method: 2
+publish_tf: true
+base_frame_id: camera_link
+rgb_camera.color_profile: 640x480x30
+depth_module.depth_profile: 640x480x30
+align_depth.enable: true
+pointcloud.enable: false
+enable_rgbd: false
+wait_for_device_timeout: 30.0
+reconnect_timeout: 6.0

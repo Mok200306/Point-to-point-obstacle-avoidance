@@ -1,0 +1,189 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <world name="indoor_obstacle_course_large">
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+    <include>
+      <uri>model://sun</uri>
+    </include>
+
+    <scene>
+      <ambient>0.65 0.65 0.65 1</ambient>
+      <background>0.82 0.86 0.90 1</background>
+      <shadows>true</shadows>
+      <grid>false</grid>
+    </scene>
+
+    <physics type="ode">
+      <real_time_update_rate>1000.0</real_time_update_rate>
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1</real_time_factor>
+      <ode>
+        <solver>
+          <type>quick</type>
+          <iters>150</iters>
+          <sor>1.4</sor>
+        </solver>
+        <constraints>
+          <cfm>0.00001</cfm>
+          <erp>0.2</erp>
+          <contact_max_correcting_vel>2000</contact_max_correcting_vel>
+          <contact_surface_layer>0.01</contact_surface_layer>
+        </constraints>
+      </ode>
+    </physics>
+
+    <!-- A 20 m x 14 m enclosed room. The A and B markers are at (-8.5, 0)
+         and (8.5, 0); the straight line is blocked by three offset bars. -->
+    <model name="wall_north">
+      <static>true</static>
+      <pose>0 7.0 0.8 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>20.2 0.2 1.6</size></box></geometry></collision>
+        <visual name="visual">
+          <geometry><box><size>20.2 0.2 1.6</size></box></geometry>
+          <material><ambient>0.55 0.58 0.62 1</ambient><diffuse>0.62 0.65 0.70 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+    <model name="wall_south">
+      <static>true</static>
+      <pose>0 -7.0 0.8 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>20.2 0.2 1.6</size></box></geometry></collision>
+        <visual name="visual">
+          <geometry><box><size>20.2 0.2 1.6</size></box></geometry>
+          <material><ambient>0.55 0.58 0.62 1</ambient><diffuse>0.62 0.65 0.70 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+    <model name="wall_east">
+      <static>true</static>
+      <pose>10.0 0 0.8 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>0.2 14.2 1.6</size></box></geometry></collision>
+        <visual name="visual">
+          <geometry><box><size>0.2 14.2 1.6</size></box></geometry>
+          <material><ambient>0.55 0.58 0.62 1</ambient><diffuse>0.62 0.65 0.70 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+    <model name="wall_west">
+      <static>true</static>
+      <pose>-10.0 0 0.8 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>0.2 14.2 1.6</size></box></geometry></collision>
+        <visual name="visual">
+          <geometry><box><size>0.2 14.2 1.6</size></box></geometry>
+          <material><ambient>0.55 0.58 0.62 1</ambient><diffuse>0.62 0.65 0.70 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Offset bars force a visible left-right weave. The adjacent crates are
+         deliberately kept at least about 1.8 m from a bar opening so the
+         Waffle footprint has a real route after costmap safety margins. -->
+    <model name="barrier_west">
+      <static>true</static><pose>-4.7 0.0 0.45 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>4.2 0.55 0.9</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>4.2 0.55 0.9</size></box></geometry>
+          <material><ambient>0.85 0.28 0.05 1</ambient><diffuse>0.95 0.34 0.06 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="barrier_center">
+      <static>true</static><pose>0.4 1.6 0.45 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>5.4 0.55 0.9</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>5.4 0.55 0.9</size></box></geometry>
+          <material><ambient>0.08 0.32 0.78 1</ambient><diffuse>0.06 0.42 0.95 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="barrier_east">
+      <static>true</static><pose>5.3 -0.25 0.45 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>4.0 0.55 0.9</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>4.0 0.55 0.9</size></box></geometry>
+          <material><ambient>0.78 0.12 0.14 1</ambient><diffuse>0.92 0.16 0.18 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <!-- Additional furniture keeps both sides of the bars meaningful while
+         preserving broad, observable routes rather than narrow slits. -->
+    <model name="crate_west_north">
+      <static>true</static><pose>-7.3 2.8 0.45 0 0 0</pose>
+      <link name="link"><collision name="collision"><geometry><box><size>1.5 1.0 0.9</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>1.5 1.0 0.9</size></box></geometry>
+          <material><ambient>0.08 0.58 0.25 1</ambient><diffuse>0.10 0.72 0.30 1</diffuse></material></visual></link>
+    </model>
+    <model name="crate_west_south">
+      <static>true</static><pose>-7.3 -2.8 0.4 0 0 0</pose>
+      <link name="link"><collision name="collision"><geometry><box><size>1.5 1.0 0.8</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>1.5 1.0 0.8</size></box></geometry>
+          <material><ambient>0.72 0.42 0.06 1</ambient><diffuse>0.86 0.52 0.08 1</diffuse></material></visual></link>
+    </model>
+    <model name="crate_center_south">
+      <static>true</static><pose>-0.8 -1.6 0.45 0 0 0</pose>
+      <link name="link"><collision name="collision"><geometry><box><size>1.6 1.0 0.9</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>1.6 1.0 0.9</size></box></geometry>
+          <material><ambient>0.52 0.12 0.58 1</ambient><diffuse>0.68 0.18 0.75 1</diffuse></material></visual></link>
+    </model>
+    <model name="crate_center_north">
+      <static>true</static><pose>2.0 3.0 0.5 0 0 0</pose>
+      <link name="link"><collision name="collision"><geometry><box><size>1.4 1.1 1.0</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>1.4 1.1 1.0</size></box></geometry>
+          <material><ambient>0.78 0.40 0.06 1</ambient><diffuse>0.94 0.52 0.08 1</diffuse></material></visual></link>
+    </model>
+    <model name="crate_east_north">
+      <static>true</static><pose>7.8 2.8 0.45 0 0 0</pose>
+      <link name="link"><collision name="collision"><geometry><box><size>1.4 1.0 0.9</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>1.4 1.0 0.9</size></box></geometry>
+          <material><ambient>0.04 0.48 0.72 1</ambient><diffuse>0.05 0.62 0.90 1</diffuse></material></visual></link>
+    </model>
+    <model name="crate_east_south">
+      <static>true</static><pose>7.8 -2.8 0.45 0 0 0</pose>
+      <link name="link"><collision name="collision"><geometry><box><size>1.4 1.0 0.9</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>1.4 1.0 0.9</size></box></geometry>
+          <material><ambient>0.58 0.16 0.20 1</ambient><diffuse>0.76 0.22 0.25 1</diffuse></material></visual></link>
+    </model>
+    <model name="pillar_south">
+      <static>true</static><pose>3.0 -3.0 0.6 0 0 0</pose>
+      <link name="link"><collision name="collision"><geometry><box><size>0.9 2.2 1.2</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>0.9 2.2 1.2</size></box></geometry>
+          <material><ambient>0.36 0.36 0.40 1</ambient><diffuse>0.48 0.50 0.56 1</diffuse></material></visual></link>
+    </model>
+    <model name="crate_north_west">
+      <static>true</static><pose>-1.5 4.2 0.5 0 0 0</pose>
+      <link name="link"><collision name="collision"><geometry><box><size>1.0 1.4 1.0</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>1.0 1.4 1.0</size></box></geometry>
+          <material><ambient>0.06 0.54 0.45 1</ambient><diffuse>0.08 0.70 0.56 1</diffuse></material></visual></link>
+    </model>
+    <model name="crate_north_east">
+      <static>true</static><pose>4.5 3.4 0.45 0 0 0</pose>
+      <link name="link"><collision name="collision"><geometry><box><size>1.2 1.0 0.9</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>1.2 1.0 0.9</size></box></geometry>
+          <material><ambient>0.58 0.26 0.06 1</ambient><diffuse>0.75 0.35 0.08 1</diffuse></material></visual></link>
+    </model>
+
+    <!-- Flat markers: green is A, red is B. They have no collision geometry. -->
+    <model name="start_marker">
+      <static>true</static><pose>-8.5 0.0 0.006 0 0 0</pose>
+      <link name="link"><visual name="visual"><geometry><cylinder><radius>0.36</radius><length>0.012</length></cylinder></geometry>
+        <material><ambient>0.05 0.75 0.25 1</ambient><diffuse>0.05 0.90 0.30 1</diffuse></material></visual></link>
+    </model>
+    <model name="goal_marker">
+      <static>true</static><pose>8.5 0.0 0.007 0 0 0</pose>
+      <link name="link"><visual name="visual"><geometry><cylinder><radius>0.36</radius><length>0.014</length></cylinder></geometry>
+        <material><ambient>0.90 0.08 0.08 1</ambient><diffuse>1.0 0.12 0.12 1</diffuse></material></visual></link>
+    </model>
+
+    <gui fullscreen="0">
+      <camera name="user_camera">
+        <pose>0 0 22.0 0 1.5708 0</pose>
+        <view_controller>orbit</view_controller>
+        <projection_type>perspective</projection_type>
+      </camera>
+    </gui>
+  </world>
+</sdf>

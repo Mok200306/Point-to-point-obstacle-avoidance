@@ -1,0 +1,30 @@
+# ROS 2 and colcon outputs
+build/
+install/
+log/
+.ros/
+
+# Gazebo, RViz and local desktop state
+.gazebo/
+.config/
+.rviz2/
+
+# Python caches
+__pycache__/
+*.py[cod]
+
+# Generated navigation trials
+results/*
+!results/.gitkeep
+# Keep the two documented baseline runs as reviewable evidence.
+!results/A_to_B_clearance/
+!results/A_to_B_clearance/metrics.yaml
+!results/A_to_B_clearance/trajectory.csv
+!results/A_to_B_clearance/trajectory.png
+!results/B_to_A_clearance/
+!results/B_to_A_clearance/metrics.yaml
+!results/B_to_A_clearance/trajectory.csv
+!results/B_to_A_clearance/trajectory.png
+
+# Local environment overrides
+.env
