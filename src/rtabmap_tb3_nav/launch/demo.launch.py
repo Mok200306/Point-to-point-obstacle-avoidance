@@ -15,10 +15,53 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 
-def nav2_params_for_mode(source_file, package_share, online):
+def apply_navigation_profile(params, profile):
+    """Apply a named, reproducible experiment profile to loaded parameters."""
+    if profile in ('current', 'fast_north_045_v2'):
+        return
+
+    if profile == 'fast_north_045_v1':
+        planner = params['planner_server']['ros__parameters']['GridBased']
+        planner['side_bias_world_x_min'] = -8.2
+        planner['side_bias_target_world_y_enabled'] = False
+        planner['side_bias_reference_world_y'] = 0.0
+        planner['side_bias_target_world_y'] = 0.0
+        planner['side_bias_target_offset'] = 0.95
+        planner['side_bias_target_max_cost'] = 180.0
+        planner['side_bias_target_distance_scale'] = 0.50
+        return
+
+    if profile in ('frozen_goal_line_045_v1', 'goal_line_quad_045_v1'):
+        controller = params['controller_server']['ros__parameters']['FollowPath']
+        controller['desired_linear_vel'] = 0.22
+        controller['lookahead_dist'] = 0.70
+        controller['min_lookahead_dist'] = 0.52
+        controller['max_lookahead_dist'] = 1.10
+        controller['min_approach_linear_velocity'] = 0.06
+
+        planner = params['planner_server']['ros__parameters']['GridBased']
+        planner['side_bias_enabled'] = False
+        planner['side_bias_apply_to_unknown'] = False
+        planner['side_bias_target_world_y_enabled'] = False
+
+        smoother = params['velocity_smoother']['ros__parameters']
+        smoother['max_velocity'] = [0.22, 0.0, 0.75]
+        smoother['max_accel'] = [0.8, 0.0, 2.0]
+        smoother['max_decel'] = [-1.0, 0.0, -2.0]
+        return
+
+    raise RuntimeError(
+        'Unknown navigation_profile={!r}; use current, fast_north_045_v1, '
+        'fast_north_045_v2, '
+        'or frozen_goal_line_045_v1.'.format(profile))
+
+
+def nav2_params_for_mode(source_file, package_share, online, profile):
     """Select the online padded map or saved-map localization configuration."""
     with open(source_file, 'r', encoding='utf-8') as stream:
         params = yaml.safe_load(stream)
+
+    apply_navigation_profile(params, profile)
 
     global_params = params['global_costmap']['global_costmap']['ros__parameters']
     # A fixed-size copy of RTAB-Map's growing map allows online planning to
@@ -44,6 +87,29 @@ def nav2_params_for_mode(source_file, package_share, online):
     return rewritten.name
 
 
+def collision_monitor_params_for_profile(source_file, profile):
+    """Create a temporary collision-monitor YAML for a named profile."""
+    with open(source_file, 'r', encoding='utf-8') as stream:
+        params = yaml.safe_load(stream)
+
+    if profile in ('current', 'fast_north_045_v1', 'fast_north_045_v2'):
+        pass
+    elif profile in ('frozen_goal_line_045_v1', 'goal_line_quad_045_v1'):
+        params['collision_monitor']['ros__parameters']['PolygonSlow'][
+            'slowdown_ratio'] = 0.65
+    else:
+        raise RuntimeError(
+            'Unknown navigation_profile={!r}; use current, fast_north_045_v1, '
+            'fast_north_045_v2, '
+            'or frozen_goal_line_045_v1.'.format(profile))
+
+    rewritten = tempfile.NamedTemporaryFile(
+        mode='w', suffix='.yaml', prefix='rtabmap_collision_', delete=False)
+    yaml.safe_dump(params, rewritten, sort_keys=False)
+    rewritten.close()
+    return rewritten.name
+
+
 def launch_setup(context, *args, **kwargs):
     package_share = get_package_share_directory('rtabmap_tb3_nav')
     gazebo_share = get_package_share_directory('turtlebot3_gazebo')
@@ -55,6 +121,7 @@ def launch_setup(context, *args, **kwargs):
     nav2_params = LaunchConfiguration('nav2_params').perform(context)
     collision_monitor_params = LaunchConfiguration(
         'collision_monitor_params').perform(context)
+    navigation_profile = LaunchConfiguration('navigation_profile').perform(context)
 
     use_sim_time = LaunchConfiguration('use_sim_time')
     localization = LaunchConfiguration('localization')
@@ -108,7 +175,10 @@ def launch_setup(context, *args, **kwargs):
     # RTAB-Map starts with a small map and grows it as the robot moves. Online
     # mode uses a fixed-size padded copy of that map; localization mode uses
     # the saved RTAB-Map map through StaticLayer.
-    nav2_params_file = nav2_params_for_mode(nav2_params, package_share, online)
+    nav2_params_file = nav2_params_for_mode(
+        nav2_params, package_share, online, navigation_profile)
+    collision_monitor_params_file = collision_monitor_params_for_profile(
+        collision_monitor_params, navigation_profile)
 
     online_map_padder = []
     if online:
@@ -147,7 +217,7 @@ def launch_setup(context, *args, **kwargs):
             collision_monitor_share, 'launch', 'collision_monitor_node.launch.py')),
         launch_arguments={
             'use_sim_time': use_sim_time,
-            'params_file': collision_monitor_params,
+            'params_file': collision_monitor_params_file,
         }.items(),
     )
 
@@ -341,5 +411,11 @@ def generate_launch_description():
                 'config',
                 'collision_monitor_rgbd_params.yaml'),
             description='Collision monitor parameter file.'),
+        DeclareLaunchArgument(
+            'navigation_profile',
+            default_value='fast_north_045_v2',
+            description=(
+                'Reproducible parameter profile: fast_north_045_v2 is current; '
+                'frozen_goal_line_045_v1 restores the pre-optimization run-03 baseline.')),
         OpaqueFunction(function=launch_setup),
     ])

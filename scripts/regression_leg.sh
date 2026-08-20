@@ -53,7 +53,11 @@ label="${label#results/}"
 compose_exec() {
   local command_text="$1"
   local quoted
-  printf -v quoted '%q' "$command_text"
+  # `sg docker -c` is evaluated by /bin/sh on this host. Bash's `%q` emits
+  # `$'...'`, which /bin/sh does not parse and which silently breaks the ROS
+  # setup command. Use portable single-quote escaping instead.
+  local escaped="${command_text//\'/\'\\\'\'}"
+  printf -v quoted "'%s'" "$escaped"
   if docker info >/dev/null 2>&1; then
     docker compose exec -T ros2 bash -lc "$command_text"
   else
