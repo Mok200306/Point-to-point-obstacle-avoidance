@@ -58,6 +58,12 @@ void GoalLineSmacPlanner::configure(
     name + ".side_bias_target_distance_scale", side_bias_target_distance_scale_);
   node->declare_parameter(
     name + ".side_bias_target_exponent", side_bias_target_exponent_);
+  node->declare_parameter(
+    name + ".side_bias_target_schedule_enabled", side_bias_target_schedule_enabled_);
+  node->declare_parameter(
+    name + ".side_bias_target_schedule_x", side_bias_target_schedule_x_);
+  node->declare_parameter(
+    name + ".side_bias_target_schedule_y", side_bias_target_schedule_y_);
   node->get_parameter(name + ".line_bias_enabled", line_bias_enabled_);
   node->get_parameter(name + ".line_bias_max_cost", line_bias_max_cost_);
   node->get_parameter(
@@ -92,6 +98,12 @@ void GoalLineSmacPlanner::configure(
     name + ".side_bias_target_distance_scale", side_bias_target_distance_scale_);
   node->get_parameter(
     name + ".side_bias_target_exponent", side_bias_target_exponent_);
+  node->get_parameter(
+    name + ".side_bias_target_schedule_enabled", side_bias_target_schedule_enabled_);
+  node->get_parameter(
+    name + ".side_bias_target_schedule_x", side_bias_target_schedule_x_);
+  node->get_parameter(
+    name + ".side_bias_target_schedule_y", side_bias_target_schedule_y_);
 
   line_bias_max_cost_ = std::clamp(line_bias_max_cost_, 0.0, 252.0);
   line_bias_distance_scale_ = std::max(line_bias_distance_scale_, 0.05);
@@ -113,13 +125,29 @@ void GoalLineSmacPlanner::configure(
   if (side_bias_world_x_min_ > side_bias_world_x_max_) {
     side_bias_enabled_ = false;
   }
+  if (side_bias_target_schedule_x_.size() != side_bias_target_schedule_y_.size() ||
+    side_bias_target_schedule_x_.size() < 2U)
+  {
+    side_bias_target_schedule_enabled_ = false;
+    side_bias_target_schedule_x_.clear();
+    side_bias_target_schedule_y_.clear();
+  } else {
+    for (size_t i = 1; i < side_bias_target_schedule_x_.size(); ++i) {
+      if (side_bias_target_schedule_x_[i] <= side_bias_target_schedule_x_[i - 1]) {
+        side_bias_target_schedule_enabled_ = false;
+        side_bias_target_schedule_x_.clear();
+        side_bias_target_schedule_y_.clear();
+        break;
+      }
+    }
+  }
 
   RCLCPP_INFO(
     logger_,
     "Goal-line bias: enabled=%s max_cost=%.1f distance_scale=%.2f m exponent=%.2f; "
     "side bias: enabled=%s preferred_y_sign=%d max_cost=%.1f x=[%.2f, %.2f] "
     "apply_to_unknown=%s unknown_base_cost=%.1f target_world_y=%s ref_y=%.2f "
-    "target_y=%.2f target_offset=%.2f target_cost=%.1f",
+    "target_y=%.2f target_offset=%.2f target_cost=%.1f target_schedule=%s points=%zu",
     line_bias_enabled_ ? "true" : "false", line_bias_max_cost_,
     line_bias_distance_scale_, line_bias_exponent_,
     side_bias_enabled_ ? "true" : "false", side_bias_preferred_y_sign_,
@@ -128,8 +156,9 @@ void GoalLineSmacPlanner::configure(
     side_bias_unknown_base_cost_,
     side_bias_target_world_y_enabled_ ? "true" : "false",
     side_bias_reference_world_y_, side_bias_target_world_y_,
-    side_bias_target_offset_,
-    side_bias_target_max_cost_);
+    side_bias_target_offset_, side_bias_target_max_cost_,
+    side_bias_target_schedule_enabled_ ? "true" : "false",
+    side_bias_target_schedule_x_.size());
 }
 
 double GoalLineSmacPlanner::distanceToSegment(
@@ -243,8 +272,28 @@ nav_msgs::msg::Path GoalLineSmacPlanner::createPlan(
           soft_cost = unknown ? soft_cost + side_cost : std::max(soft_cost, side_cost);
 
           if (side_bias_target_offset_ > 0.0 && side_bias_target_max_cost_ > 0.0) {
+            double target_world_y = side_bias_target_world_y_;
+            if (side_bias_target_schedule_enabled_) {
+              const auto & schedule_x = side_bias_target_schedule_x_;
+              const auto & schedule_y = side_bias_target_schedule_y_;
+              if (world_x <= schedule_x.front()) {
+                target_world_y = schedule_y.front();
+              } else if (world_x >= schedule_x.back()) {
+                target_world_y = schedule_y.back();
+              } else {
+                for (size_t i = 1; i < schedule_x.size(); ++i) {
+                  if (world_x <= schedule_x[i]) {
+                    const double span = schedule_x[i] - schedule_x[i - 1];
+                    const double ratio = (world_x - schedule_x[i - 1]) / span;
+                    target_world_y = schedule_y[i - 1] +
+                      ratio * (schedule_y[i] - schedule_y[i - 1]);
+                    break;
+                  }
+                }
+              }
+            }
             const double target_distance = side_bias_target_world_y_enabled_ ?
-              std::abs(world_y - side_bias_target_world_y_) :
+              std::abs(world_y - target_world_y) :
               std::abs(
                 signed_distance -
                 static_cast<double>(side_bias_preferred_y_sign_) * side_bias_target_offset_);

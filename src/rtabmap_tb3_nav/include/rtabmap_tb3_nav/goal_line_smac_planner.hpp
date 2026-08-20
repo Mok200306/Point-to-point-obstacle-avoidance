@@ -61,6 +61,9 @@ private:
   double side_bias_target_max_cost_{30.0};
   double side_bias_target_distance_scale_{0.75};
   double side_bias_target_exponent_{2.0};
+  bool side_bias_target_schedule_enabled_{false};
+  std::vector<double> side_bias_target_schedule_x_;
+  std::vector<double> side_bias_target_schedule_y_;
   rclcpp::Logger logger_{rclcpp::get_logger("GoalLineSmacPlanner")};
 };
 
