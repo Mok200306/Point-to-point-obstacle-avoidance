@@ -1,18 +1,18 @@
 # 项目进度总结
 
-更新时间：2026-08-20（目标线规划优化、三次回归与参数冻结）
+更新时间：2026-08-21（连续走廊优化、三次回归与参数冻结）
 
 ## 当前结论（最新）
 
-当前源码已经从提交 `be04483` 的原生 Smac + RPP 0.45 回退基线，推进到提交
-`c18894e` 的目标线优化候选。`GoalLineSmacPlanner` 在 Smac 可行路径上对已知自由栅格
-增加偏离起终点线的二次软代价，同时保持障碍、footprint、RPP 和 collision monitor
-硬约束不变。三次干净 A -> B 回归均为 `status=4`，Gazebo contacts 过滤地面后均无
-非地面接触，平均墙钟 `113.63 s`，因此当前冻结为 0.45 目标线候选。
+当前源码冻结在提交 `6202912`，默认 profile 为 `fast_north_045_v3`。它在
+`fast_north_045_v2` 的固定西侧窗口基础上，把北侧走廊连续延长到中央障碍物末端，
+三次干净 A -> B 均为 `status=4`，Gazebo contacts 过滤地面后均无非地面接触，平均
+wall `91.08 ± 0.61 s`。三次 v3 的最大北向偏移为 `1.388 ± 0.044 m`，相比 v2 的
+`1.588 ± 0.422 m` 更一致。
 
-详细实验表和双视图：[NAVIGATION_OPTIMIZATION_2026-08-20.md](NAVIGATION_OPTIMIZATION_2026-08-20.md)
+详细实验表和双视图：[NAVIGATION_OPTIMIZATION_2026-08-21.md](NAVIGATION_OPTIMIZATION_2026-08-21.md)
 
-冻结参数：[FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-20.md](FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-20.md)
+冻结参数：[FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-21.md](FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-21.md)
 
 ## 当前目标
 
@@ -31,7 +31,7 @@ Humble，复现无真实 LiDAR 的 TurtleBot3 RGB-D + RTAB-Map + Nav2 室内 A -
 | RGB-D 局部避障 | 已完成 | `/camera/obstacles` -> voxel costmap |
 | 在线建图在线导航 | 本次实现 | 默认启动即同时运行，不再强制预建图 |
 | 碰撞安全层 | 已完成双向回归 | `nav2_collision_monitor` 读取降采样 `/camera/cloud`，输出 `/cmd_vel_safe`；A -> B / B -> A 物理接触过滤均未发现障碍碰撞 |
-| 贴边路径优化 | 已完成目标线候选三次回归 | `GoalLineSmacPlanner`，inflation `0.45 m`，二次目标线偏好，RPP 使用 `0.52--1.10 m` 前视 |
+| 贴边路径优化 | 已完成 v3 三次正式回归 | `GoalLineSmacPlanner`，inflation `0.45 m`，连续固定走廊，RPP 使用 `0.56--1.15 m` 前视 |
 | 轨迹与计时记录 | 已完成 | `navigation_trial.py` 自动输出 PNG、CSV、YAML，记录墙钟和 Gazebo 仿真时间 |
 | 大型障碍场景 | 本次实现 | 20 m x 14 m，错位障碍栏 + 10 个箱体/柱体 |
 | 真实 D435i | 软件启动链路已准备，尚未接入实际硬件 | 已加入 RealSense 驱动、USB 映射、相机参数和真实启动文件；仍需真实底盘、TF 与 D435i 实测 |
@@ -66,7 +66,7 @@ DWB 又会较强地追随这条路径；在线模式中直接订阅增长中的 
 - `SmacPlanner2D` + `cost_travel_multiplier=6.0`，让高代价边缘路径在累计代价上
   更不占优；
 - Smac 内置 path smoother，给控制器更连续的路径方向；
-- `RegulatedPurePursuitController` 使用 `0.52--1.10 m` 自适应前视，按曲率、cost
+- `RegulatedPurePursuitController` 当前 v3 使用 `0.56--1.15 m` 自适应前视，按曲率、cost
   和前向碰撞预测调速，提前在障碍拐角前转向；普通弯道优先连续跟踪，终点大角度
   误差仍允许原地对齐；
 - 稳定行为树每 `2 s` 检查路径，路径有效时约 `20 s` 才重算，目标改变或路径失效时
@@ -269,11 +269,11 @@ Gazebo RGB-D 相机
 - `allow_unknown: true`，允许在线地图增长期间规划；
 - 局部 costmap 为 6 m x 5 m，10 Hz 更新；controller 为 15 Hz；
 - `SmacPlanner2D` 使用 `cost_travel_multiplier=6.0`，并启用内置路径平滑；
-- `RegulatedPurePursuitController` 使用 `desired_linear_vel=0.22 m/s`、前视距离
-  `0.52--1.10 m`，启用曲率/代价调速和前向碰撞预测；
+- `RegulatedPurePursuitController` 当前使用 `desired_linear_vel=0.26 m/s`、前视距离
+  `0.56--1.15 m`，启用曲率/代价调速和前向碰撞预测；
 - 使用矩形 footprint `0.60 m x 0.48 m`，padding `0.03 m`；
-- inflation radius `0.55 m`、`cost_scaling_factor=3.0`；这是仿真路径偏好参数，不是固定的真实机器人安全值；
-- 线速度 `0.18 m/s`，角速度 `0.75 rad/s`；
+- inflation radius `0.45 m`、`cost_scaling_factor=3.0`；这是仿真路径偏好参数，不是固定的真实机器人安全值；
+- v3 线速度上限 `0.26 m/s`，角速度上限 `0.85 rad/s`；
 - `SimpleProgressChecker` 使用 `0.20 m / 20 s`，允许机器人在拐角减速或反向目标的初始
   转向时继续
   获得进度；
@@ -291,7 +291,7 @@ Gazebo RGB-D 相机
   `/camera/points` 仅用于诊断，Nav2 costmap 继续使用 `/camera/obstacles`；
 - 前方约 `0.38 m` stop polygon；硬停止区贴近车体，避免在拐角还没完成转向时提前
   锁死；
-- 前方约 `1.05 m` slowdown polygon，速度降到 `65%`；
+- 前方约 `1.05 m` slowdown polygon，速度降到 `75%`；
 - `source_timeout` 收紧到 `0.5 s`，避免安全层继续使用过期点云；
 - 不把完整原始点云直接交给 collision monitor，避免 20 Hz controller 因点数过多
   掉频；
@@ -433,6 +433,20 @@ sg docker -c 'docker compose exec ros2 bash -lc "source /opt/ros/humble/setup.ba
 - 真实 D435i 的深度反光、黑色物体、阳光和遮挡需要单独标定；
 - Docker 当前终端若没有 docker group 权限，需要使用 `sg docker -c '...'`。
 
+## 当前连续走廊优化回归（0.45）
+
+v3 三次 A -> B 均为 `status=4`，wall `90.238 / 91.352 / 91.659 s`，平均
+`91.083 ± 0.61 s`，平均 Gazebo 轨迹 `17.492 m`，最大 y 偏移 `1.388 ± 0.044 m`，
+contacts 过滤地面后均为 none。详细参数、每次轨迹双视图和 v2 对照见
+[NAVIGATION_OPTIMIZATION_2026-08-21.md](NAVIGATION_OPTIMIZATION_2026-08-21.md)。
+
+v2 三次结果仍保留为对照：平均 `95.541 ± 2.03 s`，平均 Gazebo 轨迹 `17.765 m`，
+最大 y 偏移 `1.588 ± 0.422 m`，3/3 成功、0/3 非地面碰撞。
+
+当前分支可直接用 `navigation_profile:=fast_north_045_v2` 恢复 v2 的参数覆盖；如果
+要求代码级精确复现，应按结果目录 `experiment.yaml` 的 `git_commit` 建立 worktree，
+不要用新版本二进制冒充旧提交。v3 只新增 launch profile，未改动 C++ planner 算法。
+
 ## 2026-08-20 六次参数基准（历史对照）
 
 本轮严格按固定规则完成了同一大场景、同一 A -> B 目标、每组 3 次干净重启的对比：
@@ -446,6 +460,7 @@ sg docker -c 'docker compose exec ros2 bash -lc "source /opt/ros/humble/setup.ba
 [BENCHMARK_2026-08-20_SUMMARY.md](BENCHMARK_2026-08-20_SUMMARY.md)，冻结参数与复现命令见
 [FROZEN_NAVIGATION_PARAMETERS_2026-08-20.md](FROZEN_NAVIGATION_PARAMETERS_2026-08-20.md)。
 
-历史冻结配置提交：`be1dabe`；0.45 对照切换提交：`a1389ff`。当前优化提交为
-`c18894e`，后续参数实验应从当前冻结版本创建新提交，一次只改变一个变量，并保持同样的
-3 次回归与物理 contacts 证据。
+历史冻结配置提交：`be1dabe`；0.45 对照切换提交：`a1389ff`；目标线候选提交：
+`c18894e`；固定西侧窗口 v2 提交：`9823820`；当前连续走廊 v3 提交：`6202912`。
+后续参数实验应从当前冻结版本创建新提交，一次只改变一个变量，并保持同样的 3 次回归
+与物理 contacts 证据。

@@ -45,26 +45,26 @@ RTAB-Map 地图尺寸变化反复 resize。定位模式则把 `StaticLayer.map_t
 | --- | --- | ---: | --- |
 | 车体 | `footprint` | `0.60 x 0.48 m` | costmap 的硬碰撞几何 |
 | 车体 | `footprint_padding` | `0.03 m` | 额外安全余量 |
-| 速度 | `FollowPath.desired_linear_vel` | `0.22 m/s` | RPP 直线段目标速度 |
-| 速度 | `max_velocity[0]` | `0.22 m/s` | velocity smoother 上限 |
-| 速度 | `max_velocity[2]` | `0.75 rad/s` | 角速度上限 |
-| 加速度 | `max_accel` / `max_decel` | `0.8` / `-1.0` | 线速度变化限制 |
-| RPP 前视 | `lookahead_dist` | `0.70 m` | 默认前视距离 |
-| RPP 前视 | `min/max_lookahead_dist` | `0.52 / 1.10 m` | 前视范围 |
+| 速度 | `FollowPath.desired_linear_vel` | `0.26 m/s` | v3 RPP 直线段目标速度 |
+| 速度 | `max_velocity[0]` | `0.26 m/s` | velocity smoother 上限 |
+| 速度 | `max_velocity[2]` | `0.85 rad/s` | 角速度上限 |
+| 加速度 | `max_accel` / `max_decel` | `0.9` / `-1.1` | 线速度变化限制 |
+| RPP 前视 | `lookahead_dist` | `0.75 m` | 默认前视距离 |
+| RPP 前视 | `min/max_lookahead_dist` | `0.56 / 1.15 m` | 前视范围 |
 | RPP 转向 | `use_rotate_to_heading` | `true`, threshold `1.20 rad` | 普通弯道连续跟踪，终点大角度误差才原地对齐 |
 | RPP 调速 | `regulated_linear_scaling_min_radius` | `0.75 m` | 曲率变大时减速 |
 | RPP 调速 | `cost_scaling_dist` | `0.55 m` | 靠近障碍代价区时调速 |
 | 控制频率 | `controller_frequency` | `15 Hz` | RPP 控制循环 |
-| 全局规划 | `GridBased.plugin` | `nav2_smac_planner/SmacPlanner2D` | 代价感知 A* |
+| 全局规划 | `GridBased.plugin` | `rtabmap_tb3_nav/GoalLineSmacPlanner` | 带目标线/有限走廊软偏好的 Smac A* |
 | 全局规划 | `cost_travel_multiplier` | `6.0` | 放大路径经过的 costmap 代价 |
 | 全局规划 | `max_planning_time` | `1.0 s` | 单次规划时间上限 |
-| 障碍代价 | `inflation_radius` | `0.55 m` | 障碍物外侧软代价梯度半径 |
+| 障碍代价 | `inflation_radius` | `0.45 m` | 当前速度优先冻结值；障碍物外侧软代价梯度半径 |
 | 障碍代价 | `cost_scaling_factor` | `3.0` | 梯度衰减；越小，远处代价越明显 |
 | 局部地图 | `width x height` | `6 x 5 m` | 机器人周围实时窗口 |
 | 地图频率 | local update/publish | `10 / 5 Hz` | 障碍地图更新和发布频率 |
 | RGB-D | `camera_cloud.max_depth` | `3.5 m` | 低延迟安全点云范围 |
 | RGB-D | costmap obstacle range | `3.8 m` | costmap 使用的最远障碍距离 |
-| 安全层 | `PolygonSlow` | `1.05 m`, `0.65` | 前方减速区和速度比例 |
+| 安全层 | `PolygonSlow` | `1.05 m`, `0.75` | 前方减速区和速度比例 |
 | 安全层 | `PolygonStop` | `0.38 m` | 前方硬停止区 |
 | 目标 | `xy_goal_tolerance` | `0.12 m` | 到达 XY 容差 |
 | 目标 | `yaw_goal_tolerance` | `0.15 rad` | 到达方向容差 |
@@ -95,6 +95,7 @@ RPP                         -> 跟随全局路径，并按曲率/代价降低速
 
 ## 4. 如何调离障碍物
 
+当前默认 profile 是 `fast_north_045_v3`；`fast_north_045_v2` 仍可作为旧路线对照。
 每次只改一组参数，完成 A -> B 和 B -> A 后再比较轨迹图、耗时和 contacts。
 
 ### 4.1 想让全局路线更偏向开阔区域
@@ -120,12 +121,12 @@ RPP                         -> 跟随全局路径，并按曲率/代价降低速
 - 降低 `regulated_linear_scaling_min_radius`：较缓的弯也会更早减速；
 - 保持 `use_collision_detection: true`，不要用关闭碰撞检查换取流畅度。
 
-当前配置的第一轮前视值是：
+当前 v3 配置的前视值是：
 
 ```yaml
-lookahead_dist: 0.70
-min_lookahead_dist: 0.52
-max_lookahead_dist: 1.10
+lookahead_dist: 0.75
+min_lookahead_dist: 0.56
+max_lookahead_dist: 1.15
 ```
 
 如果出现切角、车身靠近障碍或目标附近绕过目标，再退回当前值。

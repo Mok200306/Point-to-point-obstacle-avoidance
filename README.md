@@ -12,11 +12,12 @@ A = (-8.5, 0.0)   Gazebo 初始位置，车头朝 +X
 B = ( 8.5, 0.0)   场景目标位置
 ```
 
-当前源码冻结为 `0.45 m` 目标线优化候选：全局规划器是
+当前源码冻结为 `0.45 m` 的 `fast_north_045_v3` 连续走廊 profile：全局规划器是
 `rtabmap_tb3_nav/GoalLineSmacPlanner`（继承 SmacPlanner2D）。参数和三次回归见
-[NAVIGATION_OPTIMIZATION_2026-08-20.md](NAVIGATION_OPTIMIZATION_2026-08-20.md) 与
-[FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-20.md](FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-20.md)。
-原生 Smac 的 0.45 配置仍由提交 `be04483` 保留为回退基线。
+[NAVIGATION_OPTIMIZATION_2026-08-21.md](NAVIGATION_OPTIMIZATION_2026-08-21.md) 与
+[FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-21.md](FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-21.md)。
+v2 固定西侧窗口 profile 仍可通过 `navigation_profile:=fast_north_045_v2` 回退，原生
+目标线 0.45 配置仍由提交 `be04483` 保留为更早基线。
 
 ## 1. 这次改动解决什么问题
 
@@ -78,8 +79,8 @@ RGB-D depth
 - 全局规划器使用目标线偏好的 `GoalLineSmacPlanner`，底层仍是 `SmacPlanner2D`，
   `cost_travel_multiplier=6.0`；已知自由栅格按偏离起终点线的二次距离增加软代价，
   障碍物和硬 footprint 约束不被覆盖；
-- 局部控制器使用 Regulated Pure Pursuit（RPP），直线目标速度 `0.22 m/s`，前视距离
-  `0.52--1.10 m`，普通弯道不主动原地对齐（阈值 `1.20 rad`），根据曲率和 cost 调速，
+- 局部控制器使用 Regulated Pure Pursuit（RPP），直线目标速度 `0.26 m/s`，前视距离
+  `0.56--1.15 m`（默认 `0.75 m`），普通弯道不主动原地对齐（阈值 `1.20 rad`），根据曲率和 cost 调速，
   提前沿平滑路径弧形转弯，同时保留终点姿态对齐；
 - 目标误差收紧为 XY `0.12 m`、yaw `0.15 rad`。
 - 模拟相机默认降为 `320 x 240 @ 15 Hz`，为 RTAB-Map、Nav2 和安全层保留 CPU
@@ -89,7 +90,11 @@ RGB-D depth
 行为树每 `2 s` 检查路径且有效路径约 `20 s` 才重算，RPP 使用更长前视点提前转弯，只有
 大角度姿态误差才原地对齐。全局
 `GoalLineSmacPlanner` 负责在 Smac 可行路径中偏好回到目标方向，RPP 负责连续跟踪；`PolygonSlow` 前方约
-`1.05 m` 保留 `65%` 速度，`PolygonStop` 约 `0.38 m` 仍是最后一道硬停止保护。
+`1.05 m` 保留 `75%` 速度，`PolygonStop` 约 `0.38 m` 仍是最后一道硬停止保护。
+
+当前 v3 只把 benchmark 场景中的固定北侧走廊从 `x∈[-7.2,-2.5]` 延长到
+`x∈[-7.2,3.45]`，目标带中心为 `world_y=0.75 m`，用于稳定通过西侧和中央障碍；它是
+场景先验，不应未经重新测量直接迁移到真实或新地图。
 
 RViz 中的紫红色区域是 `inflation_radius` 产生的代价梯度，不等于同样大小的实体
 墙，也不等于所有这些格子都禁止通行；真正的碰撞判定还会检查 footprint、
@@ -99,7 +104,7 @@ RViz 的 Global/Local Costmap 图层，不能据此判断实体障碍消失。
 
 看到机器人在窄口短暂停顿时，先区分三种状态：
 
-- `PolygonSlow` 或速度从正常值降到约 `65%`：安全层看到了前方点云，这是预期的减速，
+- `PolygonSlow` 或速度从正常值降到约 `75%`：安全层看到了前方点云，这是预期的减速，
   不是导航失败；
 - `PolygonStop` 持续触发：安全层认为障碍已经进入硬停止区，应检查 `/camera/cloud`
   的频率、时间戳和 TF，不能直接缩小 footprint 来强行通过；
@@ -120,7 +125,7 @@ RViz 的 Global/Local Costmap 图层，不能据此判断实体障碍消失。
 cd /home/w417/RTAB-Map
 sg docker -c './scripts/stop.sh'
 sg docker -c './scripts/start.sh'
-sg docker -c './scripts/launch_demo.sh gazebo_gui:=true rviz:=true rtabmap_viz:=false reset_db:=true'
+sg docker -c './scripts/launch_demo.sh gazebo_gui:=true rviz:=true rtabmap_viz:=false reset_db:=true navigation_profile:=fast_north_045_v3'
 ```
 
 等待约 15--30 秒后，应该看到 Gazebo 的封闭障碍场景和 RViz2 窗口。终端 2：
@@ -162,7 +167,7 @@ sg docker -c './scripts/start.sh'
 启动完整仿真：
 
 ```bash
-./scripts/launch_demo.sh rviz:=true rtabmap_viz:=false
+./scripts/launch_demo.sh rviz:=true rtabmap_viz:=false navigation_profile:=fast_north_045_v3
 ```
 
 如果只验证导航链路，建议先关闭高开销的两个 GUI：
@@ -425,7 +430,7 @@ Gazebo contacts 监听并发送目标。这里的 `(none)` 指过滤地面后没
 
 旧版固定地图过渡方案曾临时移除 `StaticLayer`，这段记录保留作历史排查依据；当前方案
 已经改为 `map_padder.py -> /nav_map -> StaticLayer`；下面的 clearance-first 数值是
-历史 0.55 对照，当前目标线优化结果见 [优化文档](NAVIGATION_OPTIMIZATION_2026-08-20.md)。
+历史 0.55 对照，当前连续走廊优化结果见 [优化文档](NAVIGATION_OPTIMIZATION_2026-08-21.md)。
 
 如果 GUI 测试时出现 `Failed to change state for node: collision_monitor`，通常是旧
 launch 没有完全退出而产生了重复节点，不是新的避障参数本身失败。先执行
@@ -452,7 +457,7 @@ launch 没有完全退出而产生了重复节点，不是新的避障参数本�
 
 目标线候选三次 A -> B 均为 `status=4`，平均墙钟 `113.63 s`，平均 Gazebo 轨迹
 `17.977 m`，contacts 过滤地面后均为 none。详细参数、每次轨迹双视图和与原生 0.45
-基线的比较见 [NAVIGATION_OPTIMIZATION_2026-08-20.md](NAVIGATION_OPTIMIZATION_2026-08-20.md)。
+基线的比较见 [NAVIGATION_OPTIMIZATION_2026-08-21.md](NAVIGATION_OPTIMIZATION_2026-08-21.md)。
 
 ## 8. 真实 Intel RealSense D435i
 
