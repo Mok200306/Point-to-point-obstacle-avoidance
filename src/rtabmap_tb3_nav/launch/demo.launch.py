@@ -20,6 +20,26 @@ def apply_navigation_profile(params, profile):
     if profile in ('current', 'fast_north_045_v2'):
         return
 
+    if profile == 'fast_north_045_v3':
+        # Keep the first detour and the central-barrier passage in one fixed
+        # map-frame corridor.  v2 only constrained the west-barrier window;
+        # Smac could then choose the top of barrier_center, producing the
+        # occasional y~=1.9 m excursion.  The lower side of the central bar
+        # is open at y~=0.75 m and still leaves the padded Waffle footprint
+        # outside the hard obstacle boundary.  This is a benchmark-specific
+        # route hint; v2 remains the frozen baseline and is unchanged.
+        planner = params['planner_server']['ros__parameters']['GridBased']
+        planner['side_bias_world_x_min'] = -7.2
+        planner['side_bias_world_x_max'] = 3.45
+        planner['side_bias_target_world_y_enabled'] = True
+        planner['side_bias_reference_world_y'] = 0.0
+        planner['side_bias_target_world_y'] = 0.75
+        planner['side_bias_target_offset'] = 0.75
+        planner['side_bias_target_max_cost'] = 100.0
+        planner['side_bias_target_distance_scale'] = 0.60
+        planner['side_bias_target_exponent'] = 2.0
+        return
+
     if profile == 'fast_north_045_v1':
         planner = params['planner_server']['ros__parameters']['GridBased']
         planner['side_bias_world_x_min'] = -8.2
@@ -52,7 +72,7 @@ def apply_navigation_profile(params, profile):
 
     raise RuntimeError(
         'Unknown navigation_profile={!r}; use current, fast_north_045_v1, '
-        'fast_north_045_v2, '
+        'fast_north_045_v2, fast_north_045_v3, '
         'or frozen_goal_line_045_v1.'.format(profile))
 
 
@@ -92,7 +112,8 @@ def collision_monitor_params_for_profile(source_file, profile):
     with open(source_file, 'r', encoding='utf-8') as stream:
         params = yaml.safe_load(stream)
 
-    if profile in ('current', 'fast_north_045_v1', 'fast_north_045_v2'):
+    if profile in (
+        'current', 'fast_north_045_v1', 'fast_north_045_v2', 'fast_north_045_v3'):
         pass
     elif profile in ('frozen_goal_line_045_v1', 'goal_line_quad_045_v1'):
         params['collision_monitor']['ros__parameters']['PolygonSlow'][
@@ -100,7 +121,7 @@ def collision_monitor_params_for_profile(source_file, profile):
     else:
         raise RuntimeError(
             'Unknown navigation_profile={!r}; use current, fast_north_045_v1, '
-            'fast_north_045_v2, '
+            'fast_north_045_v2, fast_north_045_v3, '
             'or frozen_goal_line_045_v1.'.format(profile))
 
     rewritten = tempfile.NamedTemporaryFile(
@@ -413,9 +434,10 @@ def generate_launch_description():
             description='Collision monitor parameter file.'),
         DeclareLaunchArgument(
             'navigation_profile',
-            default_value='fast_north_045_v2',
+            default_value='fast_north_045_v3',
             description=(
-                'Reproducible parameter profile: fast_north_045_v2 is current; '
+                'Reproducible parameter profile: fast_north_045_v3 is current; '
+                'fast_north_045_v2 restores the previous fixed-west-window baseline; '
                 'frozen_goal_line_045_v1 restores the pre-optimization run-03 baseline.')),
         OpaqueFunction(function=launch_setup),
     ])
