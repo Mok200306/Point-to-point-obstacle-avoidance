@@ -64,6 +64,81 @@ def apply_navigation_profile(params, profile):
             0.75, 0.75, 0.30, 0.30, 0.50, 0.50]
         return
 
+    if profile == 'fast_goalline_045_v2':
+        # Keep v1's bounded target-line corridor, but make the inflation cost
+        # decay faster so the planner does not leave the corridor merely to
+        # escape the outer soft-cost band.  The hard footprint, lethal cells,
+        # collision monitor and route schedule remain unchanged.
+        controller = params['controller_server']['ros__parameters']['FollowPath']
+        controller['desired_linear_vel'] = 0.28
+        controller['inflation_cost_scaling_factor'] = 4.5
+
+        smoother = params['velocity_smoother']['ros__parameters']
+        smoother['max_velocity'] = [0.28, 0.0, 0.90]
+
+        planner = params['planner_server']['ros__parameters']['GridBased']
+        planner['side_bias_world_x_min'] = -7.2
+        planner['side_bias_world_x_max'] = 7.35
+        planner['side_bias_target_world_y_enabled'] = True
+        planner['side_bias_reference_world_y'] = 0.0
+        planner['side_bias_target_world_y'] = 0.75
+        planner['side_bias_target_offset'] = 0.75
+        planner['side_bias_target_max_cost'] = 140.0
+        planner['side_bias_target_distance_scale'] = 0.50
+        planner['side_bias_target_exponent'] = 2.0
+        planner['side_bias_target_schedule_enabled'] = True
+        planner['side_bias_target_schedule_x'] = [
+            -7.2, -2.9, -2.35, 2.8, 3.35, 7.35]
+        planner['side_bias_target_schedule_y'] = [
+            0.75, 0.75, 0.30, 0.30, 0.50, 0.50]
+
+        local_inflation = params['local_costmap']['local_costmap'][
+            'ros__parameters']['inflation_layer']
+        global_inflation = params['global_costmap']['global_costmap'][
+            'ros__parameters']['inflation_layer']
+        local_inflation['cost_scaling_factor'] = 4.5
+        global_inflation['cost_scaling_factor'] = 4.5
+        return
+
+    if profile == 'fast_goalline_045_v3':
+        # Keep v2's speed and cost profile, but use a longer RPP carrot.  The
+        # larger lookahead reduces the sharp steering impulse at barrier_west
+        # while the planner and collision monitor still enforce feasibility.
+        controller = params['controller_server']['ros__parameters']['FollowPath']
+        controller['desired_linear_vel'] = 0.28
+        controller['lookahead_dist'] = 0.85
+        controller['min_lookahead_dist'] = 0.70
+        controller['max_lookahead_dist'] = 1.30
+        controller['lookahead_time'] = 1.8
+        controller['inflation_cost_scaling_factor'] = 4.5
+
+        smoother = params['velocity_smoother']['ros__parameters']
+        smoother['max_velocity'] = [0.28, 0.0, 0.90]
+
+        planner = params['planner_server']['ros__parameters']['GridBased']
+        planner['side_bias_world_x_min'] = -7.2
+        planner['side_bias_world_x_max'] = 7.35
+        planner['side_bias_target_world_y_enabled'] = True
+        planner['side_bias_reference_world_y'] = 0.0
+        planner['side_bias_target_world_y'] = 0.75
+        planner['side_bias_target_offset'] = 0.75
+        planner['side_bias_target_max_cost'] = 140.0
+        planner['side_bias_target_distance_scale'] = 0.50
+        planner['side_bias_target_exponent'] = 2.0
+        planner['side_bias_target_schedule_enabled'] = True
+        planner['side_bias_target_schedule_x'] = [
+            -7.2, -2.9, -2.35, 2.8, 3.35, 7.35]
+        planner['side_bias_target_schedule_y'] = [
+            0.75, 0.75, 0.30, 0.30, 0.50, 0.50]
+
+        local_inflation = params['local_costmap']['local_costmap'][
+            'ros__parameters']['inflation_layer']
+        global_inflation = params['global_costmap']['global_costmap'][
+            'ros__parameters']['inflation_layer']
+        local_inflation['cost_scaling_factor'] = 4.5
+        global_inflation['cost_scaling_factor'] = 4.5
+        return
+
     if profile == 'fast_north_045_v1':
         planner = params['planner_server']['ros__parameters']['GridBased']
         planner['side_bias_world_x_min'] = -8.2
@@ -97,6 +172,7 @@ def apply_navigation_profile(params, profile):
     raise RuntimeError(
         'Unknown navigation_profile={!r}; use current, fast_north_045_v1, '
         'fast_north_045_v2, fast_north_045_v3, fast_goalline_045_v1, '
+        'fast_goalline_045_v2, fast_goalline_045_v3, '
         'or frozen_goal_line_045_v1.'.format(profile))
 
 
@@ -138,7 +214,7 @@ def collision_monitor_params_for_profile(source_file, profile):
 
     if profile in (
         'current', 'fast_north_045_v1', 'fast_north_045_v2', 'fast_north_045_v3',
-        'fast_goalline_045_v1'):
+        'fast_goalline_045_v1', 'fast_goalline_045_v2', 'fast_goalline_045_v3'):
         pass
     elif profile in ('frozen_goal_line_045_v1', 'goal_line_quad_045_v1'):
         params['collision_monitor']['ros__parameters']['PolygonSlow'][
@@ -147,6 +223,7 @@ def collision_monitor_params_for_profile(source_file, profile):
         raise RuntimeError(
             'Unknown navigation_profile={!r}; use current, fast_north_045_v1, '
             'fast_north_045_v2, fast_north_045_v3, fast_goalline_045_v1, '
+            'fast_goalline_045_v2, fast_goalline_045_v3, '
             'or frozen_goal_line_045_v1.'.format(profile))
 
     rewritten = tempfile.NamedTemporaryFile(
@@ -464,6 +541,8 @@ def generate_launch_description():
                 'Reproducible parameter profile: fast_north_045_v3 is current; '
                 'fast_north_045_v2 restores the previous fixed-west-window baseline; '
                 'fast_goalline_045_v1 tests a segmented return-to-goal corridor; '
+                'fast_goalline_045_v2 tests faster inflation decay and speed; '
+                'fast_goalline_045_v3 tests a longer RPP lookahead; '
                 'frozen_goal_line_045_v1 restores the pre-optimization run-03 baseline.')),
         OpaqueFunction(function=launch_setup),
     ])
