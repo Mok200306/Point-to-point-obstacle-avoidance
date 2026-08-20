@@ -13,6 +13,7 @@ label='navigation-leg'
 profile='unspecified'
 contact_timeout='300'
 startup_timeout='45'
+settle_seconds='0'
 contact_pid=''
 contact_log=''
 
@@ -20,7 +21,7 @@ usage() {
   cat <<'EOF'
 Usage:
   scripts/regression_leg.sh --x X [--y Y] [--yaw RAD] [--label NAME]
-    [--profile NAME]
+    [--profile NAME] [--settle-seconds SECONDS]
 
 The current container must already be running with demo.launch.py. The script
 returns non-zero when Nav2 does not finish with status 4 or when the leg has a
@@ -37,6 +38,7 @@ while [[ $# -gt 0 ]]; do
     --profile) profile="$2"; shift 2 ;;
     --contact-timeout) contact_timeout="$2"; shift 2 ;;
     --startup-timeout) startup_timeout="$2"; shift 2 ;;
+    --settle-seconds) settle_seconds="$2"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *) printf 'Unknown argument: %s\n' "$1" >&2; usage >&2; exit 2 ;;
   esac
@@ -152,6 +154,8 @@ snapshot_trial() {
     printf 'goal_x_m: %s\n' "$goal_x"
     printf 'goal_y_m: %s\n' "$goal_y"
     printf 'goal_yaw_rad: %s\n' "$goal_yaw"
+    printf 'startup_settle_s: %s\n' "$settle_seconds"
+    printf 'navigation_wall_time_excludes_startup_settle: true\n'
     printf 'planner: %s\n' "$planner"
     printf 'controller: nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController\n'
     printf 'gazebo_view: SDF collision geometry plus /gazebo/model_states ground truth\n'
@@ -168,7 +172,7 @@ contact_pid=$!
 sleep 2
 wait_for_nav2
 set +e
-compose_exec "source /opt/ros/humble/setup.bash && source /workspaces/rtabmap_tb3_nav/install/setup.bash && ros2 run rtabmap_tb3_nav navigation_trial.py --x ${goal_x} --y ${goal_y} --yaw ${goal_yaw} --label ${label} --output-dir /workspaces/rtabmap_tb3_nav/results --world-file /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_large.world"
+compose_exec "source /opt/ros/humble/setup.bash && source /workspaces/rtabmap_tb3_nav/install/setup.bash && ros2 run rtabmap_tb3_nav navigation_trial.py --x ${goal_x} --y ${goal_y} --yaw ${goal_yaw} --settle-seconds ${settle_seconds} --label ${label} --output-dir /workspaces/rtabmap_tb3_nav/results --world-file /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_large.world"
 goal_exit=$?
 set -e
 
@@ -197,6 +201,7 @@ printf 'label=%s\n' "$label"
 printf 'goal=(%s, %s, yaw=%s)\n' "$goal_x" "$goal_y" "$goal_yaw"
 printf 'navigation_trial_exit=%s\n' "$goal_exit"
 printf 'profile=%s\n' "$profile"
+printf 'startup_settle_s=%s\n' "$settle_seconds"
 printf 'contact_messages=%s\n' "$contact_count"
 printf 'non_ground_contact_pairs:\n'
 if [[ -n "$contact_pairs" ]]; then

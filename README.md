@@ -12,12 +12,21 @@ A = (-8.5, 0.0)   Gazebo 初始位置，车头朝 +X
 B = ( 8.5, 0.0)   场景目标位置
 ```
 
-当前源码冻结为 `0.45 m` 的 `fast_north_045_v3` 连续走廊 profile：全局规划器是
-`rtabmap_tb3_nav/GoalLineSmacPlanner`（继承 SmacPlanner2D）。参数和三次回归见
+当前推荐运行配置是 `0.45 m` 的 `fast_goalline_045_v4` 快速走廊 profile：全局规划器是
+`rtabmap_tb3_nav/GoalLineSmacPlanner`（继承 SmacPlanner2D）。它在三次独立回归中平均
+`81.07 s`、3/3 成功、0/3 非地面 contacts。为避免无提示地改变既有命令，
+`demo.launch.py` 的默认值仍保留为 `fast_north_045_v3`；观察优化结果时请显式指定 v4。
+参数和三次回归见
+[NAVIGATION_OPTIMIZATION_2026-08-21_FAST_GOALLINE_V4.md](NAVIGATION_OPTIMIZATION_2026-08-21_FAST_GOALLINE_V4.md) 与
+[FROZEN_NAVIGATION_PARAMETERS_FAST_GOALLINE_045_V4_2026-08-21.md](FROZEN_NAVIGATION_PARAMETERS_FAST_GOALLINE_045_V4_2026-08-21.md)。历史 v3 参数和三次回归见
 [NAVIGATION_OPTIMIZATION_2026-08-21.md](NAVIGATION_OPTIMIZATION_2026-08-21.md) 与
 [FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-21.md](FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-21.md)。
-v2 固定西侧窗口 profile 仍可通过 `navigation_profile:=fast_north_045_v2` 回退，原生
-目标线 0.45 配置仍由提交 `be04483` 保留为更早基线。
+旧 profile 仍可通过 `navigation_profile:=fast_north_045_v3`、`fast_goalline_045_v2`
+或 `frozen_goal_line_045_v1` 显式回退，原生目标线 0.45 配置仍由历史提交保留。
+
+v4 保留 `inflation_radius=0.45 m` 和完整安全链路，只把速度、RPP 前视、软代价衰减和
+当前场景的分段走廊作为受控覆盖；5 秒在线建图稳定期只用于正式回归的可重复启动，
+不计入导航 wall 时间。完整证据见上面的 v4 报告；v2 是更早的速度对照。
 
 ## 1. 这次改动解决什么问题
 
@@ -125,19 +134,31 @@ RViz 的 Global/Local Costmap 图层，不能据此判断实体障碍消失。
 cd /home/w417/RTAB-Map
 sg docker -c './scripts/stop.sh'
 sg docker -c './scripts/start.sh'
-sg docker -c './scripts/launch_demo.sh gazebo_gui:=true rviz:=true rtabmap_viz:=false reset_db:=true navigation_profile:=fast_north_045_v3'
+sg docker -c './scripts/launch_demo.sh gazebo_gui:=true rviz:=true rtabmap_viz:=false reset_db:=true navigation_profile:=fast_goalline_045_v4'
 ```
 
 等待约 15--30 秒后，应该看到 Gazebo 的封闭障碍场景和 RViz2 窗口。终端 2：
 
 ```bash
 cd /home/w417/RTAB-Map
-sg docker -c 'docker compose exec ros2 bash -lc "source /opt/ros/humble/setup.bash && source /workspaces/rtabmap_tb3_nav/install/setup.bash && ros2 run rtabmap_tb3_nav send_goal.py --x 8.5 --y 0.0 --yaw 0.0"'
+sg docker -c 'docker compose exec ros2 bash -lc "source /opt/ros/humble/setup.bash && source /workspaces/rtabmap_tb3_nav/install/setup.bash && ros2 run rtabmap_tb3_nav send_goal.py --x 8.5 --y 0.0 --yaw 0.0 --settle-seconds 5"'
 ```
 
 机器人从 A `(-8.5, 0.0)` 出发，目标为 B `(8.5, 0.0)`。Gazebo 中观察实体运动和
 障碍绕行；RViz2 中观察 `/map`、全局/局部路径、代价地图和 RGB-D 障碍点云。
 如果只想在 RViz2 中操作，也可以使用 `Nav2 Goal` 工具点击地图中的 B 点。
+
+恢复原来路线方差较小的 v3 对照时，把启动命令中的 profile 改为：
+
+```bash
+sg docker -c './scripts/launch_demo.sh gazebo_gui:=true rviz:=true rtabmap_viz:=false reset_db:=true navigation_profile:=fast_north_045_v3'
+```
+
+v4 的无 GUI 正式回归：
+
+```bash
+sg docker -c './scripts/regression_leg.sh --x 8.5 --y 0.0 --yaw 0.0 --settle-seconds 5 --label manual/fast_goalline_045_v4_A_to_B --profile fast_goalline_045_v4'
+```
 
 结束本次仿真时，在终端 1 按 `Ctrl+C`，然后可选执行：
 
@@ -164,10 +185,16 @@ sg docker -c './scripts/build.sh'
 sg docker -c './scripts/start.sh'
 ```
 
-启动完整仿真：
+启动完整仿真（默认兼容 profile）：
 
 ```bash
 ./scripts/launch_demo.sh rviz:=true rtabmap_viz:=false navigation_profile:=fast_north_045_v3
+```
+
+当前推荐的快速 v4：
+
+```bash
+./scripts/launch_demo.sh rviz:=true rtabmap_viz:=false navigation_profile:=fast_goalline_045_v4
 ```
 
 如果只验证导航链路，建议先关闭高开销的两个 GUI：

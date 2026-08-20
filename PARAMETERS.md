@@ -4,6 +4,28 @@
 `src/rtabmap_tb3_nav/config/`，用于 Ubuntu 22.04 + ROS 2 Humble 仿真基线，不应
 未经真实 D435i、底盘和 TF 验证就直接用于真实机器人。
 
+## 0. Profile 选择规则
+
+`nav2_rgbd_params.yaml` 保存的是共同基础参数；`demo.launch.py` 在启动时根据
+`navigation_profile` 生成临时运行参数。因此修改 profile 后必须重启 launch，不能只
+保存 YAML 后继续使用旧进程。
+
+| profile | 用途 | 当前判断 |
+| --- | --- | --- |
+| `fast_north_045_v3` | 默认快速且路线方差较小的基线 | 当前默认 |
+| `fast_goalline_045_v1` | 目标线分段走廊旧候选 | 保留作对照 |
+| `fast_goalline_045_v2` | `0.28 m/s` 速度候选 | 3/3 成功，候选冻结，不替换默认 |
+| `fast_goalline_045_v3` | v2 + 更长 RPP 前视 pilot | 仅负试验，不纳入正式均值 |
+| `fast_goalline_045_v4` | `0.30 m/s`、分段目标线、5 s 稳定期 | 当前 benchmark 推荐，3/3 成功 |
+
+本轮 v2 的完整参数见
+[FROZEN_NAVIGATION_PARAMETERS_FAST_GOALLINE_045_V2_2026-08-21.md](FROZEN_NAVIGATION_PARAMETERS_FAST_GOALLINE_045_V2_2026-08-21.md)，
+三次轨迹和 contacts 见
+[NAVIGATION_OPTIMIZATION_2026-08-21_FAST_GOALLINE_V2.md](NAVIGATION_OPTIMIZATION_2026-08-21_FAST_GOALLINE_V2.md)。
+v4 的冻结参数和三次正式结果见
+[FROZEN_NAVIGATION_PARAMETERS_FAST_GOALLINE_045_V4_2026-08-21.md](FROZEN_NAVIGATION_PARAMETERS_FAST_GOALLINE_045_V4_2026-08-21.md)
+和 [NAVIGATION_OPTIMIZATION_2026-08-21_FAST_GOALLINE_V4.md](NAVIGATION_OPTIMIZATION_2026-08-21_FAST_GOALLINE_V4.md)。
+
 ## 1. 当前规划链路
 
 ```text
@@ -45,8 +67,8 @@ RTAB-Map 地图尺寸变化反复 resize。定位模式则把 `StaticLayer.map_t
 | --- | --- | ---: | --- |
 | 车体 | `footprint` | `0.60 x 0.48 m` | costmap 的硬碰撞几何 |
 | 车体 | `footprint_padding` | `0.03 m` | 额外安全余量 |
-| 速度 | `FollowPath.desired_linear_vel` | `0.26 m/s` | v3 RPP 直线段目标速度 |
-| 速度 | `max_velocity[0]` | `0.26 m/s` | velocity smoother 上限 |
+| 速度 | `FollowPath.desired_linear_vel` | `0.26 m/s` | 基础 YAML / v3；v2 覆盖为 `0.28`，v4 覆盖为 `0.30` |
+| 速度 | `max_velocity[0]` | `0.26 m/s` | 基础 YAML / v3；v2 覆盖为 `0.28`，v4 覆盖为 `0.30` |
 | 速度 | `max_velocity[2]` | `0.85 rad/s` | 角速度上限 |
 | 加速度 | `max_accel` / `max_decel` | `0.9` / `-1.1` | 线速度变化限制 |
 | RPP 前视 | `lookahead_dist` | `0.75 m` | 默认前视距离 |
@@ -59,7 +81,7 @@ RTAB-Map 地图尺寸变化反复 resize。定位模式则把 `StaticLayer.map_t
 | 全局规划 | `cost_travel_multiplier` | `6.0` | 放大路径经过的 costmap 代价 |
 | 全局规划 | `max_planning_time` | `1.0 s` | 单次规划时间上限 |
 | 障碍代价 | `inflation_radius` | `0.45 m` | 当前速度优先冻结值；障碍物外侧软代价梯度半径 |
-| 障碍代价 | `cost_scaling_factor` | `3.0` | 梯度衰减；越小，远处代价越明显 |
+| 障碍代价 | `cost_scaling_factor` | `3.0` | 基础 YAML / v3；v2/v4 全局和局部覆盖为 `4.5` |
 | 局部地图 | `width x height` | `6 x 5 m` | 机器人周围实时窗口 |
 | 地图频率 | local update/publish | `10 / 5 Hz` | 障碍地图更新和发布频率 |
 | RGB-D | `camera_cloud.max_depth` | `3.5 m` | 低延迟安全点云范围 |
@@ -95,7 +117,8 @@ RPP                         -> 跟随全局路径，并按曲率/代价降低速
 
 ## 4. 如何调离障碍物
 
-当前默认 profile 是 `fast_north_045_v3`；`fast_north_045_v2` 仍可作为旧路线对照。
+当前 benchmark 推荐 profile 是 `fast_goalline_045_v4`；launch 默认仍是兼容性的
+`fast_north_045_v3`。旧 profile 可以用参数名显式恢复。
 每次只改一组参数，完成 A -> B 和 B -> A 后再比较轨迹图、耗时和 contacts。
 
 ### 4.1 想让全局路线更偏向开阔区域
@@ -143,8 +166,8 @@ max_lookahead_dist: 1.15
 - 日志有 `no valid path found` 或 `Failed to make progress`：该次导航应判为失败。
 
 不要先缩小 `footprint` 来强行通过。`inflation_radius` 不是“车体到障碍物的固定
-距离”：它只控制硬 footprint 外侧的软代价带；当前 `0.55 m` 才能在约 `0.27 m`
-内切半径之外提供约 `0.28 m` 的有效梯度。真实车体和 padding 仍是硬约束。
+距离”：它只控制硬 footprint 外侧的软代价带；当前 v4 的 `0.45 m` 在约 `0.27 m`
+内切半径之外提供约 `0.18 m` 的有效梯度。真实车体和 padding 仍是硬约束。
 
 ## 5. 修改、构建和重新启动
 
@@ -157,6 +180,21 @@ sg docker -c './scripts/start.sh'
 sg docker -c 'docker compose exec -T ros2 bash -lc "source /opt/ros/humble/setup.bash && cd /workspaces/rtabmap_tb3_nav && colcon build --symlink-install"'
 sg docker -c './scripts/launch_demo.sh gazebo_gui:=true rviz:=true rtabmap_viz:=false online:=true localization:=false reset_db:=true'
 ```
+
+使用当前推荐的快速 v4：
+
+```bash
+sg docker -c './scripts/launch_demo.sh gazebo_gui:=true rviz:=true rtabmap_viz:=false online:=true localization:=false reset_db:=true navigation_profile:=fast_goalline_045_v4'
+```
+
+正式记录命令：
+
+```bash
+sg docker -c './scripts/regression_leg.sh --x 8.5 --y 0.0 --yaw 0.0 --settle-seconds 5 --label manual/fast_goalline_045_v4_A_to_B --profile fast_goalline_045_v4'
+```
+
+GUI 手动发送目标时，同样使用 `send_goal.py --settle-seconds 5`，这样在线地图先更新
+再规划；该等待不计入 `navigation_trial.py` 记录的导航 wall 时间。
 
 `demo.launch.py` 会在启动时生成 Nav2 临时参数文件，因此必须重启 launch 才能让
 参数生效。修改 `Dockerfile` 或 `scripts/patch_turtlebot3_rgbd.sh` 才需要重建镜像：

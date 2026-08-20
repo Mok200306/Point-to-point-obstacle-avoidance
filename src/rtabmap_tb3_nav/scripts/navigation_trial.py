@@ -295,9 +295,25 @@ class NavigationTrial:
             self.last_feedback_distance = distance
             self.last_feedback_wall = now
 
+    def settle_before_goal(self):
+        """Let the live RGB-D map and costmap publish before planning."""
+        duration = max(float(self.args.settle_seconds), 0.0)
+        if duration <= 0.0:
+            return
+
+        deadline = time.monotonic() + duration
+        while time.monotonic() < deadline:
+            rclpy.spin_once(self.node, timeout_sec=0.10)
+        self.node.get_logger().info(
+            f'Startup settle complete: {duration:.1f}s '
+            f'map={self.map_message is not None} '
+            f'global_costmap={self.costmap_message is not None}')
+
     def send_goal(self):
         if not self.action_client.wait_for_server(timeout_sec=30.0):
             raise RuntimeError('navigate_to_pose action server unavailable')
+
+        self.settle_before_goal()
 
         goal = NavigateToPose.Goal()
         goal.pose = PoseStamped()
@@ -595,6 +611,9 @@ def main():
     parser.add_argument('--y', type=float, required=True, help='Goal Y in map frame.')
     parser.add_argument('--yaw', type=float, default=0.0, help='Goal yaw in radians.')
     parser.add_argument('--frame', default='map', help='Goal and output frame.')
+    parser.add_argument(
+        '--settle-seconds', type=float, default=0.0,
+        help='Wait for live map/costmap updates before sending the goal.')
     parser.add_argument('--label', default='navigation_trial', help='Output folder name.')
     parser.add_argument('--output-dir', default='/workspaces/rtabmap_tb3_nav/results',
                         help='Parent directory for trial artifacts.')

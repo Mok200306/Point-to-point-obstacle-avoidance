@@ -1,14 +1,29 @@
 # 项目进度总结
 
-更新时间：2026-08-21（连续走廊优化、三次回归与参数冻结）
+更新时间：2026-08-21（目标线 v4 优化、三次回归与参数冻结）
 
 ## 当前结论（最新）
 
-当前源码冻结在提交 `6202912`，默认 profile 为 `fast_north_045_v3`。它在
-`fast_north_045_v2` 的固定西侧窗口基础上，把北侧走廊连续延长到中央障碍物末端，
-三次干净 A -> B 均为 `status=4`，Gazebo contacts 过滤地面后均无非地面接触，平均
-wall `91.08 ± 0.61 s`。三次 v3 的最大北向偏移为 `1.388 ± 0.044 m`，相比 v2 的
-`1.588 ± 0.422 m` 更一致。
+当前 benchmark 推荐 profile 是 `fast_goalline_045_v4`：三次干净 A -> B 均为
+`status=4`，Gazebo contacts 过滤地面后均无非地面接触，平均 wall
+`81.07 ± 3.46 s`，平均 Gazebo 路径 `17.382 ± 0.050 m`。`demo.launch.py` 的默认值
+仍保留为 `fast_north_045_v3`，避免旧命令无提示改变；使用 v4 时显式指定 profile。
+
+v4 的三次双视图和完整指标见
+[NAVIGATION_OPTIMIZATION_2026-08-21_FAST_GOALLINE_V4.md](NAVIGATION_OPTIMIZATION_2026-08-21_FAST_GOALLINE_V4.md)，
+冻结参数见
+[FROZEN_NAVIGATION_PARAMETERS_FAST_GOALLINE_045_V4_2026-08-21.md](FROZEN_NAVIGATION_PARAMETERS_FAST_GOALLINE_045_V4_2026-08-21.md)。
+
+本轮新增代码提交 `452b45f` 和候选 profile `fast_goalline_045_v2`。它在三次干净
+A -> B 中达到 `88.95 ± 3.57 s`、Gazebo 路径 `17.31 ± 0.14 m`、3/3 成功、0/3
+非地面 contacts；两次最大 `y` 约 `0.79 m`，一次 `1.37 m`。因此 v2 是速度候选，
+没有覆盖默认 profile。详细实验表和双视图见
+[NAVIGATION_OPTIMIZATION_2026-08-21_FAST_GOALLINE_V2.md](NAVIGATION_OPTIMIZATION_2026-08-21_FAST_GOALLINE_V2.md)。
+
+候选冻结参数见
+[FROZEN_NAVIGATION_PARAMETERS_FAST_GOALLINE_045_V2_2026-08-21.md](FROZEN_NAVIGATION_PARAMETERS_FAST_GOALLINE_045_V2_2026-08-21.md)。
+
+v3 仍作为路线方差较小的历史对照，v2 仍作为更早的速度对照；它们没有被覆盖。
 
 详细实验表和双视图：[NAVIGATION_OPTIMIZATION_2026-08-21.md](NAVIGATION_OPTIMIZATION_2026-08-21.md)
 
@@ -31,7 +46,7 @@ Humble，复现无真实 LiDAR 的 TurtleBot3 RGB-D + RTAB-Map + Nav2 室内 A -
 | RGB-D 局部避障 | 已完成 | `/camera/obstacles` -> voxel costmap |
 | 在线建图在线导航 | 本次实现 | 默认启动即同时运行，不再强制预建图 |
 | 碰撞安全层 | 已完成双向回归 | `nav2_collision_monitor` 读取降采样 `/camera/cloud`，输出 `/cmd_vel_safe`；A -> B / B -> A 物理接触过滤均未发现障碍碰撞 |
-| 贴边路径优化 | 已完成 v3 三次正式回归 | `GoalLineSmacPlanner`，inflation `0.45 m`，连续固定走廊，RPP 使用 `0.56--1.15 m` 前视 |
+| 贴边路径优化 | v4 已完成三次正式回归并冻结 | `GoalLineSmacPlanner`，inflation `0.45 m`；v4 为 `0.30 m/s`、分段走廊、cost scaling `4.5`，不改硬 footprint/stop |
 | 轨迹与计时记录 | 已完成 | `navigation_trial.py` 自动输出 PNG、CSV、YAML，记录墙钟和 Gazebo 仿真时间 |
 | 大型障碍场景 | 本次实现 | 20 m x 14 m，错位障碍栏 + 10 个箱体/柱体 |
 | 真实 D435i | 软件启动链路已准备，尚未接入实际硬件 | 已加入 RealSense 驱动、USB 映射、相机参数和真实启动文件；仍需真实底盘、TF 与 D435i 实测 |
@@ -92,14 +107,14 @@ DWB 又会较强地追随这条路径；在线模式中直接订阅增长中的 
 cd /home/w417/RTAB-Map
 sg docker -c './scripts/stop.sh'
 sg docker -c './scripts/start.sh'
-sg docker -c './scripts/launch_demo.sh gazebo_gui:=true rviz:=true rtabmap_viz:=false reset_db:=true'
+sg docker -c './scripts/launch_demo.sh gazebo_gui:=true rviz:=true rtabmap_viz:=false reset_db:=true navigation_profile:=fast_goalline_045_v4'
 ```
 
 保持第二条命令的终端打开，再在另一个终端发送 A -> B 目标：
 
 ```bash
 cd /home/w417/RTAB-Map
-sg docker -c 'docker compose exec ros2 bash -lc "source /opt/ros/humble/setup.bash && source /workspaces/rtabmap_tb3_nav/install/setup.bash && ros2 run rtabmap_tb3_nav send_goal.py --x 8.5 --y 0.0 --yaw 0.0"'
+sg docker -c 'docker compose exec ros2 bash -lc "source /opt/ros/humble/setup.bash && source /workspaces/rtabmap_tb3_nav/install/setup.bash && ros2 run rtabmap_tb3_nav send_goal.py --x 8.5 --y 0.0 --yaw 0.0 --settle-seconds 5"'
 ```
 
 停止时按 `Ctrl+C` 结束 launch，需要时再执行 `sg docker -c './scripts/stop.sh'`。

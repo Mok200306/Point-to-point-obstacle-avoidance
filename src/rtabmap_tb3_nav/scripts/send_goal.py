@@ -22,6 +22,9 @@ def main():
     parser.add_argument('--y', type=float, default=0.0, help='Goal Y in the map frame (demo B point).')
     parser.add_argument('--yaw', type=float, default=0.0, help='Goal yaw in radians.')
     parser.add_argument('--frame', default='map', help='Goal frame, normally map.')
+    parser.add_argument(
+        '--settle-seconds', type=float, default=0.0,
+        help='Wait for the live RGB-D map/costmap before sending the goal.')
     args = parser.parse_args()
 
     rclpy.init()
@@ -34,6 +37,14 @@ def main():
         node.destroy_node()
         rclpy.shutdown()
         return 2
+
+    settle_seconds = max(args.settle_seconds, 0.0)
+    if settle_seconds > 0.0:
+        deadline = time.monotonic() + settle_seconds
+        while time.monotonic() < deadline:
+            rclpy.spin_once(node, timeout_sec=0.10)
+        node.get_logger().info(
+            f'Startup settle complete: {settle_seconds:.1f}s; sending goal.')
 
     goal = NavigateToPose.Goal()
     goal.pose = PoseStamped()

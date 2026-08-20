@@ -139,6 +139,49 @@ def apply_navigation_profile(params, profile):
         global_inflation['cost_scaling_factor'] = 4.5
         return
 
+    if profile == 'fast_goalline_045_v4':
+        # Center the first detour in the physical opening between barrier_west
+        # and crate_west_north.  v2/v3 preferred y=0.75 m, which is feasible
+        # but lies close to the inflated top edge of barrier_west.  This route
+        # keeps a higher, centered west corridor, descends before the central
+        # barrier, stays above barrier_east, and returns to the goal line only
+        # after the last obstacle.  The schedule is a soft preference; lethal
+        # cells and the real footprint remain authoritative.
+        controller = params['controller_server']['ros__parameters']['FollowPath']
+        controller['desired_linear_vel'] = 0.30
+        controller['lookahead_dist'] = 0.80
+        controller['min_lookahead_dist'] = 0.62
+        controller['max_lookahead_dist'] = 1.20
+        controller['lookahead_time'] = 1.7
+        controller['inflation_cost_scaling_factor'] = 4.5
+
+        smoother = params['velocity_smoother']['ros__parameters']
+        smoother['max_velocity'] = [0.30, 0.0, 0.90]
+
+        planner = params['planner_server']['ros__parameters']['GridBased']
+        planner['side_bias_world_x_min'] = -7.2
+        planner['side_bias_world_x_max'] = 7.9
+        planner['side_bias_target_world_y_enabled'] = True
+        planner['side_bias_reference_world_y'] = 0.0
+        planner['side_bias_target_world_y'] = 0.60
+        planner['side_bias_target_offset'] = 0.60
+        planner['side_bias_target_max_cost'] = 200.0
+        planner['side_bias_target_distance_scale'] = 0.45
+        planner['side_bias_target_exponent'] = 2.0
+        planner['side_bias_target_schedule_enabled'] = True
+        planner['side_bias_target_schedule_x'] = [
+            -7.2, -3.4, -2.6, -2.25, 2.75, 3.20, 3.50, 7.40, 7.90]
+        planner['side_bias_target_schedule_y'] = [
+            0.95, 0.95, 0.75, 0.60, 0.60, 0.68, 0.58, 0.58, 0.00]
+
+        local_inflation = params['local_costmap']['local_costmap'][
+            'ros__parameters']['inflation_layer']
+        global_inflation = params['global_costmap']['global_costmap'][
+            'ros__parameters']['inflation_layer']
+        local_inflation['cost_scaling_factor'] = 4.5
+        global_inflation['cost_scaling_factor'] = 4.5
+        return
+
     if profile == 'fast_north_045_v1':
         planner = params['planner_server']['ros__parameters']['GridBased']
         planner['side_bias_world_x_min'] = -8.2
@@ -172,7 +215,7 @@ def apply_navigation_profile(params, profile):
     raise RuntimeError(
         'Unknown navigation_profile={!r}; use current, fast_north_045_v1, '
         'fast_north_045_v2, fast_north_045_v3, fast_goalline_045_v1, '
-        'fast_goalline_045_v2, fast_goalline_045_v3, '
+        'fast_goalline_045_v2, fast_goalline_045_v3, fast_goalline_045_v4, '
         'or frozen_goal_line_045_v1.'.format(profile))
 
 
@@ -214,7 +257,8 @@ def collision_monitor_params_for_profile(source_file, profile):
 
     if profile in (
         'current', 'fast_north_045_v1', 'fast_north_045_v2', 'fast_north_045_v3',
-        'fast_goalline_045_v1', 'fast_goalline_045_v2', 'fast_goalline_045_v3'):
+        'fast_goalline_045_v1', 'fast_goalline_045_v2', 'fast_goalline_045_v3',
+        'fast_goalline_045_v4'):
         pass
     elif profile in ('frozen_goal_line_045_v1', 'goal_line_quad_045_v1'):
         params['collision_monitor']['ros__parameters']['PolygonSlow'][
@@ -223,7 +267,7 @@ def collision_monitor_params_for_profile(source_file, profile):
         raise RuntimeError(
             'Unknown navigation_profile={!r}; use current, fast_north_045_v1, '
             'fast_north_045_v2, fast_north_045_v3, fast_goalline_045_v1, '
-            'fast_goalline_045_v2, fast_goalline_045_v3, '
+            'fast_goalline_045_v2, fast_goalline_045_v3, fast_goalline_045_v4, '
             'or frozen_goal_line_045_v1.'.format(profile))
 
     rewritten = tempfile.NamedTemporaryFile(
@@ -543,6 +587,7 @@ def generate_launch_description():
                 'fast_goalline_045_v1 tests a segmented return-to-goal corridor; '
                 'fast_goalline_045_v2 tests faster inflation decay and speed; '
                 'fast_goalline_045_v3 tests a longer RPP lookahead; '
+                'fast_goalline_045_v4 tests a centered detour and 0.30 m/s; '
                 'frozen_goal_line_045_v1 restores the pre-optimization run-03 baseline.')),
         OpaqueFunction(function=launch_setup),
     ])
