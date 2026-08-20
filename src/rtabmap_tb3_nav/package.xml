@@ -9,6 +9,10 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
+  <build_depend>nav2_core</build_depend>
+  <build_depend>nav2_smac_planner</build_depend>
+  <build_depend>pluginlib</build_depend>
+
   <exec_depend>ament_index_python</exec_depend>
   <exec_depend>gazebo_msgs</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
@@ -18,9 +22,11 @@
   <exec_depend>nav_msgs</exec_depend>
   <exec_depend>nav2_bringup</exec_depend>
   <exec_depend>nav2_collision_monitor</exec_depend>
+  <exec_depend>nav2_core</exec_depend>
   <exec_depend>nav2_msgs</exec_depend>
   <exec_depend>nav2_regulated_pure_pursuit_controller</exec_depend>
   <exec_depend>nav2_smac_planner</exec_depend>
+  <exec_depend>pluginlib</exec_depend>
   <exec_depend>rclpy</exec_depend>
   <exec_depend>realsense2_camera</exec_depend>
   <exec_depend>rtabmap_slam</exec_depend>

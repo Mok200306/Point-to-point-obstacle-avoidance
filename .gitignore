@@ -37,6 +37,9 @@ results/*
 # Keep the six-run benchmark and its parameter snapshots reviewable.
 !results/benchmark_2026-08-20/
 !results/benchmark_2026-08-20/**
+# Keep the goal-line planner optimization regression reviewable.
+!results/optimization_2026-08-20/
+!results/optimization_2026-08-20/**
 
 # Local environment overrides
 .env

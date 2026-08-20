@@ -1,0 +1,8 @@
+<library path="goal_line_smac_planner">
+  <class
+    name="rtabmap_tb3_nav/GoalLineSmacPlanner"
+    type="rtabmap_tb3_nav::GoalLineSmacPlanner"
+    base_class_type="nav2_core::GlobalPlanner">
+    <description>SmacPlanner2D with a soft current goal-line preference.</description>
+  </class>
+</library>

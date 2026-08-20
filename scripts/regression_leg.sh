@@ -47,6 +47,9 @@ if [[ -z "$goal_x" ]]; then
   exit 2
 fi
 
+# Accept both foo/bar and results/foo/bar without creating results/results/...
+label="${label#results/}"
+
 compose_exec() {
   local command_text="$1"
   local quoted
@@ -117,7 +120,18 @@ wait_for_nav2() {
 snapshot_trial() {
   local artifact_dir="results/${label}"
   local commit
+  local planner
   commit="$(git rev-parse HEAD 2>/dev/null || printf 'unknown')"
+  planner="$(awk '
+    /^    GridBased:/ { in_grid=1; next }
+    in_grid && /^    [A-Za-z_][A-Za-z0-9_]*:/ { exit }
+    in_grid && /plugin:/ {
+      sub(/^[^:]*: */, "")
+      print
+      exit
+    }
+  ' src/rtabmap_tb3_nav/config/nav2_rgbd_params.yaml)"
+  planner="${planner:-unknown}"
   mkdir -p "${artifact_dir}"
   cp src/rtabmap_tb3_nav/config/nav2_rgbd_params.yaml \
     "${artifact_dir}/nav2_rgbd_params.yaml"
@@ -134,7 +148,7 @@ snapshot_trial() {
     printf 'goal_x_m: %s\n' "$goal_x"
     printf 'goal_y_m: %s\n' "$goal_y"
     printf 'goal_yaw_rad: %s\n' "$goal_yaw"
-    printf 'planner: nav2_smac_planner/SmacPlanner2D\n'
+    printf 'planner: %s\n' "$planner"
     printf 'controller: nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController\n'
     printf 'gazebo_view: SDF collision geometry plus /gazebo/model_states ground truth\n'
     printf 'rviz_view: /map plus /global_costmap/costmap and map-frame trajectory\n'

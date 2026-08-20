@@ -142,7 +142,7 @@ planner_server:
     expected_planner_frequency: 2.0
     planner_plugins: [GridBased]
     GridBased:
-      plugin: nav2_smac_planner/SmacPlanner2D
+      plugin: rtabmap_tb3_nav/GoalLineSmacPlanner
       tolerance: 0.25
       downsample_costmap: false
       downsampling_factor: 1
@@ -156,6 +156,12 @@ planner_server:
       # Baseline value kept unchanged while testing the goal-line preference
       # planner on top of the frozen 0.45 m inflation configuration.
       cost_travel_multiplier: 6.0
+      # Softly penalize deviation from the actual start-to-goal segment. This
+      # is evaluated per planning call and never changes lethal obstacle cells.
+      line_bias_enabled: true
+      line_bias_max_cost: 60.0
+      line_bias_distance_scale: 2.0
+      line_bias_exponent: 2.0
       use_final_approach_orientation: false
       smoother:
         max_iterations: 1000
