@@ -53,7 +53,9 @@ def build_stages(args, goals):
             start_x = previous['x']
             start_y = previous['y']
         stages.append({
-            'name': f'{start_name}到{goal["name"]}',
+            # Keep plot legends ASCII-compatible; waypoint labels remain the
+            # concise M/A/B/C/D names requested for the comparison figure.
+            'name': f'{start_name}->{goal["name"]}',
             'goal_label': goal['name'],
             'start_label': start_name if index == 0 else None,
             'start_x_m': start_x,

@@ -214,7 +214,11 @@ class MultiGoalEvidence:
                         'edgecolor': color,
                         'alpha': 0.9,
                     })
-            if index == 0 and start is not None and stage.get('start_label'):
+            has_labeled_return_to_start = any(
+                candidate.get('goal_label') == stage.get('start_label')
+                for candidate in self.stages)
+            if (index == 0 and start is not None and stage.get('start_label')
+                    and not has_labeled_return_to_start):
                 axis.annotate(
                     stage['start_label'], start, xytext=(7, -16),
                     textcoords='offset points', fontsize=10,
