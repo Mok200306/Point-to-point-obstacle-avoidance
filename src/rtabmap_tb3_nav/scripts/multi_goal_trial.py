@@ -28,7 +28,14 @@ import rclpy
 from navigation_trial import NavigationTrial, path_length
 
 
-SEGMENT_COLORS = ['#d62728', '#1f77b4']
+SEGMENT_COLORS = [
+    '#d62728',  # red
+    '#1f77b4',  # blue
+    '#9467bd',  # purple
+    '#ff7f0e',  # orange
+    '#2ca02c',  # green
+    '#8c564b',
+]
 
 
 def safe_metrics(trial, error=None):
@@ -170,9 +177,10 @@ class MultiGoalEvidence:
         segments = self.gazebo_segments if gazebo else self.path_segments
         for index, stage in enumerate(self.stages):
             samples = segments[index]
-            color = SEGMENT_COLORS[index % len(SEGMENT_COLORS)]
+            color = stage.get(
+                'color', SEGMENT_COLORS[index % len(SEGMENT_COLORS)])
+            segment_title = stage.get('name', f'segment {index + 1}')
             if samples:
-                segment_title = f'segment {index + 1}'
                 axis.plot(
                     [sample['x'] for sample in samples],
                     [sample['y'] for sample in samples],
@@ -194,6 +202,29 @@ class MultiGoalEvidence:
                 goal[0], goal[1], facecolors='none', edgecolors=color,
                 s=160, linewidths=2.0, marker='*',
                 label=f"{segment_title} goal", zorder=10)
+            goal_label = stage.get('goal_label')
+            if goal_label:
+                axis.annotate(
+                    goal_label, goal, xytext=(7, 7),
+                    textcoords='offset points', fontsize=10,
+                    fontweight='bold', color='#111111', zorder=11,
+                    bbox={
+                        'boxstyle': 'round,pad=0.15',
+                        'facecolor': 'white',
+                        'edgecolor': color,
+                        'alpha': 0.9,
+                    })
+            if index == 0 and start is not None and stage.get('start_label'):
+                axis.annotate(
+                    stage['start_label'], start, xytext=(7, -16),
+                    textcoords='offset points', fontsize=10,
+                    fontweight='bold', color='#111111', zorder=11,
+                    bbox={
+                        'boxstyle': 'round,pad=0.15',
+                        'facecolor': 'white',
+                        'edgecolor': '#111111',
+                        'alpha': 0.9,
+                    })
 
     def draw_gazebo_view(self, axis):
         axis.set_facecolor('#edf1f4')
@@ -227,11 +258,14 @@ class MultiGoalEvidence:
         total_wall = sum(
             stage.get('wall_duration_s') or 0.0
             for stage in stage_metrics)
+        color_summary = ', '.join(
+            f"{stage.get('goal_label', stage.get('name', index + 1))}="
+            f"{stage.get('color', SEGMENT_COLORS[index % len(SEGMENT_COLORS)])}"
+            for index, stage in enumerate(self.stages))
         figure.suptitle(
             f'adaptive multi-goal experiment | status={statuses} | '
-            f'total wall={total_wall:.1f}s | red=segment 1, blue=segment 2, '
-            f'black dashed=direct start-goal reference',
-            fontsize=14)
+            f'total wall={total_wall:.1f}s | segments: {color_summary} | '
+            f'black dashed=direct start-goal reference', fontsize=14)
         figure.savefig(os.path.join(output_dir, 'trajectory_comparison.png'),
                        dpi=170)
         plt.close(figure)

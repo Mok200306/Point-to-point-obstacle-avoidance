@@ -43,6 +43,7 @@ install(
     scripts/navigation_trial.py
     scripts/goal_line_visualizer.py
     scripts/multi_goal_trial.py
+    scripts/multi_waypoint_trial.py
     scripts/map_padder.py
   DESTINATION lib/${PROJECT_NAME}
 )

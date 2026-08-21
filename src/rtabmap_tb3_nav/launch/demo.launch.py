@@ -313,7 +313,6 @@ def launch_setup(context, *args, **kwargs):
     gazebo_share = get_package_share_directory('turtlebot3_gazebo')
     gazebo_ros_share = get_package_share_directory('gazebo_ros')
     nav2_share = get_package_share_directory('nav2_bringup')
-    collision_monitor_share = get_package_share_directory('nav2_collision_monitor')
 
     world_name = LaunchConfiguration('world').perform(context)
     nav2_params = LaunchConfiguration('nav2_params').perform(context)
@@ -410,13 +409,29 @@ def launch_setup(context, *args, **kwargs):
     # The Nav2 velocity smoother publishes /cmd_vel. The collision monitor
     # consumes that command and the patched Gazebo model listens on
     # /cmd_vel_safe, so a stale depth observation can only fail closed.
-    collision_monitor = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(
-            collision_monitor_share, 'launch', 'collision_monitor_node.launch.py')),
-        launch_arguments={
-            'use_sim_time': use_sim_time,
-            'params_file': collision_monitor_params_file,
-        }.items(),
+    # Launch the monitor before its lifecycle manager. The upstream include
+    # starts the manager first, which can leave collision_monitor inactive when
+    # Nav2 is also bringing up its lifecycle services. Inactive monitoring
+    # means /cmd_vel_safe has no publisher and the Gazebo base remains still.
+    collision_monitor_node = Node(
+        package='nav2_collision_monitor',
+        executable='collision_monitor',
+        name='collision_monitor',
+        output='screen',
+        emulate_tty=True,
+        parameters=[collision_monitor_params_file],
+    )
+    collision_monitor_lifecycle_manager = Node(
+        package='nav2_lifecycle_manager',
+        executable='lifecycle_manager',
+        name='collision_monitor_lifecycle_manager',
+        output='screen',
+        emulate_tty=True,
+        parameters=[
+            {'use_sim_time': use_sim_time},
+            {'autostart': True},
+            {'node_names': ['collision_monitor']},
+        ],
     )
 
     rtabmap_parameters = {
@@ -539,7 +554,13 @@ def launch_setup(context, *args, **kwargs):
     )
 
     delayed_collision_monitor = TimerAction(
-        period=2.0, actions=[collision_monitor])
+        period=4.0,
+        actions=[
+            collision_monitor_node,
+            TimerAction(
+                period=2.0,
+                actions=[collision_monitor_lifecycle_manager]),
+        ])
 
     return [
         SetEnvironmentVariable('TURTLEBOT3_MODEL', 'waffle'),
