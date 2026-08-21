@@ -403,7 +403,8 @@ sg docker -c './scripts/run_navigation_trial.sh --x -8.5 --y 0.0 --yaw 3.1415926
 每次会在 `results/<label>/` 生成 `trajectory.png`、`trajectory.csv` 和 `metrics.yaml`。
 PNG 背景来自最终 `/map`，红线是 map 坐标系中的实际 odom 轨迹；YAML 同时记录
 action 墙钟时间和 Gazebo 仿真时间。一般结果目录默认被 `.gitignore` 排除，避免日志污染源码；
-六次 benchmark 和本次目标线优化回归目录已显式纳入版本库。双视图、参数快照和 contacts
+当前归档只保留三个阶段各三次正式结果；完整保留规则见
+[EXPERIMENT_ARCHIVE_INDEX.md](EXPERIMENT_ARCHIVE_INDEX.md)。双视图、参数快照和 contacts
 证据见对应实验目录，汇总会写入 `PROJECT_PROGRESS.md`。
 
 修改 ROS 文件后：

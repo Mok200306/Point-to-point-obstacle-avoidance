@@ -85,9 +85,10 @@ global_costmap:
 sg docker -c './scripts/launch_demo.sh gazebo_gui:=true rviz:=true rtabmap_viz:=false reset_db:=true navigation_profile:=fast_goalline_045_v4'
 ```
 
-旧实验不会因 v4 代码变化而丢失：每个正式结果目录保存了 `git_commit`、基础
-`nav2_rgbd_params.yaml`、`collision_monitor_rgbd_params.yaml`、`world.sdf` 和
-`profile_overrides.yaml`。运行时只想回退参数时可直接指定旧 profile，例如：
+旧 profile 的参数文档和 Git 提交仍可用于回退；正式结果归档和已清理目录见
+[EXPERIMENT_ARCHIVE_INDEX.md](EXPERIMENT_ARCHIVE_INDEX.md)。保留的正式结果目录保存了
+`git_commit`、基础 `nav2_rgbd_params.yaml`、`collision_monitor_rgbd_params.yaml`、
+`world.sdf` 和 `profile_overrides.yaml`。运行时只想回退参数时可直接指定旧 profile，例如：
 
 ```bash
 sg docker -c './scripts/launch_demo.sh gazebo_gui:=true rviz:=true rtabmap_viz:=false reset_db:=true navigation_profile:=fast_north_045_v3'
