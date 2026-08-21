@@ -62,7 +62,7 @@ segments:
   map_frame: map
   map_received: true
   global_costmap_received: true
-git_commit: e9ad6a44f0b3d95afed64874491402d00b903489
+git_commit: 2b50e0277bb3f1125c5e874284e4e7cea1691e66
 gazebo_contact_messages: 325050
 gazebo_non_ground_contact: false
 gazebo_contact_pairs: "(none)"
