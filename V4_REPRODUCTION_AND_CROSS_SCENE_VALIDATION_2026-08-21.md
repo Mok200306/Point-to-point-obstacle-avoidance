@@ -477,3 +477,149 @@ USB/驱动验证
 当前结论是：**仿真链路已经达到接入真实 D435i 做低速传感器验证的准备阶段，但还没有
 达到真实底盘正式导航验收阶段。** 真实 D435i 会验证传感器噪声、安装误差、遮挡、USB
 带宽和底盘控制误差；这些问题不能由当前 Gazebo 3/3 结果替代。
+
+## 12. 为什么只执行构建命令看不到 Gazebo 和 RViz2
+
+下面三条命令的作用分别是：
+
+```text
+stop.sh       停止并删除旧的 Compose 容器
+start.sh      启动 ros2 容器，但不启动 Gazebo、RViz2 或 Nav2
+colcon build 只编译 ROS 2 工作区，不运行任何节点
+```
+
+所以只执行这三条命令时，既不会出现 Gazebo，也不会出现 RViz2；这不是“无图导航”，
+而是还没有启动仿真入口。启动仿真还必须执行 `launch_demo.sh`，并保持该终端运行。
+
+### 12.1 正确的 v4 可视化启动顺序
+
+终端 1 执行：
+
+```bash
+cd /home/w417/RTAB-Map
+sg docker -c './scripts/stop.sh'
+sg docker -c './scripts/start.sh'
+sg docker -c 'docker compose exec -T ros2 bash -lc "source /opt/ros/humble/setup.bash && cd /workspaces/rtabmap_tb3_nav && colcon build --symlink-install"'
+sg docker -c './scripts/launch_demo.sh world:=obstacle_course_large x_pose:=-8.5 y_pose:=0.0 gazebo_gui:=true rviz:=true rtabmap_viz:=false online:=true localization:=false reset_db:=true navigation_profile:=fast_goalline_045_v4'
+```
+
+最后一条命令会以前台方式启动：
+
+```text
+Gazebo gzserver + Gazebo GUI
+TurtleBot3 Waffle
+Gazebo RGB-D 相机
+RTAB-Map online SLAM
+Nav2 global/local costmap、Smac、RPP
+RViz2
+```
+
+不要关闭这个终端。等待 Gazebo 和 RViz2 窗口出现、Nav2 lifecycle 节点 active，并让
+RTAB-Map 先运行几秒，再在终端 2 发送目标：
+
+```bash
+cd /home/w417/RTAB-Map
+sg docker -c 'docker compose exec -T ros2 bash -lc "source /opt/ros/humble/setup.bash && source /workspaces/rtabmap_tb3_nav/install/setup.bash && ros2 run rtabmap_tb3_nav send_goal.py --x 8.5 --y 0.0 --yaw 0.0 --settle-seconds 5"'
+```
+
+这里的 `online=true localization=false` 表示“运行时边建图边导航”，不是无图：
+RTAB-Map 会从一张很小的初始地图开始，随着相机移动逐步更新 `/map`；Gazebo 世界本身
+始终存在，RViz2 显示的是当前已经观测到的地图、代价地图和路径。
+
+### 12.2 如果已经执行 launch 仍然没有窗口
+
+先确认容器和图形环境：
+
+```bash
+echo "$DISPLAY"
+xhost
+sg docker -c 'docker compose ps'
+sg docker -c 'docker compose exec -T ros2 bash -lc "source /opt/ros/humble/setup.bash && ros2 node list"'
+```
+
+正常情况下，`docker compose ps` 中应有运行中的 `ros2`，节点列表中应逐步出现
+`/gazebo`、`/rtabmap`、`/planner_server`、`/controller_server` 和 `/rviz2`。如果节点
+存在但窗口没有出现，通常是当前终端没有可用的桌面 `DISPLAY`、通过 SSH 无 X11 转发，
+或 X server 拒绝了容器连接。`scripts/start.sh` 已经执行了 `xhost` 授权，但它不能
+替代无图形桌面本身。
+
+同时确认 launch 参数没有被关闭：
+
+```text
+gazebo_gui:=true
+rviz:=true
+```
+
+`rtabmap_viz:=false` 只关闭 RTAB-Map 自己的可视化窗口，不会关闭 Gazebo 或 RViz2。
+
+### 12.3 修改起点和终点的正确方法
+
+起点和终点由两个不同参数控制：
+
+| 内容 | 控制方式 | 坐标系 |
+| --- | --- | --- |
+| Gazebo 中机器人出生位置 | `x_pose:=... y_pose:=...` | Gazebo world 坐标 |
+| Nav2 终点位置 | `send_goal.py --x ... --y ... --yaw ...` | 默认 `map` 坐标 |
+| Nav2 终点姿态 | `send_goal.py --yaw ...` | 弧度 |
+
+例如把当前大场景的 A→B 改成 B→A，不需要改代码：
+
+```bash
+# 终端 1：从原 B 点出生
+sg docker -c './scripts/launch_demo.sh world:=obstacle_course_large x_pose:=8.5 y_pose:=0.0 gazebo_gui:=true rviz:=true rtabmap_viz:=false online:=true localization:=false reset_db:=true navigation_profile:=fast_goalline_045_v4'
+
+# 终端 2：发送原 A 点作为终点
+sg docker -c 'docker compose exec -T ros2 bash -lc "source /opt/ros/humble/setup.bash && source /workspaces/rtabmap_tb3_nav/install/setup.bash && ros2 run rtabmap_tb3_nav send_goal.py --x -8.5 --y 0.0 --yaw 3.1415926 --settle-seconds 5"'
+```
+
+如果要使用自定义起终点，只需替换下面四个数值，并确认起点、终点都不在实体障碍物
+内部：
+
+```bash
+# 起点：Gazebo world 坐标
+sg docker -c './scripts/launch_demo.sh world:=obstacle_course_large x_pose:=START_X y_pose:=START_Y gazebo_gui:=true rviz:=true rtabmap_viz:=false online:=true localization:=false reset_db:=true navigation_profile:=fast_goalline_045_v4'
+
+# 终点：map 坐标，yaw 使用弧度
+sg docker -c 'docker compose exec -T ros2 bash -lc "source /opt/ros/humble/setup.bash && source /workspaces/rtabmap_tb3_nav/install/setup.bash && ros2 run rtabmap_tb3_nav send_goal.py --x GOAL_X --y GOAL_Y --yaw GOAL_YAW --settle-seconds 5"'
+```
+
+上面的 `START_X`、`GOAL_X` 等是占位符，不能原样输入；例如 `START_X` 要替换为
+`-6.0`，`GOAL_X` 要替换为 `6.5`。也可以在 RViz2 中选择 `Nav2 Goal`，在当前
+`map` 上点击目标位置并拖动箭头设置目标朝向。
+
+### 12.4 改完起终点后是否需要重新编译
+
+只改变 `world`、`x_pose`、`y_pose`、`--x`、`--y` 或 `--yaw` 时，不需要重新执行
+`colcon build`。完整流程是：
+
+1. 在 launch 终端按 `Ctrl+C` 停止当前仿真；
+2. 执行 `stop.sh`，确保旧 Gazebo、RTAB-Map 和数据库进程退出；
+3. 用新的 `x_pose/y_pose` 重新执行 `launch_demo.sh`；
+4. 等待地图和 TF 稳定，再用新的 `--x/--y/--yaw` 发送目标；
+5. 若要保存结果，使用新的 `--label`，不要覆盖旧实验目录。
+
+只有修改了 `src/`、launch 文件、YAML 参数、Dockerfile 或 Gazebo 模型时，才需要重新
+构建工作区或镜像。更改起终点不会自动改变代码中的 v4 schedule。
+
+### 12.5 自定义起终点时最容易忽略的坐标问题
+
+`x_pose/y_pose` 是 Gazebo spawn 参数，而 `send_goal.py` 的目标默认是 `map` 坐标。
+当前 large-world A/B 实验中两者近似对齐，所以可以使用 `-8.5/8.5`；换场景或换起点
+后，RTAB-Map 可能产生不同的 `map -> odom` 原点，不能无条件假设 Gazebo world 坐标
+和 RViz 的 map 坐标完全相同。
+
+建议自定义目标时：
+
+1. 先启动仿真并观察 RViz 的 `map`；
+2. 先发送机器人附近的短距离目标，确认 `map -> odom` 稳定；
+3. 再在 RViz 中点击目标，或使用 RViz 显示的 map 坐标发送远距离目标；
+4. 起点必须有足够的空地，目标必须不在障碍物和 inflation 的 lethal 区域内。
+
+此外，当前 launch 只暴露了 Gazebo 的 `x_pose` 和 `y_pose`，没有暴露初始 `yaw_pose`。
+机器人初始朝向沿用 TurtleBot3 spawn launch 的默认值；终点朝向仍可通过 `--yaw` 或
+RViz 设置。如果实验确实需要自定义初始朝向，后续需要单独给 launch 增加 yaw 参数，
+这属于代码改动，不能通过当前命令临时传入。
+
+最后，`fast_goalline_045_v4` 只对当前 large world 的 A→B 走廊完成了正式验证。修改
+起点、终点、方向或 world 后，它可以作为压力测试运行，但结果应保存为新的实验，不应
+继续标记为 v4 A→B 验收，也不能把失败直接归因于“没有地图”。
