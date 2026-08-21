@@ -49,5 +49,15 @@ results/optimization_2026-08-21/*
 !results/自适应目标线_多目标_修正版_2026-08-21/
 !results/自适应目标线_多目标_修正版_2026-08-21/**
 
+# Keep the three-run five-waypoint closed-loop validation evidence.
+!results/自适应目标线_五点闭环_2026-08-22/
+results/自适应目标线_五点闭环_2026-08-22/*
+!results/自适应目标线_五点闭环_2026-08-22/run_01/
+!results/自适应目标线_五点闭环_2026-08-22/run_01/**
+!results/自适应目标线_五点闭环_2026-08-22/run_02/
+!results/自适应目标线_五点闭环_2026-08-22/run_02/**
+!results/自适应目标线_五点闭环_2026-08-22/run_03/
+!results/自适应目标线_五点闭环_2026-08-22/run_03/**
+
 # Local environment overrides
 .env
