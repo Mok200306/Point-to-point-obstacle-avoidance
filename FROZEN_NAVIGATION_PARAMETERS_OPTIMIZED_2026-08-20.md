@@ -80,8 +80,8 @@ sg docker -c './scripts/regression_leg.sh --x 8.5 --y 0.0 --yaw 0.0 --label manu
 ```
 
 实验脚本会保存当次 YAML、世界文件、map/Gazebo 两条轨迹、左右双视图和 Gazebo contacts
-摘要。标签可以写成 `foo/bar`，脚本也兼容误写成 `results/foo/bar`，不会再生成重复的
-`results/results/` 目录。
+摘要。标签可以写成 `foo/bar`，脚本也兼容误写成 `results/foo/bar`；本次归档已删除历史上
+误生成的嵌套 `results/results/` 目录。
 
 ## 解释和边界
 

@@ -21,6 +21,7 @@ B = ( 8.5, 0.0)   场景目标位置
 [FROZEN_NAVIGATION_PARAMETERS_FAST_GOALLINE_045_V4_2026-08-21.md](FROZEN_NAVIGATION_PARAMETERS_FAST_GOALLINE_045_V4_2026-08-21.md)。历史 v3 参数和三次回归见
 [NAVIGATION_OPTIMIZATION_2026-08-21.md](NAVIGATION_OPTIMIZATION_2026-08-21.md) 与
 [FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-21.md](FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-21.md)。
+结果目录整理和各阶段保留规则见 [EXPERIMENT_ARCHIVE_INDEX.md](EXPERIMENT_ARCHIVE_INDEX.md)。
 旧 profile 仍可通过 `navigation_profile:=fast_north_045_v3`、`fast_goalline_045_v2`
 或 `frozen_goal_line_045_v1` 显式回退，原生目标线 0.45 配置仍由历史提交保留。
 
@@ -432,8 +433,9 @@ Docker 镜像；因为相机分辨率、帧率、LDS 删除和 `cmd_vel_safe` re
 | A -> B | `4` | `182.87 s` | `0.108 m` | `900` | `464223`，`(none)` |
 | B -> A | `4` | `161.07 s` | `0.111 m` | `723` | `424417`，`(none)` |
 
-轨迹文件为 `results/A_to_B_clearance/` 和 `results/B_to_A_clearance/`。B 起点的接触
-回归都使用干净重启并从对应端点开始；`scripts/regression_leg.sh` 会先等待
+这组早期轨迹属于历史 NavFn + DWB 对照，原始目录已按
+[EXPERIMENT_ARCHIVE_INDEX.md](EXPERIMENT_ARCHIVE_INDEX.md) 清理；B 起点的接触
+回归曾使用干净重启并从对应端点开始；`scripts/regression_leg.sh` 会先等待
 `/controller_server` 和 `/planner_server` 都处于 `active [3]`，再开始 300 s 的
 Gazebo contacts 监听并发送目标。这里的 `(none)` 指过滤地面后没有机器人与墙、栏杆、
 箱体或柱体的接触对。
@@ -471,9 +473,9 @@ launch 没有完全退出而产生了重复节点，不是新的避障参数本�
 | A -> B | `4` | `114.52 s` | `0.152 m` | `280327`，`(none)` |
 | B -> A | `4` | `110.82 s` | `0.208 m` | `285301`，`(none)` |
 
-轨迹和指标位于 `results/smac_rpp_055_final_A_to_B/` 与
-`results/smac_rpp_055_final_B_to_A/`。`(none)` 表示过滤 `ground_plane` 后没有
-`waffle` 与墙、barrier、crate 或 pillar 的接触对。
+这组 0.55 m 轨迹的统计和 contacts 结论仍在本文；原始目录已按
+[EXPERIMENT_ARCHIVE_INDEX.md](EXPERIMENT_ARCHIVE_INDEX.md) 清理，可从整理前提交恢复。
+`(none)` 表示过滤 `ground_plane` 后没有 `waffle` 与墙、barrier、crate 或 pillar 的接触对。
 
 `navigation_trial.py` 的末端误差是 action result 前后收到的最后一条 TF/odom 轨迹采样，
 不是 Nav2 内部 goal checker 的判定值；本轮以 Nav2 `status=4` 作为成功标准。论文中应

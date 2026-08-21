@@ -66,13 +66,11 @@ monitor 仍然有效。
 `0.028 m`。`approx clearance` 是 SDF 几何距离减去 footprint 外接圆半径的保守诊断，
 出现负数不能单独证明碰撞；物理结论以 Gazebo contacts 为准。
 
-每个正式目录均包含 `metrics.yaml`、`trajectory.csv`、`gazebo_trajectory.csv`、
-`trajectory.png`、`trajectory_comparison.png`、基础参数快照、
-`profile_overrides.yaml`、世界文件和 `experiment.yaml`：
-
-- [run 01](results/optimization_2026-08-21/fast_goalline_045_v2_A_to_B_run_01)
-- [run 02](results/optimization_2026-08-21/fast_goalline_045_v2_A_to_B_run_02)
-- [run 03](results/optimization_2026-08-21/fast_goalline_045_v2_A_to_B_run_03)
+每个正式目录当时均包含 `metrics.yaml`、`trajectory.csv`、`gazebo_trajectory.csv`、
+`trajectory.png`、`trajectory_comparison.png`、基础参数快照、`profile_overrides.yaml`、
+世界文件和 `experiment.yaml`。原始目录已按
+[EXPERIMENT_ARCHIVE_INDEX.md](EXPERIMENT_ARCHIVE_INDEX.md) 清理，统计和参数仍保留在本文及
+提交 `452b45f` 的历史中。
 
 ## 与已有 profile 对比
 
@@ -91,8 +89,8 @@ v2 设为默认 profile；默认仍是路线方差较小的 `fast_north_045_v3`�
 新增的 `fast_goalline_045_v3` 只把 RPP 前视改为 `0.70--1.30 m`，希望减少急转。
 单次 pilot 结果为：wall `87.80 s`、status `4`、无非地面 contacts，但最大 `y`
 仍为 `1.30 m`。它没有解决在线地图观测时序造成的高抬路线，因此不进入正式均值，
-也不作为默认配置。证据保留在
-[v3 pilot](results/optimization_2026-08-21/fast_goalline_045_v3_pilot_A_to_B)。
+也不作为默认配置。pilot 的结论保留在本文，原始目录已按
+[EXPERIMENT_ARCHIVE_INDEX.md](EXPERIMENT_ARCHIVE_INDEX.md) 清理。
 
 ## 为什么仍会偶尔绕高
 
@@ -144,4 +142,3 @@ git worktree add ../RTAB-Map-452b45f 452b45f
 进入对应 worktree 后，按该目录自己的 `experiment.yaml` 使用同名 profile；运行前先
 停止当前 worktree 的 Docker 容器。只在新代码上选择同名参数 profile，不能把它写成
 “代码级精确复现”，因为 C++ planner 和 launch 可能已经变化。
-

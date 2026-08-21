@@ -13,6 +13,8 @@ v4 的三次双视图和完整指标见
 [NAVIGATION_OPTIMIZATION_2026-08-21_FAST_GOALLINE_V4.md](NAVIGATION_OPTIMIZATION_2026-08-21_FAST_GOALLINE_V4.md)，
 冻结参数见
 [FROZEN_NAVIGATION_PARAMETERS_FAST_GOALLINE_045_V4_2026-08-21.md](FROZEN_NAVIGATION_PARAMETERS_FAST_GOALLINE_045_V4_2026-08-21.md)。
+结果目录、删除范围和历史恢复规则见
+[EXPERIMENT_ARCHIVE_INDEX.md](EXPERIMENT_ARCHIVE_INDEX.md)。
 
 本轮新增代码提交 `452b45f` 和候选 profile `fast_goalline_045_v2`。它在三次干净
 A -> B 中达到 `88.95 ± 3.57 s`、Gazebo 路径 `17.31 ± 0.14 m`、3/3 成功、0/3
@@ -93,8 +95,9 @@ DWB 又会较强地追随这条路径；在线模式中直接订阅增长中的 
 
 这不是把“当前位置到终点直线”硬编码为最高分，而是由 Smac 的目标启发式保持目标
 方向偏好、由 costmap 累计代价惩罚贴障碍路径、由 RPP 前视实现连续绕行。详细参数和
-手动调整步骤见 [PARAMETERS.md](PARAMETERS.md)，本轮记录见
-[NAVIGATION_UPDATE_2026-08-20_CLEARANCE_FIRST.md](NAVIGATION_UPDATE_2026-08-20_CLEARANCE_FIRST.md)。
+手动调整步骤见 [PARAMETERS.md](PARAMETERS.md)，阶段结果归档见
+[EXPERIMENT_ARCHIVE_INDEX.md](EXPERIMENT_ARCHIVE_INDEX.md)，目标线阶段记录见
+[NAVIGATION_OPTIMIZATION_2026-08-20.md](NAVIGATION_OPTIMIZATION_2026-08-20.md)。
 
 当前新配置已完成 A -> B / B -> A 独立回归；旧 DWB 的结果只能作为历史对照，不能
 直接充当 Smac + RPP 的论文数据。
@@ -183,9 +186,9 @@ Gazebo RGB-D 相机
 | A -> B | `4` | `182.87 s` | `182.87 s` | `0.108 m` | `900` | `464223` / `(none)` |
 | B -> A | `4` | `161.07 s` | `161.07 s` | `0.111 m` | `723` | `424417` / `(none)` |
 
-轨迹证据位于本机 `results/A_to_B_clearance/` 和 `results/B_to_A_clearance/`，各目录
-包含 `trajectory.png`、`trajectory.csv` 和 `metrics.yaml`。A→B 及 B→A 的 contacts
-都过滤了 `ground_plane`；最新完整监听分别记录 464,223 和 424,417 条 contact
+这组早期轨迹和 contacts 证据已按 [EXPERIMENT_ARCHIVE_INDEX.md](EXPERIMENT_ARCHIVE_INDEX.md)
+归档；原始目录可从整理前提交恢复。A→B 及 B→A 的 contacts 都过滤了 `ground_plane`；
+最新完整监听分别记录 464,223 和 424,417 条 contact
 消息，因此表中的 `(none)` 指没有 `waffle` 与墙、栏杆、箱体或柱体的接触对。
 
 这两次结果可作为当前论文的仿真 RGB-D 在线建图 + Nav2 DWB 历史对照：成功率在这两次

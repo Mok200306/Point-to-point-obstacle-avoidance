@@ -16,28 +16,16 @@ __pycache__/
 # Generated navigation trials
 results/*
 !results/.gitkeep
-# Keep the two documented baseline runs as reviewable evidence.
-!results/A_to_B_clearance/
-!results/A_to_B_clearance/metrics.yaml
-!results/A_to_B_clearance/trajectory.csv
-!results/A_to_B_clearance/trajectory.png
-!results/B_to_A_clearance/
-!results/B_to_A_clearance/metrics.yaml
-!results/B_to_A_clearance/trajectory.csv
-!results/B_to_A_clearance/trajectory.png
-# Keep the current clearance-first Smac + RPP regression evidence reviewable.
-!results/smac_rpp_055_final_A_to_B/
-!results/smac_rpp_055_final_A_to_B/metrics.yaml
-!results/smac_rpp_055_final_A_to_B/trajectory.csv
-!results/smac_rpp_055_final_A_to_B/trajectory.png
-!results/smac_rpp_055_final_B_to_A/
-!results/smac_rpp_055_final_B_to_A/metrics.yaml
-!results/smac_rpp_055_final_B_to_A/trajectory.csv
-!results/smac_rpp_055_final_B_to_A/trajectory.png
-# Keep the six-run benchmark and its parameter snapshots reviewable.
+# Keep only the selected three-run archive for each formal stage.
 !results/benchmark_2026-08-20/
-!results/benchmark_2026-08-20/**
-# Keep the final goal-line planner triple regression reviewable.
+results/benchmark_2026-08-20/*
+!results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_01/
+!results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_01/**
+!results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_02/
+!results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_02/**
+!results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_03/
+!results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_03/**
+
 !results/optimization_2026-08-20/
 results/optimization_2026-08-20/*
 !results/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_01/
@@ -46,10 +34,16 @@ results/optimization_2026-08-20/*
 !results/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_02/**
 !results/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_03/
 !results/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_03/**
-# Keep the 2026-08-21 optimization exploration and formal v2 regression
-# reviewable. Exploratory runs remain labelled as such in the report.
+# Keep only the final v4 three-run regression. Earlier profiles remain reproducible
+# through Git commits and their frozen parameter documents.
 !results/optimization_2026-08-21/
-!results/optimization_2026-08-21/**
+results/optimization_2026-08-21/*
+!results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_01/
+!results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_01/**
+!results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_02/
+!results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_02/**
+!results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_03/
+!results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_03/**
 
 # Local environment overrides
 .env

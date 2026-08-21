@@ -28,11 +28,8 @@ v3 更适合当前这个 benchmark 的“快速且路线一致”目标；它不
 
 近似 clearance 是 SDF 几何与 footprint 外接圆的诊断值，v3 的数值更紧，不能把它写成
 比 v2 更安全；物理碰撞结论以过滤 `ground_plane` 后的 Gazebo contacts 为准。三次完整
-证据位于：
-
-- [run 01](results/optimization_2026-08-21/fast_north_045_v3_A_to_B_run_01)
-- [run 02](results/optimization_2026-08-21/fast_north_045_v3_A_to_B_run_02)
-- [run 03](results/optimization_2026-08-21/fast_north_045_v3_A_to_B_run_03)
+三次结果的统计仍保留在本文；原始目录已按
+[EXPERIMENT_ARCHIVE_INDEX.md](EXPERIMENT_ARCHIVE_INDEX.md) 清理，可从对应 Git 提交恢复。
 
 每个 `trajectory_comparison.png` 左侧是 Gazebo SDF 俯视场景和 ground truth，右侧是
 RViz 风格的 `/map`、global costmap 与 map-frame 轨迹。
@@ -69,8 +66,9 @@ v2 保留为可复现的速度/路线对照：
 | 最大北向偏移 y [m] | 1.588 ± 0.422 |
 | 成功率 / 非地面碰撞 | 3/3 / 0/3 |
 
-v2 的三次结果仍完整保留在 `results/optimization_2026-08-21/fast_north_045_v2_A_to_B_run_01`
-至 `run_03`，不会被 v3 覆盖。
+v2 的三次结果统计仍保留在本文和 Git 历史中；原始目录已按
+[EXPERIMENT_ARCHIVE_INDEX.md](EXPERIMENT_ARCHIVE_INDEX.md) 清理，不与当前 v3/v4 正式结果
+混放。
 
 ## 当前规划链路
 

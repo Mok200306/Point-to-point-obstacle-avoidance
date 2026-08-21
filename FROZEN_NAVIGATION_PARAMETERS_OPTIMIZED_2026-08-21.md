@@ -22,11 +22,8 @@ GoalLineSmacPlanner、RPP、velocity smoother 和 collision monitor 完整链路
 | 平均 | **91.083** | **17.174** | **17.492** | **0.309** | -0.007 | **0/3** |
 
 近似 clearance 只用于诊断；物理碰撞以过滤 `ground_plane` 后的 Gazebo contacts 为准。
-正式结果和双视图位于：
-
-- [run 01](results/optimization_2026-08-21/fast_north_045_v3_A_to_B_run_01)
-- [run 02](results/optimization_2026-08-21/fast_north_045_v3_A_to_B_run_02)
-- [run 03](results/optimization_2026-08-21/fast_north_045_v3_A_to_B_run_03)
+三次正式结果的统计和参数仍保留在本文；原始目录已按
+[EXPERIMENT_ARCHIVE_INDEX.md](EXPERIMENT_ARCHIVE_INDEX.md) 清理，可从提交 `6202912` 恢复。
 
 ## 规划与控制参数
 
