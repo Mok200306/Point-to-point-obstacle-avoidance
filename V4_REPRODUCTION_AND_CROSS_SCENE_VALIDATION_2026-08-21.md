@@ -246,3 +246,234 @@ contacts topic、起终点和轨迹绘图参数化，再进行三次正式验证
 
 仿真通过并不等于真实 D435i 已经通过；但如果 v4 在多个仿真布局中不改参数仍能满足
 成功、无碰撞和轨迹约束，就可以更有依据地进入真实传感器迁移阶段。
+
+## 9. 关于“实时建图”和环境记忆的准确解释
+
+### 9.1 我们现在是不是实时建图
+
+是。当前 v4 使用的是：
+
+```text
+online=true
+localization=false
+Mem/IncrementalMemory=true
+subscribe_scan=false
+```
+
+RTAB-Map 在收到 RGB、深度图和机器人里程计后，持续创建新的视觉/深度节点，估计
+机器人位姿并更新 `/map`。与此同时，`/camera/obstacles` 进入 Nav2 的 obstacle layer，
+所以机器人可以在建图过程中同时规划和行驶，不需要先单独完成一遍完整建图。
+
+但是“实时建图”不等于“在任何陌生环境中必然找到路线”。当前能力的准确边界是：
+
+- 相机已经观察到的空间会被加入地图，Smac 可以在当前 costmap 中搜索可行路径；
+- 行驶过程中发现新的障碍物时，地图和代价地图会更新，Nav2 可以重新规划；
+- 相机视野之外、尚未被观测的房间和通道没有可靠几何信息；
+- 当前工程没有实现完整的 frontier exploration（主动寻找未知区域并探索整张房间）；
+- 如果目标所在区域没有被观测、里程计/TF 不稳定、深度相机漏检，不能保证自动找到目标。
+
+因此，当前 v4 可以称为“RGB-D 在线建图下的点到点导航”，不能称为“对任意陌生
+环境都具备自主探索能力”。点到点目标最好位于当前地图已覆盖或机器人能够逐步观察
+到的区域内。
+
+### 9.2 小车会不会记住已经走过的地方
+
+会，但需要区分“当前运行记忆”和“下次启动继续使用数据库”：
+
+| 状态 | 当前含义 | 是否保留到下一次启动 |
+| --- | --- | --- |
+| `Mem/IncrementalMemory=true` | 当前运行中持续加入 RTAB-Map 节点、地图和视觉特征 | 只有数据库没有被删除时才可能保留 |
+| `reset_db=true` | 启动 RTAB-Map 时删除已有数据库，再从空图开始 | 否 |
+| `reset_db=false` 且 `online=true` | 打开已有数据库并继续增量建图，具体行为依赖当前数据库和位姿连续性 | 是，但这是继续建图，不是纯定位 |
+| `online=false localization=true` | 以已有数据库作为工作记忆，`Mem/IncrementalMemory=false`，进行定位 | 是，数据库只读使用 |
+
+仿真数据库的宿主机路径是：
+
+```text
+/home/w417/RTAB-Map/.ros/rtabmap.db
+```
+
+当前 v4 正式命令明确使用 `reset_db=true`，所以每次正式回归都是一张新的地图；
+三次 v4 结果不能解释为机器人跨实验记住了前两次路线。单次运行中，它会记住已经
+经过的视觉/深度节点，并可能通过回环检测重新识别已经走过的位置。
+
+如果先建立地图，再往返使用同一环境，推荐使用两种可复现实验：
+
+1. **在线增量模式**：保留数据库，使用 `online=true localization=false reset_db=false`。
+   机器人会继续更新地图，同时使用已有内容作为起点。
+2. **固定地图定位模式**：停止建图进程后，使用 `online=false localization=true reset_db=false`。
+   RTAB-Map 从已有数据库定位机器人，Nav2 使用已发布的 `/map`，不再把新的视觉节点
+   加入长期记忆。
+
+已有地图通常会让第二次往返更稳定，因为静态墙体和已经观察过的障碍物不必完全从零
+开始建立，初始位姿也可以通过视觉定位获得。但它不保证路径一定更短或更聪明，原因包括：
+
+- 地图可能过期，环境中的桌椅、箱子等动态物体可能已经改变；
+- 当前深度相机仍会实时更新 local/global obstacle layer，旧地图不能替代实时避障；
+- v4 的固定坐标走廊偏好仍可能把规划引向不合适的方向；
+- 相机安装位姿、底盘 footprint 和地图坐标系发生变化时，旧地图可能不再匹配。
+
+所以“记住地图”与“复用上一条轨迹”不是一回事。Nav2 仍然会根据当前起点、终点和
+代价地图重新规划，并不会简单播放上次的控制指令。
+
+### 9.3 `reset_db=true` 和数据库复用命令
+
+当前 v4 的全新在线建图仍使用：
+
+```bash
+sg docker -c './scripts/launch_demo.sh world:=obstacle_course_large x_pose:=-8.5 y_pose:=0.0 gazebo_gui:=true rviz:=true rtabmap_viz:=false online:=true localization:=false reset_db:=true navigation_profile:=fast_goalline_045_v4'
+```
+
+如果要测试“保留上一张图并继续在线建图”，应先正常停止上一轮，再使用新的结果 label，
+并把 `reset_db` 改为 `false`：
+
+```bash
+sg docker -c './scripts/stop.sh'
+sg docker -c './scripts/start.sh'
+sg docker -c './scripts/launch_demo.sh world:=obstacle_course_large x_pose:=-8.5 y_pose:=0.0 gazebo_gui:=true rviz:=true rtabmap_viz:=false online:=true localization:=false reset_db:=false navigation_profile:=fast_goalline_045_v4'
+```
+
+如果要测试“固定地图定位”，必须确保数据库确实由同一个世界、同一个相机/机器人
+坐标系建立，再使用：
+
+```bash
+sg docker -c './scripts/stop.sh'
+sg docker -c './scripts/start.sh'
+sg docker -c './scripts/launch_demo.sh world:=obstacle_course_large x_pose:=-8.5 y_pose:=0.0 gazebo_gui:=true rviz:=true rtabmap_viz:=false online:=false localization:=true reset_db:=false navigation_profile:=fast_goalline_045_v4'
+```
+
+这两类实验都不要使用已归档结果的 label，并应在 `experiment.yaml` 中记录数据库
+模式。只有 `reset_db=false` 时才是在验证跨启动记忆；正式 v4 基线仍应继续使用
+`reset_db=true`，这样不同实验之间不会相互污染。
+
+## 10. “固定世界坐标分段走廊先验”到底是什么
+
+### 10.1 它不是离散航点，也不是把车逐点开过去
+
+用户看到的 v4 schedule：
+
+```text
+x = [-7.2, -3.4, -2.6, -2.25, 2.75, 3.20, 3.50, 7.40, 7.90]
+y = [ 0.95,  0.95,  0.75,  0.60, 0.60, 0.68, 0.58, 0.58, 0.00]
+```
+
+不是 `NavigateToPose` 依次发送的九个目标点。它也不是 RTAB-Map 从历史轨迹中自动
+学习出来的路线，而是 v4 profile 中针对当前 large world 手工写入的 map/world 坐标
+偏好。
+
+实际过程是：
+
+1. GoalLineSmacPlanner 遍历 global costmap 中的栅格单元；
+2. 根据该单元的 `world_x`，对相邻 schedule 点做线性插值，得到这一列期望的 `target_y`；
+3. 单元偏离目标线或该 `target_y` 越远，就增加一个软 cost；
+4. lethal cell、inscribed/inflated obstacle cell 和机器人 footprint 不会被这个软代价
+   改成可通行；
+5. Smac A* 仍然在整张 costmap 上搜索从当前起点到目标点的完整栅格路径；
+6. 规划完成后，RPP 连续跟踪整条路径，必要时 Nav2 还会重新规划。
+
+代码会在规划调用期间临时修改可调整的 costmap 栅格，调用继承的 Smac planner 后恢复
+原始栅格。因此 schedule 是“路径评价偏好”，不是永久地图，也不是控制器航点。
+
+可以把它理解为：
+
+```text
+障碍物和 footprint = 不能穿过的硬约束
+目标线偏好和走廊 schedule = 可以偏离、但会影响得分的软约束
+Smac A* = 根据硬约束 + 软代价搜索完整路径
+RPP = 连续跟踪这条路径并根据曲率/障碍风险调速
+```
+
+### 10.2 为什么 v4 仍然不是完全自主的通用规划
+
+正常的未知环境导航确实不应该提前知道“必须经过哪几个世界坐标”。在线建图解决的
+是“边走边获得地图”，Smac 解决的是“在当前地图中从 A 搜索到 B”；而 v4 schedule
+额外告诉规划器：“在这个已知 benchmark 中，障碍物大致应该从哪一侧绕，并在何处
+逐渐回到目标线。”它是为了让当前大场景的重复实验更稳定，并不是 RTAB-Map 的记忆。
+
+因此换场景时：
+
+- 地图和 costmap 会重新使用 RGB-D 观测建立，Smac 仍有基础避障能力；
+- 但 `x/y` schedule 仍处于旧坐标系，可能偏向错误的一侧或不必要地惩罚合理通道；
+- 如果新场景没有相同的障碍拓扑和坐标范围，不能直接宣称 v4 已经泛化；
+- 真正验证通用能力，应在不改 v4 参数的前提下先测试新场景；如果失败，再把失败
+  区分为“固定先验失配”还是“感知、TF、地图/代价地图故障”。
+
+要验证规划器本身，而不是验证 benchmark 先验，后续应增加一个“通用 profile”：关闭
+`side_bias_target_schedule_enabled` 和固定 `side_bias`，只保留 goal-line soft bias、
+真实 costmap 和 Smac/RPP。两者需要分开报告：
+
+| profile | 主要验证对象 | 是否含当前大场景坐标先验 |
+| --- | --- | --- |
+| `fast_goalline_045_v4` | 当前大场景的快速、重复性基线 | 是 |
+| 后续 `generic_rgbd_045` | RGB-D + costmap + Smac + RPP 的跨场景能力 | 否 |
+
+在没有完成新场景实验前，不能把 v4 的 3/3 成功写成“任意场景均可导航”。
+
+## 11. 下一步工作和真实 D435i 的进入条件
+
+### 11.1 推荐执行顺序
+
+当前阶段不再同时调速度、inflation、RPP 和 footprint。建议按以下顺序推进：
+
+1. **保留 v4 基线**：继续保存提交、参数快照和三次 large-world 轨迹；不覆盖归档目录。
+2. **小场景 smoke test**：只改变 world、起点和终点，保持 v4 参数不变，验证 schedule
+   失配时机器人是否仍能完成基本导航。
+3. **新障碍布局场景**：制作障碍物位置/方向不同的第二个场景；先直接运行 v4，记录它
+   是否会主动选择可行通道。
+4. **通用 profile 对照**：关闭固定 schedule，和 v4 做同一场景、同一起终点、至少三次
+   对比，分别记录成功率、耗时、路径长度、末端误差、最小净空和物理 contacts。
+5. **数据库复用实验**：分别比较 `reset_db=true` 在线建图、`reset_db=false` 继续建图、
+   `localization=true` 固定地图三种模式，确认“地图记忆”带来的真实收益。
+6. **再做硬件迁移**：先验证 D435i 数据、TF 和底盘闭环，再在低速近距离目标上测试；
+   不要一接入相机就直接发送远距离导航目标。
+
+小场景观察命令：
+
+```bash
+sg docker -c './scripts/stop.sh'
+sg docker -c './scripts/start.sh'
+sg docker -c './scripts/launch_demo.sh world:=obstacle_course x_pose:=-4.5 y_pose:=0.0 gazebo_gui:=true rviz:=true rtabmap_viz:=false online:=true localization:=false reset_db:=true navigation_profile:=fast_goalline_045_v4'
+```
+
+然后在另一个终端发送小场景目标：
+
+```bash
+sg docker -c 'docker compose exec -T ros2 bash -lc "source /opt/ros/humble/setup.bash && source /workspaces/rtabmap_tb3_nav/install/setup.bash && ros2 run rtabmap_tb3_nav send_goal.py --x 4.5 --y 0.0 --yaw 0.0 --settle-seconds 5"'
+```
+
+注意：当前 `regression_leg.sh` 的 large-world contacts topic 和 `world.sdf` 快照仍是
+写死的。小场景和新场景在脚本参数化前只能作为探索性观察，不能直接当作与 v4 同等级
+的物理零碰撞正式证据。
+
+### 11.2 什么时候可以接入真实 D435i
+
+不是必须等到“任意未知场景都完美”，但至少要满足下面的硬门槛：
+
+- large world v4 已冻结，且现有 3 次无碰撞结果可复现；
+- 至少一个不同障碍布局的仿真场景完成 3 次成功/失败统计；
+- 已把回归脚本的 world、contacts topic、目标和结果快照参数化；
+- 真实底盘可以独立完成低速前进、停止和原地旋转；
+- 底盘稳定发布 `odom -> base_link`，并提供正确的 `base_link -> base_footprint`；
+- D435i 的 `camera_link` 安装位姿通过实测和 RViz 验证，而不是继续使用示例值；
+- `/camera/color/image_raw`、`/camera/aligned_depth_to_color/image_raw`、`/camera/cloud`
+  和 `/camera/obstacles` 稳定有数据，TF 时间戳没有明显延迟；
+- `/cmd_vel_safe` 的安全输出经过低速空载测试，机器人不会绕过 collision monitor。
+
+满足这些条件后，可以进入真实 D435i 的“传感器/TF/低速闭环验证”，但仍不等于可以
+立刻在真实环境中高速导航。真实迁移建议分四步：
+
+```text
+USB/驱动验证
+  -> 固定安装 TF + RViz 对齐验证
+  -> 低速在线建图和近距离直线目标
+  -> 小范围静态障碍绕行，再逐步增加距离和速度
+```
+
+第一次真实测试建议使用独立数据库 `~/.ros/rtabmap_d435i.db`、
+`online=true localization=false reset_db=false`，先人工低速移动观察地图，不发送
+远距离目标。确认地图、TF、深度点云和安全速度链路都稳定后，才测试 1 m 左右目标；
+建图稳定后再另开一次 `localization=true` 实验验证已保存地图的复用。
+
+当前结论是：**仿真链路已经达到接入真实 D435i 做低速传感器验证的准备阶段，但还没有
+达到真实底盘正式导航验收阶段。** 真实 D435i 会验证传感器噪声、安装误差、遮挡、USB
+带宽和底盘控制误差；这些问题不能由当前 Gazebo 3/3 结果替代。
