@@ -41,6 +41,8 @@ install(
     scripts/send_goal.py
     scripts/explore_demo.py
     scripts/navigation_trial.py
+    scripts/goal_line_visualizer.py
+    scripts/multi_goal_trial.py
     scripts/map_padder.py
   DESTINATION lib/${PROJECT_NAME}
 )

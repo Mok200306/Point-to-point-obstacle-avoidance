@@ -182,6 +182,37 @@ def apply_navigation_profile(params, profile):
         global_inflation['cost_scaling_factor'] = 4.5
         return
 
+    if profile == 'adaptive_goal_line_045':
+        # General-purpose profile: retain the current start-to-goal line
+        # preference, but remove every benchmark-specific world-coordinate
+        # side hint. Smac must choose the detour from the live costmap for
+        # each new goal instead of replaying the large-world A->B corridor.
+        planner = params['planner_server']['ros__parameters']['GridBased']
+        planner['line_bias_enabled'] = True
+        planner['side_bias_enabled'] = False
+        planner['side_bias_apply_to_unknown'] = False
+        planner['side_bias_target_world_y_enabled'] = False
+        planner['side_bias_target_schedule_enabled'] = False
+
+        controller = params['controller_server']['ros__parameters']['FollowPath']
+        controller['desired_linear_vel'] = 0.28
+        controller['lookahead_dist'] = 0.80
+        controller['min_lookahead_dist'] = 0.62
+        controller['max_lookahead_dist'] = 1.20
+        controller['lookahead_time'] = 1.7
+        controller['inflation_cost_scaling_factor'] = 4.5
+
+        smoother = params['velocity_smoother']['ros__parameters']
+        smoother['max_velocity'] = [0.28, 0.0, 0.90]
+
+        local_inflation = params['local_costmap']['local_costmap'][
+            'ros__parameters']['inflation_layer']
+        global_inflation = params['global_costmap']['global_costmap'][
+            'ros__parameters']['inflation_layer']
+        local_inflation['cost_scaling_factor'] = 4.5
+        global_inflation['cost_scaling_factor'] = 4.5
+        return
+
     if profile == 'fast_north_045_v1':
         planner = params['planner_server']['ros__parameters']['GridBased']
         planner['side_bias_world_x_min'] = -8.2
@@ -216,7 +247,7 @@ def apply_navigation_profile(params, profile):
         'Unknown navigation_profile={!r}; use current, fast_north_045_v1, '
         'fast_north_045_v2, fast_north_045_v3, fast_goalline_045_v1, '
         'fast_goalline_045_v2, fast_goalline_045_v3, fast_goalline_045_v4, '
-        'or frozen_goal_line_045_v1.'.format(profile))
+        'adaptive_goal_line_045, or frozen_goal_line_045_v1.'.format(profile))
 
 
 def nav2_params_for_mode(source_file, package_share, online, profile):
@@ -258,7 +289,7 @@ def collision_monitor_params_for_profile(source_file, profile):
     if profile in (
         'current', 'fast_north_045_v1', 'fast_north_045_v2', 'fast_north_045_v3',
         'fast_goalline_045_v1', 'fast_goalline_045_v2', 'fast_goalline_045_v3',
-        'fast_goalline_045_v4'):
+        'fast_goalline_045_v4', 'adaptive_goal_line_045'):
         pass
     elif profile in ('frozen_goal_line_045_v1', 'goal_line_quad_045_v1'):
         params['collision_monitor']['ros__parameters']['PolygonSlow'][
@@ -268,7 +299,7 @@ def collision_monitor_params_for_profile(source_file, profile):
             'Unknown navigation_profile={!r}; use current, fast_north_045_v1, '
             'fast_north_045_v2, fast_north_045_v3, fast_goalline_045_v1, '
             'fast_goalline_045_v2, fast_goalline_045_v3, fast_goalline_045_v4, '
-            'or frozen_goal_line_045_v1.'.format(profile))
+            'adaptive_goal_line_045, or frozen_goal_line_045_v1.'.format(profile))
 
     rewritten = tempfile.NamedTemporaryFile(
         mode='w', suffix='.yaml', prefix='rtabmap_collision_', delete=False)
@@ -489,6 +520,13 @@ def launch_setup(context, *args, **kwargs):
             parameters=[rtabmap_parameters],
             remappings=rgbd_remappings,
         ),
+        Node(
+            package='rtabmap_tb3_nav',
+            executable='goal_line_visualizer.py',
+            name='goal_line_visualizer',
+            output='screen',
+            parameters=[{'use_sim_time': use_sim_time}],
+        ),
     ]
 
     rviz = Node(
@@ -580,14 +618,18 @@ def generate_launch_description():
             description='Collision monitor parameter file.'),
         DeclareLaunchArgument(
             'navigation_profile',
-            default_value='fast_north_045_v3',
+            default_value='adaptive_goal_line_045',
             description=(
-                'Reproducible parameter profile: fast_north_045_v3 is current; '
+                'Reproducible parameter profile: adaptive_goal_line_045 is the '
+                'current generic-goal default; '
+                'fast_north_045_v3 is the historical fixed-corridor baseline; '
                 'fast_north_045_v2 restores the previous fixed-west-window baseline; '
                 'fast_goalline_045_v1 tests a segmented return-to-goal corridor; '
                 'fast_goalline_045_v2 tests faster inflation decay and speed; '
                 'fast_goalline_045_v3 tests a longer RPP lookahead; '
                 'fast_goalline_045_v4 tests a centered detour and 0.30 m/s; '
+                'adaptive_goal_line_045 disables benchmark world-coordinate '
+                'side hints and replans each goal from the live costmap; '
                 'frozen_goal_line_045_v1 restores the pre-optimization run-03 baseline.')),
         OpaqueFunction(function=launch_setup),
     ])

@@ -45,5 +45,9 @@ results/optimization_2026-08-21/*
 !results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_03/
 !results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_03/**
 
+# Keep the adaptive multi-goal validation evidence for the unknown-goal fix.
+!results/自适应目标线_多目标_修正版_2026-08-21/
+!results/自适应目标线_多目标_修正版_2026-08-21/**
+
 # Local environment overrides
 .env

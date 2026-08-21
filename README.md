@@ -12,10 +12,12 @@ A = (-8.5, 0.0)   Gazebo 初始位置，车头朝 +X
 B = ( 8.5, 0.0)   场景目标位置
 ```
 
-当前推荐运行配置是 `0.45 m` 的 `fast_goalline_045_v4` 快速走廊 profile：全局规划器是
-`rtabmap_tb3_nav/GoalLineSmacPlanner`（继承 SmacPlanner2D）。它在三次独立回归中平均
-`81.07 s`、3/3 成功、0/3 非地面 contacts。为避免无提示地改变既有命令，
-`demo.launch.py` 的默认值仍保留为 `fast_north_045_v3`；观察优化结果时请显式指定 v4。
+当前面向新目标和新起终点的默认配置是 `0.45 m` 的
+`adaptive_goal_line_045`：全局规划器是
+`rtabmap_tb3_nav/GoalLineSmacPlanner`（继承 SmacPlanner2D），每次规划调用都使用当前
+起点、当前目标和实时 costmap，关闭 large 场景固定世界坐标走廊。旧的
+`fast_goalline_045_v4` 仍作为当前 large 场景的冻结 benchmark，三次独立回归平均
+`81.07 s`、3/3 成功、0/3 非地面 contacts；需要复现该历史结果时显式指定 v4。
 参数和三次回归见
 [NAVIGATION_OPTIMIZATION_2026-08-21_FAST_GOALLINE_V4.md](NAVIGATION_OPTIMIZATION_2026-08-21_FAST_GOALLINE_V4.md) 与
 [FROZEN_NAVIGATION_PARAMETERS_FAST_GOALLINE_045_V4_2026-08-21.md](FROZEN_NAVIGATION_PARAMETERS_FAST_GOALLINE_045_V4_2026-08-21.md)。历史 v3 参数和三次回归见
@@ -25,8 +27,14 @@ B = ( 8.5, 0.0)   场景目标位置
 旧 profile 仍可通过 `navigation_profile:=fast_north_045_v3`、`fast_goalline_045_v2`
 或 `frozen_goal_line_045_v1` 显式回退，原生目标线 0.45 配置仍由历史提交保留。
 
-v4 保留 `inflation_radius=0.45 m` 和完整安全链路，只把速度、RPP 前视、软代价衰减和
-当前场景的分段走廊作为受控覆盖；5 秒在线建图稳定期只用于正式回归的可重复启动，
+本轮“目标改动后重新规划”的说明、双目标轨迹和参数快照见
+[未知目标实时规划优化说明_2026-08-21.md](未知目标实时规划优化说明_2026-08-21.md)、
+[自适应目标线多目标实验记录_2026-08-21.md](自适应目标线多目标实验记录_2026-08-21.md) 和
+[自适应目标线参数记录_2026-08-21.md](自适应目标线参数记录_2026-08-21.md)。
+
+自适应配置保留 `inflation_radius=0.45 m` 和完整安全链路，只使用动态目标线软偏好；v4
+则额外包含当前 large 场景的分段走廊先验。两者都保留速度、RPP 前视、软代价衰减和
+各自 profile 中的受控代价覆盖；5 秒在线建图稳定期只用于正式回归的可重复启动，
 不计入导航 wall 时间。完整证据见上面的 v4 报告；v2 是更早的速度对照。
 
 ## 1. 这次改动解决什么问题
@@ -135,7 +143,7 @@ RViz 的 Global/Local Costmap 图层，不能据此判断实体障碍消失。
 cd /home/w417/RTAB-Map
 sg docker -c './scripts/stop.sh'
 sg docker -c './scripts/start.sh'
-sg docker -c './scripts/launch_demo.sh gazebo_gui:=true rviz:=true rtabmap_viz:=false reset_db:=true navigation_profile:=fast_goalline_045_v4'
+sg docker -c './scripts/launch_demo.sh gazebo_gui:=true rviz:=true rtabmap_viz:=false reset_db:=true navigation_profile:=adaptive_goal_line_045'
 ```
 
 等待约 15--30 秒后，应该看到 Gazebo 的封闭障碍场景和 RViz2 窗口。终端 2：
@@ -186,13 +194,13 @@ sg docker -c './scripts/build.sh'
 sg docker -c './scripts/start.sh'
 ```
 
-启动完整仿真（默认兼容 profile）：
+启动完整仿真（默认自适应目标 profile）：
 
 ```bash
-./scripts/launch_demo.sh rviz:=true rtabmap_viz:=false navigation_profile:=fast_north_045_v3
+./scripts/launch_demo.sh rviz:=true rtabmap_viz:=false navigation_profile:=adaptive_goal_line_045
 ```
 
-当前推荐的快速 v4：
+冻结的 large 场景 v4 benchmark：
 
 ```bash
 ./scripts/launch_demo.sh rviz:=true rtabmap_viz:=false navigation_profile:=fast_goalline_045_v4

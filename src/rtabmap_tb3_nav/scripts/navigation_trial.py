@@ -212,6 +212,13 @@ class NavigationTrial:
         self.costmap_subscription = self.node.create_subscription(
             OccupancyGrid, '/global_costmap/costmap', self.costmap_callback,
             costmap_qos)
+        goal_line_qos = QoSProfile(
+            depth=1,
+            reliability=ReliabilityPolicy.RELIABLE,
+            durability=DurabilityPolicy.TRANSIENT_LOCAL,
+        )
+        self.goal_line_publisher = self.node.create_publisher(
+            PoseStamped, '/goal_line_request', goal_line_qos)
         self.path = []
         self.gazebo_path = []
         self.map_message = None
@@ -324,6 +331,12 @@ class NavigationTrial:
         goal.pose.pose.orientation.x, goal.pose.pose.orientation.y, \
             goal.pose.pose.orientation.z, goal.pose.pose.orientation.w = \
             quaternion_from_yaw(self.args.yaw)
+
+        # The visualizer turns this request into a black reference segment.
+        # Nav2 still receives the same goal action and computes the real plan.
+        for _ in range(3):
+            self.goal_line_publisher.publish(goal.pose)
+            rclpy.spin_once(self.node, timeout_sec=0.05)
 
         self.wall_start_mono = time.monotonic()
         self.wall_start_unix = time.time()

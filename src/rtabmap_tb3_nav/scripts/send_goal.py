@@ -10,6 +10,7 @@ import rclpy
 from geometry_msgs.msg import PoseStamped
 from nav2_msgs.action import NavigateToPose
 from rclpy.action import ActionClient
+from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
 
 
 def quaternion_from_yaw(yaw):
@@ -30,6 +31,13 @@ def main():
     rclpy.init()
     node = rclpy.create_node('rtabmap_tb3_send_goal')
     action_client = ActionClient(node, NavigateToPose, 'navigate_to_pose')
+    goal_line_qos = QoSProfile(
+        depth=1,
+        reliability=ReliabilityPolicy.RELIABLE,
+        durability=DurabilityPolicy.TRANSIENT_LOCAL,
+    )
+    goal_line_publisher = node.create_publisher(
+        PoseStamped, '/goal_line_request', goal_line_qos)
 
     node.get_logger().info('Waiting for Nav2 navigate_to_pose...')
     if not action_client.wait_for_server(timeout_sec=30.0):
@@ -58,6 +66,12 @@ def main():
     goal.pose.pose.orientation.y = qy
     goal.pose.pose.orientation.z = qz
     goal.pose.pose.orientation.w = qw
+
+    # Keep the direct start-to-goal reference visible while Nav2 follows its
+    # separately computed obstacle-avoiding plan.
+    for _ in range(3):
+        goal_line_publisher.publish(goal.pose)
+        rclpy.spin_once(node, timeout_sec=0.05)
 
     last_feedback_time = 0.0
     last_distance = None

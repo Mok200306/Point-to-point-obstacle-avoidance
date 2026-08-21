@@ -1,0 +1,64 @@
+label: 自适应目标线_多目标_修正版_2026-08-21
+profile: adaptive_goal_line_045
+world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_large.world
+goal_frame: map
+overall_succeeded: true
+completed_segments: 2
+requested_segments: 2
+total_wall_duration_s: 136.93822216801345
+total_trajectory_length_m: 25.685565203145657
+segments:
+- name: 起点到A
+  label: 自适应目标线_多目标_修正版_2026-08-21/segment_1
+  goal_frame: map
+  goal_x_m: 5.0
+  goal_y_m: -3.0
+  goal_yaw_rad: 0.0
+  nav2_status: 4
+  succeeded: true
+  wall_start_unix_s: 1787301314.2041774
+  wall_end_unix_s: 1787301390.9153678
+  wall_duration_s: 76.71119022899074
+  simulation_start_s: 240.1
+  simulation_end_s: 302.1
+  simulation_duration_s: 62.00000000000003
+  samples: 432
+  trajectory_length_m: 15.229539589781528
+  gazebo_samples: 854
+  gazebo_trajectory_length_m: 15.228711645860653
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: -0.15294786356735868
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_large.world
+  final_x_m: 4.90873250807141
+  final_y_m: -2.9423730067682277
+  final_xy_error_m: 0.10793806294292069
+  map_frame: map
+  map_received: true
+  global_costmap_received: true
+- name: A到B
+  label: 自适应目标线_多目标_修正版_2026-08-21/segment_2
+  goal_frame: map
+  goal_x_m: 5.0
+  goal_y_m: 6.0
+  goal_yaw_rad: 0.0
+  nav2_status: 4
+  succeeded: true
+  wall_start_unix_s: 1787301396.1036062
+  wall_end_unix_s: 1787301456.3306375
+  wall_duration_s: 60.22703193902271
+  simulation_start_s: 306.3
+  simulation_end_s: 354.8
+  simulation_duration_s: 48.5
+  samples: 312
+  trajectory_length_m: 10.456025613364128
+  gazebo_samples: 629
+  gazebo_trajectory_length_m: 10.452979112944076
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: -0.053153373149657124
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_large.world
+  final_x_m: 4.919778594389549
+  final_y_m: 5.8785013113367235
+  final_xy_error_m: 0.14559328715642172
+  map_frame: map
+  map_received: true
+  global_costmap_received: true
