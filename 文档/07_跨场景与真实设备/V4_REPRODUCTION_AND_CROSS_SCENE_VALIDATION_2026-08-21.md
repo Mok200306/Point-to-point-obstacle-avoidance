@@ -122,9 +122,9 @@ head -5 results/manual/v4_repro_A_to_B_run_01/gazebo_trajectory.csv
 
 仓库中已经保留的三次 v4 证据位于：
 
-- [`run_01`](../../results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_01)
-- [`run_02`](../../results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_02)
-- [`run_03`](../../results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_03)
+- [`run_01`](../../results/03_V4快速目标线/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_01)
+- [`run_02`](../../results/03_V4快速目标线/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_02)
+- [`run_03`](../../results/03_V4快速目标线/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_03)
 
 详细统计见
 [`NAVIGATION_OPTIMIZATION_2026-08-21_FAST_GOALLINE_V4.md`](../04_快速目标线v4_2026-08-21/NAVIGATION_OPTIMIZATION_2026-08-21_FAST_GOALLINE_V4.md)。
@@ -640,6 +640,6 @@ RViz 设置。如果实验确实需要自定义初始朝向，后续需要单独
 - [未知目标实时规划优化说明_2026-08-21.md](../05_自适应目标线_2026-08-21至22/未知目标实时规划优化说明_2026-08-21.md)
 - [自适应目标线多目标实验记录_2026-08-21.md](../05_自适应目标线_2026-08-21至22/自适应目标线多目标实验记录_2026-08-21.md)
 - [自适应目标线参数记录_2026-08-21.md](../05_自适应目标线_2026-08-21至22/自适应目标线参数记录_2026-08-21.md)
-- [双视图轨迹图](../../results/自适应目标线_多目标_修正版_2026-08-21/trajectory_comparison.png)
+- [双视图轨迹图](../../results/04_自适应目标线多目标/自适应目标线_多目标_修正版_2026-08-21/trajectory_comparison.png)
 
 这次结果证明了“目标改变后重新规划”在当前 large 场景的一次回归，但还不等于任意未知环境泛化。下一步应保持 adaptive profile 不变，换起点、终点和障碍布局做三次回归，再决定是否进入真实 D435i 的低速传感器/TF 验证。

@@ -16,106 +16,19 @@ __pycache__/
 # Generated navigation trials
 results/*
 !results/.gitkeep
-# Keep only the selected three-run archive for each formal stage.
-!results/benchmark_2026-08-20/
-results/benchmark_2026-08-20/*
-!results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_01/
-!results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_01/**
-!results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_02/
-!results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_02/**
-!results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_03/
-!results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_03/**
-
-!results/optimization_2026-08-20/
-results/optimization_2026-08-20/*
-!results/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_01/
-!results/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_01/**
-!results/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_02/
-!results/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_02/**
-!results/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_03/
-!results/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_03/**
-# Keep only the final v4 three-run regression. Earlier profiles remain reproducible
-# through Git commits and their frozen parameter documents.
-!results/optimization_2026-08-21/
-results/optimization_2026-08-21/*
-!results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_01/
-!results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_01/**
-!results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_02/
-!results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_02/**
-!results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_03/
-!results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_03/**
-
-# Keep the adaptive multi-goal validation evidence for the unknown-goal fix.
-!results/自适应目标线_多目标_修正版_2026-08-21/
-!results/自适应目标线_多目标_修正版_2026-08-21/**
-
-# Keep the three-run adaptive two-goal baseline as the formal stage-4 archive.
-!results/自适应目标线_当前基线三次验证_2026-08-22/
-results/自适应目标线_当前基线三次验证_2026-08-22/*
-!results/自适应目标线_当前基线三次验证_2026-08-22/run_01/
-!results/自适应目标线_当前基线三次验证_2026-08-22/run_01/**
-!results/自适应目标线_当前基线三次验证_2026-08-22/run_02/
-!results/自适应目标线_当前基线三次验证_2026-08-22/run_02/**
-!results/自适应目标线_当前基线三次验证_2026-08-22/run_03/
-!results/自适应目标线_当前基线三次验证_2026-08-22/run_03/**
-
-# Keep the three-run five-waypoint closed-loop validation evidence.
-!results/自适应目标线_五点闭环_2026-08-22/
-results/自适应目标线_五点闭环_2026-08-22/*
-!results/自适应目标线_五点闭环_2026-08-22/run_01/
-!results/自适应目标线_五点闭环_2026-08-22/run_01/**
-!results/自适应目标线_五点闭环_2026-08-22/run_02/
-!results/自适应目标线_五点闭环_2026-08-22/run_02/**
-!results/自适应目标线_五点闭环_2026-08-22/run_03/
-!results/自适应目标线_五点闭环_2026-08-22/run_03/**
-
-# Keep the three-run C->A->D->B->M->C order validation evidence.
-!results/自适应目标线_顺序实验1_CADBMC_2026-08-22/
-results/自适应目标线_顺序实验1_CADBMC_2026-08-22/*
-!results/自适应目标线_顺序实验1_CADBMC_2026-08-22/run_01/
-!results/自适应目标线_顺序实验1_CADBMC_2026-08-22/run_01/**
-!results/自适应目标线_顺序实验1_CADBMC_2026-08-22/run_02/
-!results/自适应目标线_顺序实验1_CADBMC_2026-08-22/run_02/**
-!results/自适应目标线_顺序实验1_CADBMC_2026-08-22/run_03/
-!results/自适应目标线_顺序实验1_CADBMC_2026-08-22/run_03/**
-
-# Keep the three-run B->M->A->C->D->B order validation evidence.
-!results/自适应目标线_顺序实验2_BMACDB_2026-08-22/
-results/自适应目标线_顺序实验2_BMACDB_2026-08-22/*
-!results/自适应目标线_顺序实验2_BMACDB_2026-08-22/run_01/
-!results/自适应目标线_顺序实验2_BMACDB_2026-08-22/run_01/**
-!results/自适应目标线_顺序实验2_BMACDB_2026-08-22/run_02/
-!results/自适应目标线_顺序实验2_BMACDB_2026-08-22/run_02/**
-!results/自适应目标线_顺序实验2_BMACDB_2026-08-22/run_03/
-!results/自适应目标线_顺序实验2_BMACDB_2026-08-22/run_03/**
-
-# Keep the nine-run cross-scene scenario 01 validation archive.
-!results/跨场景场景01_五点闭环_MABCDM_2026-08-22/
-results/跨场景场景01_五点闭环_MABCDM_2026-08-22/*
-!results/跨场景场景01_五点闭环_MABCDM_2026-08-22/run_01/
-!results/跨场景场景01_五点闭环_MABCDM_2026-08-22/run_01/**
-!results/跨场景场景01_五点闭环_MABCDM_2026-08-22/run_02/
-!results/跨场景场景01_五点闭环_MABCDM_2026-08-22/run_02/**
-!results/跨场景场景01_五点闭环_MABCDM_2026-08-22/run_03/
-!results/跨场景场景01_五点闭环_MABCDM_2026-08-22/run_03/**
-
-!results/跨场景场景01_顺序实验1_CADBMC_2026-08-22/
-results/跨场景场景01_顺序实验1_CADBMC_2026-08-22/*
-!results/跨场景场景01_顺序实验1_CADBMC_2026-08-22/run_01/
-!results/跨场景场景01_顺序实验1_CADBMC_2026-08-22/run_01/**
-!results/跨场景场景01_顺序实验1_CADBMC_2026-08-22/run_02/
-!results/跨场景场景01_顺序实验1_CADBMC_2026-08-22/run_02/**
-!results/跨场景场景01_顺序实验1_CADBMC_2026-08-22/run_03/
-!results/跨场景场景01_顺序实验1_CADBMC_2026-08-22/run_03/**
-
-!results/跨场景场景01_顺序实验2_BMACDB_2026-08-22/
-results/跨场景场景01_顺序实验2_BMACDB_2026-08-22/*
-!results/跨场景场景01_顺序实验2_BMACDB_2026-08-22/run_01/
-!results/跨场景场景01_顺序实验2_BMACDB_2026-08-22/run_01/**
-!results/跨场景场景01_顺序实验2_BMACDB_2026-08-22/run_02/
-!results/跨场景场景01_顺序实验2_BMACDB_2026-08-22/run_02/**
-!results/跨场景场景01_顺序实验2_BMACDB_2026-08-22/run_03/
-!results/跨场景场景01_顺序实验2_BMACDB_2026-08-22/run_03/**
+# The archive is grouped by experiment type. Keep these directories visible so
+# new formal runs can be reviewed and committed without editing this file again.
+!results/README.md
+!results/01_原生规划基准/
+!results/01_原生规划基准/**
+!results/02_目标线规划优化/
+!results/02_目标线规划优化/**
+!results/03_V4快速目标线/
+!results/03_V4快速目标线/**
+!results/04_自适应目标线多目标/
+!results/04_自适应目标线多目标/**
+!results/05_跨场景验证/
+!results/05_跨场景验证/**
 
 # Local environment overrides
 .env

@@ -55,9 +55,9 @@ line_bias_exponent: 2.0
 
 结果目录：
 
-- [run 01](../../results/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_01)
-- [run 02](../../results/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_02)
-- [run 03](../../results/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_03)
+- [run 01](../../results/02_目标线规划优化/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_01)
+- [run 02](../../results/02_目标线规划优化/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_02)
+- [run 03](../../results/02_目标线规划优化/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_03)
 
 每个目录包含 `metrics.yaml`、`trajectory.csv`、`gazebo_trajectory.csv`、单图、左右双视图、
 实际 Nav2/collision monitor 参数快照、世界文件、contacts 摘要和 `experiment.yaml`。

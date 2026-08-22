@@ -113,7 +113,7 @@ sg docker -c './scripts/start.sh'
 
 - 六次汇总：[BENCHMARK_2026-08-20_SUMMARY.md](../02_原生规划基准_2026-08-20/BENCHMARK_2026-08-20_SUMMARY.md)
 - 0.55 三次的数值仍保留在 [BENCHMARK_2026-08-20_SUMMARY.md](../02_原生规划基准_2026-08-20/BENCHMARK_2026-08-20_SUMMARY.md)；原始目录已按 [EXPERIMENT_ARCHIVE_INDEX.md](../00_项目总览/EXPERIMENT_ARCHIVE_INDEX.md) 归档，可从 Git 提交 `873fd39` 恢复。
-- 0.45 三次：[run_01](../../results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_01)、[run_02](../../results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_02)、[run_03](../../results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_03)
+- 0.45 三次：[run_01](../../results/01_原生规划基准/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_01)、[run_02](../../results/01_原生规划基准/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_02)、[run_03](../../results/01_原生规划基准/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_03)
 - 冻结 Nav2 配置：[nav2_rgbd_params.yaml](../../src/rtabmap_tb3_nav/config/nav2_rgbd_params.yaml)
 - collision monitor：[collision_monitor_rgbd_params.yaml](../../src/rtabmap_tb3_nav/config/collision_monitor_rgbd_params.yaml)
 - 场景：[indoor_obstacle_course_large.world](../../src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_large.world)

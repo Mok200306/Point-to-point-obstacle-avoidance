@@ -39,9 +39,9 @@
 | 0.55 | 01 | 4 / 成功 | 115.16 | 241.80 | 18.202 | 18.396 | 0.177 | 0.0832 | none | 历史统计，原始目录已归档 |
 | 0.55 | 02 | 4 / 成功 | 118.64 | 134.70 | 18.075 | 18.442 | 0.238 | 0.0981 | none | 历史统计，原始目录已归档 |
 | 0.55 | 03 | 4 / 成功 | 115.48 | 144.30 | 18.076 | 18.328 | 0.278 | 0.0321 | none | 历史统计，原始目录已归档 |
-| 0.45 | 01 | 4 / 成功 | 115.83 | 132.70 | 17.808 | 18.187 | 0.264 | 0.0214 | none | [metrics](../../results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_01/metrics.yaml) / [双视图](../../results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_01/trajectory_comparison.png) |
-| 0.45 | 02 | 4 / 成功 | 113.90 | 133.60 | 17.729 | 18.159 | 0.183 | -0.0044 | none | [metrics](../../results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_02/metrics.yaml) / [双视图](../../results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_02/trajectory_comparison.png) |
-| 0.45 | 03 | 4 / 成功 | 115.01 | 133.50 | 17.864 | 18.174 | 0.365 | 0.0268 | none | [metrics](../../results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_03/metrics.yaml) / [双视图](../../results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_03/trajectory_comparison.png) |
+| 0.45 | 01 | 4 / 成功 | 115.83 | 132.70 | 17.808 | 18.187 | 0.264 | 0.0214 | none | [metrics](../../results/01_原生规划基准/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_01/metrics.yaml) / [双视图](../../results/01_原生规划基准/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_01/trajectory_comparison.png) |
+| 0.45 | 02 | 4 / 成功 | 113.90 | 133.60 | 17.729 | 18.159 | 0.183 | -0.0044 | none | [metrics](../../results/01_原生规划基准/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_02/metrics.yaml) / [双视图](../../results/01_原生规划基准/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_02/trajectory_comparison.png) |
+| 0.45 | 03 | 4 / 成功 | 115.01 | 133.50 | 17.864 | 18.174 | 0.365 | 0.0268 | none | [metrics](../../results/01_原生规划基准/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_03/metrics.yaml) / [双视图](../../results/01_原生规划基准/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_03/trajectory_comparison.png) |
 
 每个结果目录还保存了 `trajectory.csv`、`gazebo_trajectory.csv`、`trajectory.png`、`trajectory_comparison.png`、`metrics.yaml`、当次 Nav2/collision monitor 参数、世界文件和 `experiment.yaml`，每个目录共 9 个文件。
 

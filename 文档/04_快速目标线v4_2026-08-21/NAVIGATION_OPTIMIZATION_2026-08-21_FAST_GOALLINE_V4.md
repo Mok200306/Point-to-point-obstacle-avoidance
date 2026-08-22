@@ -84,9 +84,9 @@ Gazebo contacts 消息，均没有 `waffle` 与墙、barrier、crate、pillar �
 Gazebo SDF 场景与 `/gazebo/model_states` ground truth，右侧是 `/map`、global costmap
 和 map-frame 轨迹。
 
-- [run 01](../../results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_01)，[双视图](../../results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_01/trajectory_comparison.png)
-- [run 02](../../results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_02)，[双视图](../../results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_02/trajectory_comparison.png)
-- [run 03](../../results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_03)，[双视图](../../results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_03/trajectory_comparison.png)
+- [run 01](../../results/03_V4快速目标线/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_01)，[双视图](../../results/03_V4快速目标线/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_01/trajectory_comparison.png)
+- [run 02](../../results/03_V4快速目标线/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_02)，[双视图](../../results/03_V4快速目标线/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_02/trajectory_comparison.png)
+- [run 03](../../results/03_V4快速目标线/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_03)，[双视图](../../results/03_V4快速目标线/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_03/trajectory_comparison.png)
 
 ## 与 v3 对比
 

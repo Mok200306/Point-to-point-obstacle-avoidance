@@ -56,9 +56,9 @@
 
 ## 结果证据
 
-- [run 01](../../results/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_01)：`113.90 s`，status 4，contacts none
-- [run 02](../../results/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_02)：`116.72 s`，status 4，contacts none
-- [run 03](../../results/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_03)：`110.28 s`，status 4，contacts none
+- [run 01](../../results/02_目标线规划优化/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_01)：`113.90 s`，status 4，contacts none
+- [run 02](../../results/02_目标线规划优化/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_02)：`116.72 s`，status 4，contacts none
+- [run 03](../../results/02_目标线规划优化/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_03)：`110.28 s`，status 4，contacts none
 - 结果和算法分析：[NAVIGATION_OPTIMIZATION_2026-08-20.md](../03_目标线规划优化_2026-08-20/NAVIGATION_OPTIMIZATION_2026-08-20.md)
 
 ## 重构与启动
