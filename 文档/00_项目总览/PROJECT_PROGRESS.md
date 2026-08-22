@@ -12,6 +12,10 @@
 机器人。保持 `adaptive_goal_line_045`、`inflation_radius=0.45 m` 和在线 RGB-D
 建图不变，重新执行 M(-8.5,0) -> N(8.5,0) 三次。
 
+本轮目标只通过 `NavigateToPose` 发送，未回放固定 waypoint；但该 profile 仍包含旧
+基准场景的 `side_bias_*` 世界坐标软先验，所以当前结论是“在线规划跨场景复测”，
+还不是完全无场景先验的未知环境泛化验证。
+
 结果为 `2/3` 成功、`1/3` 失败，三次非地面 Gazebo contacts 均为 0：
 
 | run | Nav2 状态 | wall [s] | Gazebo 轨迹 [m] | 末端误差 [m] | 结论 |
