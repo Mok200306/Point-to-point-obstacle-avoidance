@@ -59,5 +59,25 @@ results/自适应目标线_五点闭环_2026-08-22/*
 !results/自适应目标线_五点闭环_2026-08-22/run_03/
 !results/自适应目标线_五点闭环_2026-08-22/run_03/**
 
+# Keep the three-run C->A->D->B->M->C order validation evidence.
+!results/自适应目标线_顺序实验1_CADBMC_2026-08-22/
+results/自适应目标线_顺序实验1_CADBMC_2026-08-22/*
+!results/自适应目标线_顺序实验1_CADBMC_2026-08-22/run_01/
+!results/自适应目标线_顺序实验1_CADBMC_2026-08-22/run_01/**
+!results/自适应目标线_顺序实验1_CADBMC_2026-08-22/run_02/
+!results/自适应目标线_顺序实验1_CADBMC_2026-08-22/run_02/**
+!results/自适应目标线_顺序实验1_CADBMC_2026-08-22/run_03/
+!results/自适应目标线_顺序实验1_CADBMC_2026-08-22/run_03/**
+
+# Keep the three-run B->M->A->C->D->B order validation evidence.
+!results/自适应目标线_顺序实验2_BMACDB_2026-08-22/
+results/自适应目标线_顺序实验2_BMACDB_2026-08-22/*
+!results/自适应目标线_顺序实验2_BMACDB_2026-08-22/run_01/
+!results/自适应目标线_顺序实验2_BMACDB_2026-08-22/run_01/**
+!results/自适应目标线_顺序实验2_BMACDB_2026-08-22/run_02/
+!results/自适应目标线_顺序实验2_BMACDB_2026-08-22/run_02/**
+!results/自适应目标线_顺序实验2_BMACDB_2026-08-22/run_03/
+!results/自适应目标线_顺序实验2_BMACDB_2026-08-22/run_03/**
+
 # Local environment overrides
 .env

@@ -1,0 +1,149 @@
+label: 自适应目标线_顺序实验2_BMACDB_2026-08-22/run_01
+profile: adaptive_goal_line_045
+world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_large.world
+goal_frame: map
+overall_succeeded: true
+completed_segments: 5
+requested_segments: 5
+total_wall_duration_s: 328.89085686398903
+total_trajectory_length_m: 58.03395852506188
+segments:
+- name: B->M
+  label: 自适应目标线_顺序实验2_BMACDB_2026-08-22/run_01/segment_1
+  goal_frame: map
+  goal_x_m: -8.5
+  goal_y_m: 0.0
+  goal_yaw_rad: 3.1415926
+  nav2_status: 4
+  succeeded: true
+  wall_start_unix_s: 1787378916.190111
+  wall_end_unix_s: 1787378994.1220746
+  wall_duration_s: 77.93196341901785
+  simulation_start_s: 20.8
+  simulation_end_s: 83.4
+  simulation_duration_s: 62.60000000000001
+  samples: 409
+  trajectory_length_m: 15.010908147434348
+  gazebo_samples: 826
+  gazebo_trajectory_length_m: 15.011392584208009
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: -0.056412756256940144
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_large.world
+  final_x_m: -8.45355974603725
+  final_y_m: 0.0649311597337259
+  final_xy_error_m: 0.0798295226873576
+  map_frame: map
+  map_received: true
+  global_costmap_received: true
+- name: M->A
+  label: 自适应目标线_顺序实验2_BMACDB_2026-08-22/run_01/segment_2
+  goal_frame: map
+  goal_x_m: 5.0
+  goal_y_m: -3.0
+  goal_yaw_rad: 0.0
+  nav2_status: 4
+  succeeded: true
+  wall_start_unix_s: 1787378999.2971141
+  wall_end_unix_s: 1787379081.3406658
+  wall_duration_s: 82.04355029098224
+  simulation_start_s: 87.5
+  simulation_end_s: 153.1
+  simulation_duration_s: 65.6
+  samples: 429
+  trajectory_length_m: 14.71605936075778
+  gazebo_samples: 861
+  gazebo_trajectory_length_m: 14.707440852889123
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: -0.04676357915163587
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_large.world
+  final_x_m: 4.933392298421532
+  final_y_m: -2.920161831294644
+  final_xy_error_m: 0.1039746079184292
+  map_frame: map
+  map_received: true
+  global_costmap_received: true
+- name: A->C
+  label: 自适应目标线_顺序实验2_BMACDB_2026-08-22/run_01/segment_3
+  goal_frame: map
+  goal_x_m: -5.0
+  goal_y_m: 4.0
+  goal_yaw_rad: 3.1415926
+  nav2_status: 4
+  succeeded: true
+  wall_start_unix_s: 1787379086.4623241
+  wall_end_unix_s: 1787379159.50733
+  wall_duration_s: 73.04500573599944
+  simulation_start_s: 157.1
+  simulation_end_s: 215.0
+  simulation_duration_s: 57.900000000000006
+  samples: 367
+  trajectory_length_m: 12.701933164542934
+  gazebo_samples: 755
+  gazebo_trajectory_length_m: 12.693516121100084
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: -0.047263141079725235
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_large.world
+  final_x_m: -5.000051985668229
+  final_y_m: 3.865704998113551
+  final_xy_error_m: 0.13429501194828888
+  map_frame: map
+  map_received: true
+  global_costmap_received: true
+- name: C->D
+  label: 自适应目标线_顺序实验2_BMACDB_2026-08-22/run_01/segment_4
+  goal_frame: map
+  goal_x_m: 0.0
+  goal_y_m: 0.0
+  goal_yaw_rad: 0.0
+  nav2_status: 4
+  succeeded: true
+  wall_start_unix_s: 1787379164.7403576
+  wall_end_unix_s: 1787379206.207566
+  wall_duration_s: 41.46720955404453
+  simulation_start_s: 219.1
+  simulation_end_s: 251.8
+  simulation_duration_s: 32.70000000000002
+  samples: 196
+  trajectory_length_m: 6.394417029980118
+  gazebo_samples: 394
+  gazebo_trajectory_length_m: 6.412375717564876
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: -0.11847526018841947
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_large.world
+  final_x_m: -0.221091744336334
+  final_y_m: 0.01839180431967435
+  final_xy_error_m: 0.22185539858163486
+  map_frame: map
+  map_received: true
+  global_costmap_received: true
+- name: D->B
+  label: 自适应目标线_顺序实验2_BMACDB_2026-08-22/run_01/segment_5
+  goal_frame: map
+  goal_x_m: 5.0
+  goal_y_m: 6.0
+  goal_yaw_rad: 0.0
+  nav2_status: 4
+  succeeded: true
+  wall_start_unix_s: 1787379211.3815672
+  wall_end_unix_s: 1787379265.7846947
+  wall_duration_s: 54.403127863944974
+  simulation_start_s: 255.9
+  simulation_end_s: 299.5
+  simulation_duration_s: 43.599999999999994
+  samples: 283
+  trajectory_length_m: 9.2106408223467
+  gazebo_samples: 574
+  gazebo_trajectory_length_m: 9.215259805305283
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: -0.08788567487296545
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_large.world
+  final_x_m: 4.933501108780003
+  final_y_m: 5.8575752007744954
+  final_xy_error_m: 0.15718436934986324
+  map_frame: map
+  map_received: true
+  global_costmap_received: true
+git_commit: de4ac49d30f4373c1ad1633d281d1885d1d17a50
+gazebo_contact_messages: 805068
+gazebo_non_ground_contact: false
+gazebo_contact_pairs: "(none)"
