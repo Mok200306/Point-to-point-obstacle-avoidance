@@ -4,9 +4,9 @@
 
 本文件记录提交 `be04483` 的原生 Smac + RPP 仿真基线，冻结值为
 `inflation_radius=0.45 m`。它是后续规划器改进的可回退版本；当前目标线优化参数另见
-[FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-20.md](FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-20.md)。
+[FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-20.md](../03_目标线规划优化_2026-08-20/FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-20.md)。
 
-选择依据是当前六次回归中 `0.45 m` 组同样 3/3 成功，且平均墙钟时间略短；本项目当前目标优先级是无碰撞前提下缩短时间。`0.55 m` 的统计和参数结论保留在 benchmark 文档中，原始结果目录按 [EXPERIMENT_ARCHIVE_INDEX.md](EXPERIMENT_ARCHIVE_INDEX.md) 清理。
+选择依据是当前六次回归中 `0.45 m` 组同样 3/3 成功，且平均墙钟时间略短；本项目当前目标优先级是无碰撞前提下缩短时间。`0.55 m` 的统计和参数结论保留在 benchmark 文档中，原始结果目录按 [EXPERIMENT_ARCHIVE_INDEX.md](../00_项目总览/EXPERIMENT_ARCHIVE_INDEX.md) 清理。
 
 ## 必须保持的参数
 
@@ -111,9 +111,9 @@ sg docker -c './scripts/start.sh'
 
 ## 数据位置
 
-- 六次汇总：[BENCHMARK_2026-08-20_SUMMARY.md](BENCHMARK_2026-08-20_SUMMARY.md)
-- 0.55 三次的数值仍保留在 [BENCHMARK_2026-08-20_SUMMARY.md](BENCHMARK_2026-08-20_SUMMARY.md)；原始目录已按 [EXPERIMENT_ARCHIVE_INDEX.md](EXPERIMENT_ARCHIVE_INDEX.md) 归档，可从 Git 提交 `873fd39` 恢复。
-- 0.45 三次：[run_01](results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_01)、[run_02](results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_02)、[run_03](results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_03)
-- 冻结 Nav2 配置：[nav2_rgbd_params.yaml](src/rtabmap_tb3_nav/config/nav2_rgbd_params.yaml)
-- collision monitor：[collision_monitor_rgbd_params.yaml](src/rtabmap_tb3_nav/config/collision_monitor_rgbd_params.yaml)
-- 场景：[indoor_obstacle_course_large.world](src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_large.world)
+- 六次汇总：[BENCHMARK_2026-08-20_SUMMARY.md](../02_原生规划基准_2026-08-20/BENCHMARK_2026-08-20_SUMMARY.md)
+- 0.55 三次的数值仍保留在 [BENCHMARK_2026-08-20_SUMMARY.md](../02_原生规划基准_2026-08-20/BENCHMARK_2026-08-20_SUMMARY.md)；原始目录已按 [EXPERIMENT_ARCHIVE_INDEX.md](../00_项目总览/EXPERIMENT_ARCHIVE_INDEX.md) 归档，可从 Git 提交 `873fd39` 恢复。
+- 0.45 三次：[run_01](../../results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_01)、[run_02](../../results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_02)、[run_03](../../results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_03)
+- 冻结 Nav2 配置：[nav2_rgbd_params.yaml](../../src/rtabmap_tb3_nav/config/nav2_rgbd_params.yaml)
+- collision monitor：[collision_monitor_rgbd_params.yaml](../../src/rtabmap_tb3_nav/config/collision_monitor_rgbd_params.yaml)
+- 场景：[indoor_obstacle_course_large.world](../../src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_large.world)

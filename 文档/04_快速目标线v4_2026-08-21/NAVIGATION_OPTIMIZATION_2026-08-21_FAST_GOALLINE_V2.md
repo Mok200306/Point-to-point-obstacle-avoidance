@@ -69,7 +69,7 @@ monitor 仍然有效。
 每个正式目录当时均包含 `metrics.yaml`、`trajectory.csv`、`gazebo_trajectory.csv`、
 `trajectory.png`、`trajectory_comparison.png`、基础参数快照、`profile_overrides.yaml`、
 世界文件和 `experiment.yaml`。原始目录已按
-[EXPERIMENT_ARCHIVE_INDEX.md](EXPERIMENT_ARCHIVE_INDEX.md) 清理，统计和参数仍保留在本文及
+[EXPERIMENT_ARCHIVE_INDEX.md](../00_项目总览/EXPERIMENT_ARCHIVE_INDEX.md) 清理，统计和参数仍保留在本文及
 提交 `452b45f` 的历史中。
 
 ## 与已有 profile 对比
@@ -90,7 +90,7 @@ v2 设为默认 profile；默认仍是路线方差较小的 `fast_north_045_v3`�
 单次 pilot 结果为：wall `87.80 s`、status `4`、无非地面 contacts，但最大 `y`
 仍为 `1.30 m`。它没有解决在线地图观测时序造成的高抬路线，因此不进入正式均值，
 也不作为默认配置。pilot 的结论保留在本文，原始目录已按
-[EXPERIMENT_ARCHIVE_INDEX.md](EXPERIMENT_ARCHIVE_INDEX.md) 清理。
+[EXPERIMENT_ARCHIVE_INDEX.md](../00_项目总览/EXPERIMENT_ARCHIVE_INDEX.md) 清理。
 
 ## 为什么仍会偶尔绕高
 

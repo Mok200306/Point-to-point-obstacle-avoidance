@@ -55,9 +55,9 @@ line_bias_exponent: 2.0
 
 结果目录：
 
-- [run 01](results/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_01)
-- [run 02](results/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_02)
-- [run 03](results/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_03)
+- [run 01](../../results/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_01)
+- [run 02](../../results/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_02)
+- [run 03](../../results/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_03)
 
 每个目录包含 `metrics.yaml`、`trajectory.csv`、`gazebo_trajectory.csv`、单图、左右双视图、
 实际 Nav2/collision monitor 参数快照、世界文件、contacts 摘要和 `experiment.yaml`。
@@ -67,7 +67,7 @@ line_bias_exponent: 2.0
 ## 和原生 0.45 基线比较
 
 原生 Smac + RPP 0.45 三次结果的均值来自
-[BENCHMARK_2026-08-20_SUMMARY.md](BENCHMARK_2026-08-20_SUMMARY.md)：
+[BENCHMARK_2026-08-20_SUMMARY.md](../02_原生规划基准_2026-08-20/BENCHMARK_2026-08-20_SUMMARY.md)：
 
 | 方案 | 成功率 | wall [s] | Gazebo 路径 [m] | 末端误差 [m] | contacts |
 | --- | ---: | ---: | ---: | ---: | --- |
@@ -93,7 +93,7 @@ RTAB-Map 地图，`allow_unknown=true` 允许 Nav2 先向目标方向行驶；�
 ## 当前冻结与边界
 
 当前源码冻结为目标线候选的 0.45 配置，完整参数见
-[FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-20.md](FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-20.md)。
+[FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-20.md](../03_目标线规划优化_2026-08-20/FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-20.md)。
 原始 0.45 基线仍由 `be04483` 保留，0.55 结果仍作为历史对照保留。
 
 这次验证覆盖的是一个静态、可通行、仿真 RGB-D 场景。它证明了当前链路能完成在线建图、

@@ -112,7 +112,7 @@ src/rtabmap_tb3_nav/behavior_trees/navigate_to_pose_stable_replanning.xml
 
 ## 6. 当前关键参数
 
-文件：[nav2_rgbd_params.yaml](src/rtabmap_tb3_nav/config/nav2_rgbd_params.yaml)
+文件：[nav2_rgbd_params.yaml](../../src/rtabmap_tb3_nav/config/nav2_rgbd_params.yaml)
 
 | 参数 | 当前值 | 作用 |
 |---|---:|---|

@@ -68,7 +68,7 @@ global_costmap:
 
 ## 回归结果
 
-证据：[v4 优化报告](NAVIGATION_OPTIMIZATION_2026-08-21_FAST_GOALLINE_V4.md)。
+证据：[v4 优化报告](../04_快速目标线v4_2026-08-21/NAVIGATION_OPTIMIZATION_2026-08-21_FAST_GOALLINE_V4.md)。
 
 | run | wall [s] | Gazebo path [m] | XY error [m] | status | contacts |
 | ---: | ---: | ---: | ---: | ---: | --- |
@@ -86,7 +86,7 @@ sg docker -c './scripts/launch_demo.sh gazebo_gui:=true rviz:=true rtabmap_viz:=
 ```
 
 旧 profile 的参数文档和 Git 提交仍可用于回退；正式结果归档和已清理目录见
-[EXPERIMENT_ARCHIVE_INDEX.md](EXPERIMENT_ARCHIVE_INDEX.md)。保留的正式结果目录保存了
+[EXPERIMENT_ARCHIVE_INDEX.md](../00_项目总览/EXPERIMENT_ARCHIVE_INDEX.md)。保留的正式结果目录保存了
 `git_commit`、基础 `nav2_rgbd_params.yaml`、`collision_monitor_rgbd_params.yaml`、
 `world.sdf` 和 `profile_overrides.yaml`。运行时只想回退参数时可直接指定旧 profile，例如：
 

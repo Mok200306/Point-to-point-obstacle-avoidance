@@ -2,8 +2,8 @@
 
 更新时间：2026-08-22（三种五点闭环顺序共九次回归完成）
 
-项目演进和阶段复现总览：[项目演进与阶段复现总览_2026-08-22.md](项目演进与阶段复现总览_2026-08-22.md)
-；正式结果索引：[EXPERIMENT_ARCHIVE_INDEX.md](EXPERIMENT_ARCHIVE_INDEX.md)。
+项目演进和阶段复现总览：[项目演进与阶段复现总览_2026-08-22.md](../00_项目总览/项目演进与阶段复现总览_2026-08-22.md)
+；正式结果索引：[EXPERIMENT_ARCHIVE_INDEX.md](../00_项目总览/EXPERIMENT_ARCHIVE_INDEX.md)。
 
 ## 最新进度：三种点位顺序统一验证
 
@@ -25,12 +25,12 @@ contacts 过滤 `ground_plane` 后均无非地面接触。新结果目录为：
 每个 run 均保存左右合成 `trajectory_comparison.png`、在线地图轨迹、Gazebo 真值
 轨迹、分段 CSV、参数快照、世界文件和 contacts 统计；结果不会覆盖此前五点闭环。
 
-统一数据分析：[点位顺序跨实验统一分析_2026-08-22.md](点位顺序跨实验统一分析_2026-08-22.md)
+统一数据分析：[点位顺序跨实验统一分析_2026-08-22.md](../06_五点闭环与顺序验证_2026-08-22/点位顺序跨实验统一分析_2026-08-22.md)
 
-实验 1 报告：[自适应目标线顺序实验1报告_2026-08-22.md](自适应目标线顺序实验1报告_2026-08-22.md)
+实验 1 报告：[自适应目标线顺序实验1报告_2026-08-22.md](../06_五点闭环与顺序验证_2026-08-22/自适应目标线顺序实验1报告_2026-08-22.md)
 
-实验 2 报告：[自适应目标线顺序实验2报告_2026-08-22.md](自适应目标线顺序实验2报告_2026-08-22.md)
-最终验证和复现入口：[当前场景算法最终验证总结_2026-08-22.md](当前场景算法最终验证总结_2026-08-22.md)
+实验 2 报告：[自适应目标线顺序实验2报告_2026-08-22.md](../06_五点闭环与顺序验证_2026-08-22/自适应目标线顺序实验2报告_2026-08-22.md)
+最终验证和复现入口：[当前场景算法最终验证总结_2026-08-22.md](../06_五点闭环与顺序验证_2026-08-22/当前场景算法最终验证总结_2026-08-22.md)
 
 三组平均指标：
 
@@ -42,7 +42,7 @@ contacts 过滤 `ground_plane` 后均无非地面接触。新结果目录为：
 
 准确边界：这些结果证明当前 profile 在当前 Gazebo 大场景中可以在线 RGB-D 建图、
 改变起点和目标顺序并实时逐段导航；不代表任意未知场景都能保证成功。下一阶段应
-按 [跨场景仿真修改与恢复指南_2026-08-22.md](跨场景仿真修改与恢复指南_2026-08-22.md)
+按 [跨场景仿真修改与恢复指南_2026-08-22.md](../07_跨场景与真实设备/跨场景仿真修改与恢复指南_2026-08-22.md)
 只改变一个环境因素并重新做三次验证。
 
 ## 最新进度（2026-08-22）
@@ -60,9 +60,9 @@ CSV、参数快照和 contacts 记录已保存在
 `results/自适应目标线_五点闭环_2026-08-22/run_01..run_03/`。
 
 本阶段冻结文件为
-[五点闭环最终参数_2026-08-22.md](五点闭环最终参数_2026-08-22.md)，实验原始表为
-[五点闭环导航实验记录_2026-08-22.md](五点闭环导航实验记录_2026-08-22.md)，阶段
-总结为 [多目标导航阶段总结_2026-08-22.md](多目标导航阶段总结_2026-08-22.md)。
+[五点闭环最终参数_2026-08-22.md](../06_五点闭环与顺序验证_2026-08-22/五点闭环最终参数_2026-08-22.md)，实验原始表为
+[五点闭环导航实验记录_2026-08-22.md](../06_五点闭环与顺序验证_2026-08-22/五点闭环导航实验记录_2026-08-22.md)，阶段
+总结为 [多目标导航阶段总结_2026-08-22.md](../06_五点闭环与顺序验证_2026-08-22/多目标导航阶段总结_2026-08-22.md)。
 当前结论是“当前 Gazebo 场景中的 RGB-D 在线多目标导航基线已通过”，下一步是跨场景
 验证，再进入真实 D435i；不能把这三次结果直接表述为任意未知环境的保证。
 
@@ -75,37 +75,37 @@ CSV、参数快照和 contacts 记录已保存在
 需要复现 v4 时仍显式指定 profile。
 
 v4 的三次双视图和完整指标见
-[NAVIGATION_OPTIMIZATION_2026-08-21_FAST_GOALLINE_V4.md](NAVIGATION_OPTIMIZATION_2026-08-21_FAST_GOALLINE_V4.md)，
+[NAVIGATION_OPTIMIZATION_2026-08-21_FAST_GOALLINE_V4.md](../04_快速目标线v4_2026-08-21/NAVIGATION_OPTIMIZATION_2026-08-21_FAST_GOALLINE_V4.md)，
 冻结参数见
-[FROZEN_NAVIGATION_PARAMETERS_FAST_GOALLINE_045_V4_2026-08-21.md](FROZEN_NAVIGATION_PARAMETERS_FAST_GOALLINE_045_V4_2026-08-21.md)。
+[FROZEN_NAVIGATION_PARAMETERS_FAST_GOALLINE_045_V4_2026-08-21.md](../04_快速目标线v4_2026-08-21/FROZEN_NAVIGATION_PARAMETERS_FAST_GOALLINE_045_V4_2026-08-21.md)。
 结果目录、删除范围和历史恢复规则见
-[EXPERIMENT_ARCHIVE_INDEX.md](EXPERIMENT_ARCHIVE_INDEX.md)。
+[EXPERIMENT_ARCHIVE_INDEX.md](../00_项目总览/EXPERIMENT_ARCHIVE_INDEX.md)。
 v4 的复现命令、轨迹覆盖规则和跨场景验证计划见
-[V4_REPRODUCTION_AND_CROSS_SCENE_VALIDATION_2026-08-21.md](V4_REPRODUCTION_AND_CROSS_SCENE_VALIDATION_2026-08-21.md)。
+[V4_REPRODUCTION_AND_CROSS_SCENE_VALIDATION_2026-08-21.md](../07_跨场景与真实设备/V4_REPRODUCTION_AND_CROSS_SCENE_VALIDATION_2026-08-21.md)。
 
 本轮新增通用目标 profile `adaptive_goal_line_045`，并将 `demo.launch.py` 默认值切换到
 该 profile。它关闭 v4 的 `side_bias_target_schedule`、固定 `world_x/world_y` 走廊和
 场景方向提示，仅保留按每次规划调用重新计算的当前起点到当前目标直线软偏好。连续
 `(-8.5,0.0) -> A(5.0,-3.0) -> B(5.0,6.0)` 回归两段均为 `status=4`，总 wall
 `136.94 s`，Gazebo contacts 过滤地面后无非地面接触。详细记录见
-[未知目标实时规划优化说明_2026-08-21.md](未知目标实时规划优化说明_2026-08-21.md)、
-[自适应目标线多目标实验记录_2026-08-21.md](自适应目标线多目标实验记录_2026-08-21.md) 和
-[自适应目标线参数记录_2026-08-21.md](自适应目标线参数记录_2026-08-21.md)。
+[未知目标实时规划优化说明_2026-08-21.md](../05_自适应目标线_2026-08-21至22/未知目标实时规划优化说明_2026-08-21.md)、
+[自适应目标线多目标实验记录_2026-08-21.md](../05_自适应目标线_2026-08-21至22/自适应目标线多目标实验记录_2026-08-21.md) 和
+[自适应目标线参数记录_2026-08-21.md](../05_自适应目标线_2026-08-21至22/自适应目标线参数记录_2026-08-21.md)。
 
 本轮新增代码提交 `452b45f` 和候选 profile `fast_goalline_045_v2`。它在三次干净
 A -> B 中达到 `88.95 ± 3.57 s`、Gazebo 路径 `17.31 ± 0.14 m`、3/3 成功、0/3
 非地面 contacts；两次最大 `y` 约 `0.79 m`，一次 `1.37 m`。因此 v2 是速度候选，
 没有覆盖默认 profile。详细实验表和双视图见
-[NAVIGATION_OPTIMIZATION_2026-08-21_FAST_GOALLINE_V2.md](NAVIGATION_OPTIMIZATION_2026-08-21_FAST_GOALLINE_V2.md)。
+[NAVIGATION_OPTIMIZATION_2026-08-21_FAST_GOALLINE_V2.md](../04_快速目标线v4_2026-08-21/NAVIGATION_OPTIMIZATION_2026-08-21_FAST_GOALLINE_V2.md)。
 
 候选冻结参数见
-[FROZEN_NAVIGATION_PARAMETERS_FAST_GOALLINE_045_V2_2026-08-21.md](FROZEN_NAVIGATION_PARAMETERS_FAST_GOALLINE_045_V2_2026-08-21.md)。
+[FROZEN_NAVIGATION_PARAMETERS_FAST_GOALLINE_045_V2_2026-08-21.md](../04_快速目标线v4_2026-08-21/FROZEN_NAVIGATION_PARAMETERS_FAST_GOALLINE_045_V2_2026-08-21.md)。
 
 v3 仍作为路线方差较小的历史对照，v2 仍作为更早的速度对照；它们没有被覆盖。
 
-详细实验表和双视图：[NAVIGATION_OPTIMIZATION_2026-08-21.md](NAVIGATION_OPTIMIZATION_2026-08-21.md)
+详细实验表和双视图：[NAVIGATION_OPTIMIZATION_2026-08-21.md](../04_快速目标线v4_2026-08-21/NAVIGATION_OPTIMIZATION_2026-08-21.md)
 
-冻结参数：[FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-21.md](FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-21.md)
+冻结参数：[FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-21.md](../04_快速目标线v4_2026-08-21/FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-21.md)
 
 ## 当前目标
 
@@ -172,9 +172,9 @@ DWB 又会较强地追随这条路径；在线模式中直接订阅增长中的 
 
 这不是把“当前位置到终点直线”硬编码为最高分，而是由 Smac 的目标启发式保持目标
 方向偏好、由 costmap 累计代价惩罚贴障碍路径、由 RPP 前视实现连续绕行。详细参数和
-手动调整步骤见 [PARAMETERS.md](PARAMETERS.md)，阶段结果归档见
-[EXPERIMENT_ARCHIVE_INDEX.md](EXPERIMENT_ARCHIVE_INDEX.md)，目标线阶段记录见
-[NAVIGATION_OPTIMIZATION_2026-08-20.md](NAVIGATION_OPTIMIZATION_2026-08-20.md)。
+手动调整步骤见 [PARAMETERS.md](../01_基础环境与问题分析/PARAMETERS.md)，阶段结果归档见
+[EXPERIMENT_ARCHIVE_INDEX.md](../00_项目总览/EXPERIMENT_ARCHIVE_INDEX.md)，目标线阶段记录见
+[NAVIGATION_OPTIMIZATION_2026-08-20.md](../03_目标线规划优化_2026-08-20/NAVIGATION_OPTIMIZATION_2026-08-20.md)。
 
 当前新配置已完成 A -> B / B -> A 独立回归；旧 DWB 的结果只能作为历史对照，不能
 直接充当 Smac + RPP 的论文数据。
@@ -263,7 +263,7 @@ Gazebo RGB-D 相机
 | A -> B | `4` | `182.87 s` | `182.87 s` | `0.108 m` | `900` | `464223` / `(none)` |
 | B -> A | `4` | `161.07 s` | `161.07 s` | `0.111 m` | `723` | `424417` / `(none)` |
 
-这组早期轨迹和 contacts 证据已按 [EXPERIMENT_ARCHIVE_INDEX.md](EXPERIMENT_ARCHIVE_INDEX.md)
+这组早期轨迹和 contacts 证据已按 [EXPERIMENT_ARCHIVE_INDEX.md](../00_项目总览/EXPERIMENT_ARCHIVE_INDEX.md)
 归档；原始目录可从整理前提交恢复。A→B 及 B→A 的 contacts 都过滤了 `ground_plane`；
 最新完整监听分别记录 464,223 和 424,417 条 contact
 消息，因此表中的 `(none)` 指没有 `waffle` 与墙、栏杆、箱体或柱体的接触对。
@@ -533,7 +533,7 @@ sg docker -c 'docker compose exec ros2 bash -lc "source /opt/ros/humble/setup.ba
 v3 三次 A -> B 均为 `status=4`，wall `90.238 / 91.352 / 91.659 s`，平均
 `91.083 ± 0.61 s`，平均 Gazebo 轨迹 `17.492 m`，最大 y 偏移 `1.388 ± 0.044 m`，
 contacts 过滤地面后均为 none。详细参数、每次轨迹双视图和 v2 对照见
-[NAVIGATION_OPTIMIZATION_2026-08-21.md](NAVIGATION_OPTIMIZATION_2026-08-21.md)。
+[NAVIGATION_OPTIMIZATION_2026-08-21.md](../04_快速目标线v4_2026-08-21/NAVIGATION_OPTIMIZATION_2026-08-21.md)。
 
 v2 三次结果仍保留为对照：平均 `95.541 ± 2.03 s`，平均 Gazebo 轨迹 `17.765 m`，
 最大 y 偏移 `1.588 ± 0.422 m`，3/3 成功、0/3 非地面碰撞。
@@ -552,8 +552,8 @@ v2 三次结果仍保留为对照：平均 `95.541 ± 2.03 s`，平均 Gazebo �
   并在此基础上验证目标线优化候选。六次结果仍作为历史对照保留。
 
 每次实验均保存了 `metrics.yaml`、map/Gazebo 两条轨迹 CSV、单图、左右双视图、参数快照、世界文件、contacts 摘要和 `experiment.yaml`。详细表格见
-[BENCHMARK_2026-08-20_SUMMARY.md](BENCHMARK_2026-08-20_SUMMARY.md)，冻结参数与复现命令见
-[FROZEN_NAVIGATION_PARAMETERS_2026-08-20.md](FROZEN_NAVIGATION_PARAMETERS_2026-08-20.md)。
+[BENCHMARK_2026-08-20_SUMMARY.md](../02_原生规划基准_2026-08-20/BENCHMARK_2026-08-20_SUMMARY.md)，冻结参数与复现命令见
+[FROZEN_NAVIGATION_PARAMETERS_2026-08-20.md](../02_原生规划基准_2026-08-20/FROZEN_NAVIGATION_PARAMETERS_2026-08-20.md)。
 
 历史冻结配置提交：`be1dabe`；0.45 对照切换提交：`a1389ff`；目标线候选提交：
 `c18894e`；固定西侧窗口 v2 提交：`9823820`；当前连续走廊 v3 提交：`6202912`。

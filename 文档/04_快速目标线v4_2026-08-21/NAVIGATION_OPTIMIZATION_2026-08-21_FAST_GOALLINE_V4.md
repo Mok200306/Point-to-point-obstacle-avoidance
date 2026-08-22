@@ -20,7 +20,7 @@
 几何先验；在线建图的观测顺序仍会让第一段最大 `y` 在 `1.175--1.380 m` 之间变化。
 但三次都保持同一拓扑、无物理碰撞且时间显著低于旧 v3，因此 v4 是当前这个仿真场景的
 推荐快速 profile。旧 profile 的参数文档和 Git 提交仍可回退；旧结果目录的整理规则见
-[EXPERIMENT_ARCHIVE_INDEX.md](EXPERIMENT_ARCHIVE_INDEX.md)。
+[EXPERIMENT_ARCHIVE_INDEX.md](../00_项目总览/EXPERIMENT_ARCHIVE_INDEX.md)。
 
 ## 实验条件
 
@@ -84,9 +84,9 @@ Gazebo contacts 消息，均没有 `waffle` 与墙、barrier、crate、pillar �
 Gazebo SDF 场景与 `/gazebo/model_states` ground truth，右侧是 `/map`、global costmap
 和 map-frame 轨迹。
 
-- [run 01](results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_01)，[双视图](results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_01/trajectory_comparison.png)
-- [run 02](results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_02)，[双视图](results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_02/trajectory_comparison.png)
-- [run 03](results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_03)，[双视图](results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_03/trajectory_comparison.png)
+- [run 01](../../results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_01)，[双视图](../../results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_01/trajectory_comparison.png)
+- [run 02](../../results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_02)，[双视图](../../results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_02/trajectory_comparison.png)
+- [run 03](../../results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_03)，[双视图](../../results/optimization_2026-08-21/fast_goalline_045_v4_A_to_B_run_03/trajectory_comparison.png)
 
 ## 与 v3 对比
 

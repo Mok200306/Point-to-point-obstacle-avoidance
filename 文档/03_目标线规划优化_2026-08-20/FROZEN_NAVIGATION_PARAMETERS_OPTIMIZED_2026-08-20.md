@@ -3,7 +3,7 @@
 ## 冻结对象
 
 本文件冻结的是当前目标线规划候选，不覆盖原始基线文件
-[FROZEN_NAVIGATION_PARAMETERS_2026-08-20.md](FROZEN_NAVIGATION_PARAMETERS_2026-08-20.md)。
+[FROZEN_NAVIGATION_PARAMETERS_2026-08-20.md](../02_原生规划基准_2026-08-20/FROZEN_NAVIGATION_PARAMETERS_2026-08-20.md)。
 原始 0.45 基线提交为 `be04483`；当前优化代码提交为 `c18894e`。
 
 冻结依据是目标线候选三次 A -> B 全部 `status=4`、Gazebo 非地面 contacts 为 none，且
@@ -52,14 +52,14 @@
 | velocity smoother accel | `[0.8, 0.0, 2.0]` |
 | velocity smoother decel | `[-1.0, 0.0, -2.0]` |
 
-主配置：[nav2_rgbd_params.yaml](src/rtabmap_tb3_nav/config/nav2_rgbd_params.yaml)
+主配置：[nav2_rgbd_params.yaml](../../src/rtabmap_tb3_nav/config/nav2_rgbd_params.yaml)
 
 ## 结果证据
 
-- [run 01](results/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_01)：`113.90 s`，status 4，contacts none
-- [run 02](results/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_02)：`116.72 s`，status 4，contacts none
-- [run 03](results/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_03)：`110.28 s`，status 4，contacts none
-- 结果和算法分析：[NAVIGATION_OPTIMIZATION_2026-08-20.md](NAVIGATION_OPTIMIZATION_2026-08-20.md)
+- [run 01](../../results/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_01)：`113.90 s`，status 4，contacts none
+- [run 02](../../results/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_02)：`116.72 s`，status 4，contacts none
+- [run 03](../../results/optimization_2026-08-20/goal_line_quad_045_A_to_B_run_03)：`110.28 s`，status 4，contacts none
+- 结果和算法分析：[NAVIGATION_OPTIMIZATION_2026-08-20.md](../03_目标线规划优化_2026-08-20/NAVIGATION_OPTIMIZATION_2026-08-20.md)
 
 ## 重构与启动
 

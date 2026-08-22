@@ -17,23 +17,24 @@ B = ( 8.5, 0.0)   场景目标位置
 `rtabmap_tb3_nav/GoalLineSmacPlanner`（继承 SmacPlanner2D），每次规划调用都使用当前
 起点、当前目标和实时 costmap，关闭 large 场景固定世界坐标走廊。旧的
 完整阶段演进、每个阶段的创新点、代码提交和历史复现入口见
-[项目演进与阶段复现总览_2026-08-22.md](项目演进与阶段复现总览_2026-08-22.md)。正式结果目录和
-清理规则见 [EXPERIMENT_ARCHIVE_INDEX.md](EXPERIMENT_ARCHIVE_INDEX.md)。
+[项目演进与阶段复现总览_2026-08-22.md](文档/00_项目总览/项目演进与阶段复现总览_2026-08-22.md)。正式结果目录和
+清理规则见 [EXPERIMENT_ARCHIVE_INDEX.md](文档/00_项目总览/EXPERIMENT_ARCHIVE_INDEX.md)。
+全部阶段文档的目录见 [文档/README.md](文档/README.md)。
 `fast_goalline_045_v4` 仍作为当前 large 场景的冻结 benchmark，三次独立回归平均
 `81.07 s`、3/3 成功、0/3 非地面 contacts；需要复现该历史结果时显式指定 v4。
 参数和三次回归见
-[NAVIGATION_OPTIMIZATION_2026-08-21_FAST_GOALLINE_V4.md](NAVIGATION_OPTIMIZATION_2026-08-21_FAST_GOALLINE_V4.md) 与
-[FROZEN_NAVIGATION_PARAMETERS_FAST_GOALLINE_045_V4_2026-08-21.md](FROZEN_NAVIGATION_PARAMETERS_FAST_GOALLINE_045_V4_2026-08-21.md)。历史 v3 参数和三次回归见
-[NAVIGATION_OPTIMIZATION_2026-08-21.md](NAVIGATION_OPTIMIZATION_2026-08-21.md) 与
-[FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-21.md](FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-21.md)。
-结果目录整理和各阶段保留规则见 [EXPERIMENT_ARCHIVE_INDEX.md](EXPERIMENT_ARCHIVE_INDEX.md)。
+[NAVIGATION_OPTIMIZATION_2026-08-21_FAST_GOALLINE_V4.md](文档/04_快速目标线v4_2026-08-21/NAVIGATION_OPTIMIZATION_2026-08-21_FAST_GOALLINE_V4.md) 与
+[FROZEN_NAVIGATION_PARAMETERS_FAST_GOALLINE_045_V4_2026-08-21.md](文档/04_快速目标线v4_2026-08-21/FROZEN_NAVIGATION_PARAMETERS_FAST_GOALLINE_045_V4_2026-08-21.md)。历史 v3 参数和三次回归见
+[NAVIGATION_OPTIMIZATION_2026-08-21.md](文档/04_快速目标线v4_2026-08-21/NAVIGATION_OPTIMIZATION_2026-08-21.md) 与
+[FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-21.md](文档/04_快速目标线v4_2026-08-21/FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-21.md)。
+结果目录整理和各阶段保留规则见 [EXPERIMENT_ARCHIVE_INDEX.md](文档/00_项目总览/EXPERIMENT_ARCHIVE_INDEX.md)。
 旧 profile 仍可通过 `navigation_profile:=fast_north_045_v3`、`fast_goalline_045_v2`
 或 `frozen_goal_line_045_v1` 显式回退，原生目标线 0.45 配置仍由历史提交保留。
 
 本轮“目标改动后重新规划”的说明、双目标轨迹和参数快照见
-[未知目标实时规划优化说明_2026-08-21.md](未知目标实时规划优化说明_2026-08-21.md)、
-[自适应目标线多目标实验记录_2026-08-21.md](自适应目标线多目标实验记录_2026-08-21.md) 和
-[自适应目标线参数记录_2026-08-21.md](自适应目标线参数记录_2026-08-21.md)。
+[未知目标实时规划优化说明_2026-08-21.md](文档/05_自适应目标线_2026-08-21至22/未知目标实时规划优化说明_2026-08-21.md)、
+[自适应目标线多目标实验记录_2026-08-21.md](文档/05_自适应目标线_2026-08-21至22/自适应目标线多目标实验记录_2026-08-21.md) 和
+[自适应目标线参数记录_2026-08-21.md](文档/05_自适应目标线_2026-08-21至22/自适应目标线参数记录_2026-08-21.md)。
 
 ## 五点闭环阶段（2026-08-22）
 
@@ -45,22 +46,22 @@ contacts 过滤地面后均无非地面接触；平均 wall 时间 `288.563 +/- 
 的 `trajectory_comparison.png`，不会覆盖不同 run 的目录。
 
 实验数据和图像见
-[五点闭环导航实验记录_2026-08-22.md](五点闭环导航实验记录_2026-08-22.md)，
+[五点闭环导航实验记录_2026-08-22.md](文档/06_五点闭环与顺序验证_2026-08-22/五点闭环导航实验记录_2026-08-22.md)，
 冻结参数和完整复现命令见
-[五点闭环最终参数_2026-08-22.md](五点闭环最终参数_2026-08-22.md)，阶段边界和下一步见
-[多目标导航阶段总结_2026-08-22.md](多目标导航阶段总结_2026-08-22.md)。
+[五点闭环最终参数_2026-08-22.md](文档/06_五点闭环与顺序验证_2026-08-22/五点闭环最终参数_2026-08-22.md)，阶段边界和下一步见
+[多目标导航阶段总结_2026-08-22.md](文档/06_五点闭环与顺序验证_2026-08-22/多目标导航阶段总结_2026-08-22.md)。
 
 随后在不改变 `adaptive_goal_line_045` 的条件下完成了两种新点位顺序的三次验证：
 `C -> A -> D -> B -> M -> C` 和 `B -> M -> A -> C -> D -> B`。两组均为 `3/3`
 完整 run、`15/15` 分段成功、过滤地面后 `0/3` 非地面接触。三组五点闭环统一比较、
 每次左右合成图和实验边界见
-[点位顺序跨实验统一分析_2026-08-22.md](点位顺序跨实验统一分析_2026-08-22.md)；当前场景最终冻结和复现入口见
-[当前场景算法最终验证总结_2026-08-22.md](当前场景算法最终验证总结_2026-08-22.md)。
+[点位顺序跨实验统一分析_2026-08-22.md](文档/06_五点闭环与顺序验证_2026-08-22/点位顺序跨实验统一分析_2026-08-22.md)；当前场景最终冻结和复现入口见
+[当前场景算法最终验证总结_2026-08-22.md](文档/06_五点闭环与顺序验证_2026-08-22/当前场景算法最终验证总结_2026-08-22.md)。
 
 当前 profile 的详细参数和命令见
-[自适应目标线算法复现手册_2026-08-22.md](自适应目标线算法复现手册_2026-08-22.md)，改变世界、
+[自适应目标线算法复现手册_2026-08-22.md](文档/05_自适应目标线_2026-08-21至22/自适应目标线算法复现手册_2026-08-22.md)，改变世界、
 保存快照和恢复基线见
-[跨场景仿真修改与恢复指南_2026-08-22.md](跨场景仿真修改与恢复指南_2026-08-22.md)。
+[跨场景仿真修改与恢复指南_2026-08-22.md](文档/07_跨场景与真实设备/跨场景仿真修改与恢复指南_2026-08-22.md)。
 
 自适应配置保留 `inflation_radius=0.45 m` 和完整安全链路，只使用动态目标线软偏好；v4
 则额外包含当前 large 场景的分段走廊先验。两者都保留速度、RPP 前视、软代价衰减和
@@ -401,7 +402,7 @@ RTAB-Map 数据库位于宿主机：
 
 ## 7. 调参入口
 
-完整参数表和调参顺序见 [PARAMETERS.md](PARAMETERS.md)，主要参数在
+完整参数表和调参顺序见 [PARAMETERS.md](文档/01_基础环境与问题分析/PARAMETERS.md)，主要参数在
 [nav2_rgbd_params.yaml](src/rtabmap_tb3_nav/config/nav2_rgbd_params.yaml)：
 
 - 想更安全：先降低 `max_vel_x`，再增大 `inflation_radius` 和 footprint；
@@ -442,7 +443,7 @@ sg docker -c './scripts/run_navigation_trial.sh --x -8.5 --y 0.0 --yaw 3.1415926
 PNG 背景来自最终 `/map`，红线是 map 坐标系中的实际 odom 轨迹；YAML 同时记录
 action 墙钟时间和 Gazebo 仿真时间。一般结果目录默认被 `.gitignore` 排除，避免日志污染源码；
 当前归档只保留三个阶段各三次正式结果；完整保留规则见
-[EXPERIMENT_ARCHIVE_INDEX.md](EXPERIMENT_ARCHIVE_INDEX.md)。双视图、参数快照和 contacts
+[EXPERIMENT_ARCHIVE_INDEX.md](文档/00_项目总览/EXPERIMENT_ARCHIVE_INDEX.md)。双视图、参数快照和 contacts
 证据见对应实验目录，汇总会写入 `PROJECT_PROGRESS.md`。
 
 修改 ROS 文件后：
@@ -473,7 +474,7 @@ Docker 镜像；因为相机分辨率、帧率、LDS 删除和 `cmd_vel_safe` re
 | B -> A | `4` | `161.07 s` | `0.111 m` | `723` | `424417`，`(none)` |
 
 这组早期轨迹属于历史 NavFn + DWB 对照，原始目录已按
-[EXPERIMENT_ARCHIVE_INDEX.md](EXPERIMENT_ARCHIVE_INDEX.md) 清理；B 起点的接触
+[EXPERIMENT_ARCHIVE_INDEX.md](文档/00_项目总览/EXPERIMENT_ARCHIVE_INDEX.md) 清理；B 起点的接触
 回归曾使用干净重启并从对应端点开始；`scripts/regression_leg.sh` 会先等待
 `/controller_server` 和 `/planner_server` 都处于 `active [3]`，再开始 300 s 的
 Gazebo contacts 监听并发送目标。这里的 `(none)` 指过滤地面后没有机器人与墙、栏杆、
@@ -498,7 +499,7 @@ Gazebo contacts 监听并发送目标。这里的 `(none)` 指过滤地面后没
 
 旧版固定地图过渡方案曾临时移除 `StaticLayer`，这段记录保留作历史排查依据；当前方案
 已经改为 `map_padder.py -> /nav_map -> StaticLayer`；下面的 clearance-first 数值是
-历史 0.55 对照，当前连续走廊优化结果见 [优化文档](NAVIGATION_OPTIMIZATION_2026-08-21.md)。
+历史 0.55 对照，当前连续走廊优化结果见 [优化文档](文档/04_快速目标线v4_2026-08-21/NAVIGATION_OPTIMIZATION_2026-08-21.md)。
 
 如果 GUI 测试时出现 `Failed to change state for node: collision_monitor`，通常是旧
 launch 没有完全退出而产生了重复节点，不是新的避障参数本身失败。先执行
@@ -513,7 +514,7 @@ launch 没有完全退出而产生了重复节点，不是新的避障参数本�
 | B -> A | `4` | `110.82 s` | `0.208 m` | `285301`，`(none)` |
 
 这组 0.55 m 轨迹的统计和 contacts 结论仍在本文；原始目录已按
-[EXPERIMENT_ARCHIVE_INDEX.md](EXPERIMENT_ARCHIVE_INDEX.md) 清理，可从整理前提交恢复。
+[EXPERIMENT_ARCHIVE_INDEX.md](文档/00_项目总览/EXPERIMENT_ARCHIVE_INDEX.md) 清理，可从整理前提交恢复。
 `(none)` 表示过滤 `ground_plane` 后没有 `waffle` 与墙、barrier、crate 或 pillar 的接触对。
 
 `navigation_trial.py` 的末端误差是 action result 前后收到的最后一条 TF/odom 轨迹采样，
@@ -525,7 +526,7 @@ launch 没有完全退出而产生了重复节点，不是新的避障参数本�
 
 目标线候选三次 A -> B 均为 `status=4`，平均墙钟 `113.63 s`，平均 Gazebo 轨迹
 `17.977 m`，contacts 过滤地面后均为 none。详细参数、每次轨迹双视图和与原生 0.45
-基线的比较见 [NAVIGATION_OPTIMIZATION_2026-08-21.md](NAVIGATION_OPTIMIZATION_2026-08-21.md)。
+基线的比较见 [NAVIGATION_OPTIMIZATION_2026-08-21.md](文档/04_快速目标线v4_2026-08-21/NAVIGATION_OPTIMIZATION_2026-08-21.md)。
 
 ## 8. 真实 Intel RealSense D435i
 

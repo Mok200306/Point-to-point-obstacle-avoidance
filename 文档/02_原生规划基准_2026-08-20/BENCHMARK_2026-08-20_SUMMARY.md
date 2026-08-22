@@ -8,7 +8,7 @@
 - `inflation_radius=0.45 m`：3/3 成功，成功率 100%，无过滤到的非地面 Gazebo 物理接触。
 - 本文记录的是历史 `0.55 m` clearance-first 与 `0.45 m` 原生 Smac 对照，不覆盖后续
   的目标线优化实验。当前源码冻结为 0.45 目标线候选，见
-  [NAVIGATION_OPTIMIZATION_2026-08-20.md](NAVIGATION_OPTIMIZATION_2026-08-20.md)。
+  [NAVIGATION_OPTIMIZATION_2026-08-20.md](../03_目标线规划优化_2026-08-20/NAVIGATION_OPTIMIZATION_2026-08-20.md)。
 
 这只是每组 3 次的工程回归对比，不足以证明统计显著性，也不能据此声称对所有场景都达到工程级零碰撞。
 
@@ -39,9 +39,9 @@
 | 0.55 | 01 | 4 / 成功 | 115.16 | 241.80 | 18.202 | 18.396 | 0.177 | 0.0832 | none | 历史统计，原始目录已归档 |
 | 0.55 | 02 | 4 / 成功 | 118.64 | 134.70 | 18.075 | 18.442 | 0.238 | 0.0981 | none | 历史统计，原始目录已归档 |
 | 0.55 | 03 | 4 / 成功 | 115.48 | 144.30 | 18.076 | 18.328 | 0.278 | 0.0321 | none | 历史统计，原始目录已归档 |
-| 0.45 | 01 | 4 / 成功 | 115.83 | 132.70 | 17.808 | 18.187 | 0.264 | 0.0214 | none | [metrics](results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_01/metrics.yaml) / [双视图](results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_01/trajectory_comparison.png) |
-| 0.45 | 02 | 4 / 成功 | 113.90 | 133.60 | 17.729 | 18.159 | 0.183 | -0.0044 | none | [metrics](results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_02/metrics.yaml) / [双视图](results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_02/trajectory_comparison.png) |
-| 0.45 | 03 | 4 / 成功 | 115.01 | 133.50 | 17.864 | 18.174 | 0.365 | 0.0268 | none | [metrics](results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_03/metrics.yaml) / [双视图](results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_03/trajectory_comparison.png) |
+| 0.45 | 01 | 4 / 成功 | 115.83 | 132.70 | 17.808 | 18.187 | 0.264 | 0.0214 | none | [metrics](../../results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_01/metrics.yaml) / [双视图](../../results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_01/trajectory_comparison.png) |
+| 0.45 | 02 | 4 / 成功 | 113.90 | 133.60 | 17.729 | 18.159 | 0.183 | -0.0044 | none | [metrics](../../results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_02/metrics.yaml) / [双视图](../../results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_02/trajectory_comparison.png) |
+| 0.45 | 03 | 4 / 成功 | 115.01 | 133.50 | 17.864 | 18.174 | 0.365 | 0.0268 | none | [metrics](../../results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_03/metrics.yaml) / [双视图](../../results/benchmark_2026-08-20/smac_rpp_045_A_to_B_run_03/trajectory_comparison.png) |
 
 每个结果目录还保存了 `trajectory.csv`、`gazebo_trajectory.csv`、`trajectory.png`、`trajectory_comparison.png`、`metrics.yaml`、当次 Nav2/collision monitor 参数、世界文件和 `experiment.yaml`，每个目录共 9 个文件。
 
@@ -78,8 +78,8 @@ gazebo_contact_pairs: "(none)"
 - 历史 clearance-first 值：local costmap 和 global costmap 都使用 `inflation_radius: 0.55`。
 - 原生 0.45 的完整结果和参数快照保留在 `smac_rpp_045_A_to_B_run_01..03`。
 - 其他规划器、控制器、速度、footprint、世界、起点终点和感知参数不因本次对比改变。
-- 可复现参数表见 [FROZEN_NAVIGATION_PARAMETERS_2026-08-20.md](FROZEN_NAVIGATION_PARAMETERS_2026-08-20.md)。
-- 当前目标线优化参数见 [FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-20.md](FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-20.md)。
+- 可复现参数表见 [FROZEN_NAVIGATION_PARAMETERS_2026-08-20.md](../02_原生规划基准_2026-08-20/FROZEN_NAVIGATION_PARAMETERS_2026-08-20.md)。
+- 当前目标线优化参数见 [FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-20.md](../03_目标线规划优化_2026-08-20/FROZEN_NAVIGATION_PARAMETERS_OPTIMIZED_2026-08-20.md)。
 
 ## 后续实验边界
 

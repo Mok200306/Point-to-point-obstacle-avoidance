@@ -23,7 +23,7 @@ GoalLineSmacPlanner、RPP、velocity smoother 和 collision monitor 完整链路
 
 近似 clearance 只用于诊断；物理碰撞以过滤 `ground_plane` 后的 Gazebo contacts 为准。
 三次正式结果的统计和参数仍保留在本文；原始目录已按
-[EXPERIMENT_ARCHIVE_INDEX.md](EXPERIMENT_ARCHIVE_INDEX.md) 清理，可从提交 `6202912` 恢复。
+[EXPERIMENT_ARCHIVE_INDEX.md](../00_项目总览/EXPERIMENT_ARCHIVE_INDEX.md) 清理，可从提交 `6202912` 恢复。
 
 ## 规划与控制参数
 
