@@ -1,0 +1,42 @@
+label: 05_跨场景验证/场景02/场景02_MN单段_2026-08-22/run_01
+profile: adaptive_goal_line_045
+world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_02.world
+goal_frame: map
+overall_succeeded: false
+completed_segments: 1
+requested_segments: 1
+total_wall_duration_s: 127.54796440701466
+total_trajectory_length_m: 16.42311694222239
+segments:
+- name: M->N
+  label: 05_跨场景验证/场景02/场景02_MN单段_2026-08-22/run_01/segment_1
+  goal_frame: map
+  goal_x_m: 8.5
+  goal_y_m: 0.0
+  goal_yaw_rad: 0.0
+  nav2_status: 6
+  succeeded: false
+  wall_start_unix_s: 1787401798.2395182
+  wall_end_unix_s: 1787401925.7874846
+  wall_duration_s: 127.54796440701466
+  simulation_start_s: 1181.234
+  simulation_end_s: 1283.534
+  simulation_duration_s: 102.30000000000018
+  samples: 483
+  trajectory_length_m: 16.42311694222239
+  gazebo_samples: 967
+  gazebo_trajectory_length_m: 16.438366368916906
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: -0.29270613837268855
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_02.world
+  final_x_m: -0.7812495142420222
+  final_y_m: 5.118191101442466
+  final_xy_error_m: 10.598937338077937
+  map_frame: map
+  map_received: true
+  global_costmap_received: true
+git_commit: 9fdad8a6f67f542147e43e1709f452fa7012fe58
+gazebo_contacts_topic: "/gazebo/indoor_obstacle_course_cross_scene_02/physics/contacts"
+gazebo_contact_messages: 273981
+gazebo_non_ground_contact: true
+gazebo_contact_pairs: 'collision1: "waffle::base_link::base_collision" collision2: "crate_east_north::link::collision";collision1: "waffle::wheel_right_link::wheel_right_collision" collision2: "crate_east_north::link::collision"'

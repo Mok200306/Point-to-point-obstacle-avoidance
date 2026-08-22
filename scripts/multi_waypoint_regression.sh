@@ -191,6 +191,7 @@ contact_pairs="$(grep -oE 'collision1: "[^"]+" collision2: "[^"]+"' \
   "$contact_log" | grep waffle | grep -v ground_plane | sort -u || true)"
 contact_count="$(grep -o 'contact {' "$contact_log" | wc -l | tr -d ' ')"
 contact_pairs_one_line="$(printf '%s' "$contact_pairs" | tr '\n' ';' | sed 's/;$//')"
+contact_pairs_yaml="$(printf '%s' "$contact_pairs_one_line" | sed "s/'/''/g")"
 
 if [[ -f "${artifact_dir}/metrics.yaml" ]]; then
   {
@@ -199,7 +200,7 @@ if [[ -f "${artifact_dir}/metrics.yaml" ]]; then
     printf 'gazebo_contact_messages: %s\n' "$contact_count"
     if [[ -n "$contact_pairs" ]]; then
       printf 'gazebo_non_ground_contact: true\n'
-      printf 'gazebo_contact_pairs: "%s"\n' "$contact_pairs_one_line"
+      printf "gazebo_contact_pairs: '%s'\n" "$contact_pairs_yaml"
     else
       printf 'gazebo_non_ground_contact: false\n'
       printf 'gazebo_contact_pairs: "(none)"\n'

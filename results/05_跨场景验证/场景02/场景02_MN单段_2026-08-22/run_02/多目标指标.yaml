@@ -1,0 +1,37 @@
+label: 05_跨场景验证/场景02/场景02_MN单段_2026-08-22/run_02
+profile: adaptive_goal_line_045
+world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_02.world
+goal_frame: map
+overall_succeeded: true
+completed_segments: 1
+requested_segments: 1
+total_wall_duration_s: 143.28267549799057
+total_trajectory_length_m: 27.884792149854544
+segments:
+- name: M->N
+  label: 05_跨场景验证/场景02/场景02_MN单段_2026-08-22/run_02/segment_1
+  goal_frame: map
+  goal_x_m: 8.5
+  goal_y_m: 0.0
+  goal_yaw_rad: 0.0
+  nav2_status: 4
+  succeeded: true
+  wall_start_unix_s: 1787402055.425433
+  wall_end_unix_s: 1787402198.708108
+  wall_duration_s: 143.28267549799057
+  simulation_start_s: 453.834
+  simulation_end_s: 569.634
+  simulation_duration_s: 115.80000000000001
+  samples: 798
+  trajectory_length_m: 27.884792149854544
+  gazebo_samples: 1624
+  gazebo_trajectory_length_m: 27.881641372554782
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: -0.146310329155037
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_02.world
+  final_x_m: 8.594507632715262
+  final_y_m: 0.23323916972838893
+  final_xy_error_m: 0.25165890196261886
+  map_frame: map
+  map_received: true
+  global_costmap_received: true
