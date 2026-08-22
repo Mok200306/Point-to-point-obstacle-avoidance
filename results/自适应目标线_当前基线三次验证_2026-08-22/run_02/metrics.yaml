@@ -1,0 +1,68 @@
+label: 自适应目标线_当前基线三次验证_2026-08-22/run_02
+profile: adaptive_goal_line_045
+world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_large.world
+goal_frame: map
+overall_succeeded: true
+completed_segments: 2
+requested_segments: 2
+total_wall_duration_s: 132.76951726904372
+total_trajectory_length_m: 25.483214198811616
+segments:
+- name: 起点到A
+  label: 自适应目标线_当前基线三次验证_2026-08-22/run_02/segment_1
+  goal_frame: map
+  goal_x_m: 5.0
+  goal_y_m: -3.0
+  goal_yaw_rad: 0.0
+  nav2_status: 4
+  succeeded: true
+  wall_start_unix_s: 1787330110.0871484
+  wall_end_unix_s: 1787330184.6174982
+  wall_duration_s: 74.53035137202824
+  simulation_start_s: 35.1
+  simulation_end_s: 95.7
+  simulation_duration_s: 60.6
+  samples: 425
+  trajectory_length_m: 15.044909796026138
+  gazebo_samples: 842
+  gazebo_trajectory_length_m: 15.04194533446558
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: -0.19875825338329808
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_large.world
+  final_x_m: 4.909002045920757
+  final_y_m: -2.9444564756331153
+  final_xy_error_m: 0.1066100874481525
+  map_frame: map
+  map_received: true
+  global_costmap_received: true
+- name: A到B
+  label: 自适应目标线_当前基线三次验证_2026-08-22/run_02/segment_2
+  goal_frame: map
+  goal_x_m: 5.0
+  goal_y_m: 6.0
+  goal_yaw_rad: 0.0
+  nav2_status: 4
+  succeeded: true
+  wall_start_unix_s: 1787330189.8073316
+  wall_end_unix_s: 1787330248.046496
+  wall_duration_s: 58.23916589701548
+  simulation_start_s: 99.8
+  simulation_end_s: 146.8
+  simulation_duration_s: 47.000000000000014
+  samples: 304
+  trajectory_length_m: 10.438304402785478
+  gazebo_samples: 614
+  gazebo_trajectory_length_m: 10.458592830419496
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: -0.08628200961916066
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_large.world
+  final_x_m: 4.8974555149691605
+  final_y_m: 5.865618778453342
+  final_xy_error_m: 0.1690375228007438
+  map_frame: map
+  map_received: true
+  global_costmap_received: true
+git_commit: 60022cf6a4fae96250f6953d080b144ca1f1a343
+gazebo_contact_messages: 324207
+gazebo_non_ground_contact: false
+gazebo_contact_pairs: "(none)"

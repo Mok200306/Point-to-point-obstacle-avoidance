@@ -1,0 +1,17 @@
+label: 自适应目标线_当前基线三次验证_2026-08-22/run_03
+profile: adaptive_goal_line_045
+world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_large.world
+goal_frame: map
+settle_seconds: 5.0
+goals:
+- name: 起点到A
+  goal_x_m: 5.0
+  goal_y_m: -3.0
+  goal_yaw_rad: 0.0
+- name: A到B
+  goal_x_m: 5.0
+  goal_y_m: 6.0
+  goal_yaw_rad: 0.0
+red_segment: 起点到A
+blue_segment: A到B
+black_reference: 每段实际起点到当前终点直线

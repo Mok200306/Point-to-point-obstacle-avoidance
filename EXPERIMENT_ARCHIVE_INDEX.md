@@ -7,6 +7,9 @@
 空间。被 Git 跟踪的移除结果仍可从整理前的提交 `873fd39` 恢复；原先就被 `.gitignore`
 忽略的临时结果没有进入 Git，删除后不再有本地副本。
 
+项目从基础链路到五点闭环的技术演进见
+[项目演进与阶段复现总览_2026-08-22.md](项目演进与阶段复现总览_2026-08-22.md)。
+
 ## 当前保留结果
 
 ### 阶段 1：原生 Smac + RPP 基准（2026-08-20）
@@ -62,9 +65,10 @@
 ### 阶段 4：自适应目标线双目标基线（2026-08-21）
 
 保持 `adaptive_goal_line_045` 不变，连续执行 M->A->B 三次，确认新目标会触发新的
-规划调用。三次均为 `2/2` 成功，且过滤地面后没有非地面 contacts。由于此前双目标
-三次运行使用的是阶段 label 汇总，当前结果目录只保留修正版代表目录；三次汇总、
-证据边界和缺失字段说明见
+规划调用。三次均为 `2/2` 成功，且过滤地面后没有非地面 contacts。正式三次结果目录为
+`results/自适应目标线_当前基线三次验证_2026-08-22/run_01..run_03`；早期的修正版单次
+目录仍作为历史代表保留，避免混淆正式三次统计与首轮单次证据。三次汇总、证据边界和
+缺失字段说明见
 [自适应目标线三次基线验证报告_2026-08-22.md](自适应目标线三次基线验证报告_2026-08-22.md)。
 
 | 运行 | wall [s] | 轨迹 [m] | 分段成功 | contacts | 非地面接触 |
@@ -148,6 +152,10 @@
    `fast_north`、pilot 和 settled-pilot 目录。
 3. 误生成的嵌套目录：`results/results/optimization_2026-08-20`。
 
+4. 本次整理删除的重复双目标单次目录：
+   `results/自适应目标线_多目标_起点到A到B_2026-08-21`。它已被后续修正版单次结果
+   和正式三次双目标结果替代。
+
 本次不删除源码、场景、冻结参数、阶段报告或 profile。已跟踪的旧结果和旧文档仍能从
 `873fd39` 或更早的 Git 提交恢复；被忽略的临时结果只保留本索引和阶段报告中的统计。
 
@@ -202,6 +210,8 @@ results/optimization_2026-08-21/fast_north_045_v3_pilot_A_to_B
 results/optimization_2026-08-21/fast_north_045_v4_pilot_A_to_B
 
 results/results/optimization_2026-08-20/goal_line_045_cost30_check_A_to_B
+
+results/自适应目标线_多目标_起点到A到B_2026-08-21
 ```
 
 其中 benchmark 的 0.55 结果、2026-08-21 中间 profile 和顶层旧双向结果已被 Git 跟踪；
@@ -213,13 +223,18 @@ results/results/optimization_2026-08-20/goal_line_045_cost30_check_A_to_B
 
 ```bash
 cd /home/w417/RTAB-Map
-sg docker -c './scripts/launch_demo.sh gazebo_gui:=true rviz:=true rtabmap_viz:=false online:=true localization:=false reset_db:=true navigation_profile:=fast_goalline_045_v4'
+sg docker -c './scripts/launch_demo.sh gazebo_gui:=true rviz:=true rtabmap_viz:=false online:=true localization:=false reset_db:=true navigation_profile:=adaptive_goal_line_045'
 ```
 
 完整回归记录：
 
 ```bash
-sg docker -c './scripts/regression_leg.sh --x 8.5 --y 0.0 --yaw 0.0 --settle-seconds 5 --label manual/fast_goalline_045_v4_A_to_B --profile fast_goalline_045_v4'
+sg docker -c './scripts/multi_waypoint_regression.sh \
+  --goal A:5.0:-3.0:0.0 --goal B:5.0:6.0:0.0 \
+  --goal C:-5.0:4.0:3.1415926 --goal D:0.0:0.0:0.0 \
+  --goal M:-8.5:0.0:3.1415926 \
+  --start-name M --start-x -8.5 --start-y 0.0 \
+  --label manual/adaptive_goal_line_045_five_waypoints --profile adaptive_goal_line_045'
 ```
 
 当前分支仍保留 v2、v3、v4 的 launch profile。要复现旧阶段的代码级行为，按结果目录
@@ -250,7 +265,7 @@ git restore --source=873fd39 -- results/optimization_2026-08-21/fast_goalline_04
 ## 当前发展结论
 
 项目已经完成当前 Gazebo 大室内场景中的 RGB-D 在线建图、全局 Smac/目标线规划、RPP
-局部跟踪、速度平滑、collision monitor 安全过滤和 A -> B 点到点避障闭环。v4 是当前
-场景的快速推荐基线，不是任意未知地图的最优性证明。下一轮应从 v4 作为父版本，一次
-只改一个因素，并继续以 3 次成功、无非地面接触、wall 时间、路径长度和轨迹一致性
-共同验收。
+局部跟踪、速度平滑、collision monitor 安全过滤和多目标点到点避障闭环。
+`adaptive_goal_line_045` 是当前通用 profile；v4 仍是当前场景的快速历史 benchmark，
+不是任意未知地图的最优性证明。下一轮应以 adaptive profile 作为父版本，一次只改一个
+因素，并继续以 3 次成功、无非地面接触、wall 时间、路径长度和轨迹一致性共同验收。

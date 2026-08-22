@@ -2,6 +2,9 @@
 
 更新时间：2026-08-22（三种五点闭环顺序共九次回归完成）
 
+项目演进和阶段复现总览：[项目演进与阶段复现总览_2026-08-22.md](项目演进与阶段复现总览_2026-08-22.md)
+；正式结果索引：[EXPERIMENT_ARCHIVE_INDEX.md](EXPERIMENT_ARCHIVE_INDEX.md)。
+
 ## 最新进度：三种点位顺序统一验证
 
 在保持 `adaptive_goal_line_045`、`inflation_radius=0.45 m` 和

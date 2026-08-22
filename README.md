@@ -16,6 +16,9 @@ B = ( 8.5, 0.0)   场景目标位置
 `adaptive_goal_line_045`：全局规划器是
 `rtabmap_tb3_nav/GoalLineSmacPlanner`（继承 SmacPlanner2D），每次规划调用都使用当前
 起点、当前目标和实时 costmap，关闭 large 场景固定世界坐标走廊。旧的
+完整阶段演进、每个阶段的创新点、代码提交和历史复现入口见
+[项目演进与阶段复现总览_2026-08-22.md](项目演进与阶段复现总览_2026-08-22.md)。正式结果目录和
+清理规则见 [EXPERIMENT_ARCHIVE_INDEX.md](EXPERIMENT_ARCHIVE_INDEX.md)。
 `fast_goalline_045_v4` 仍作为当前 large 场景的冻结 benchmark，三次独立回归平均
 `81.07 s`、3/3 成功、0/3 非地面 contacts；需要复现该历史结果时显式指定 v4。
 参数和三次回归见
