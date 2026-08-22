@@ -1,0 +1,150 @@
+label: 跨场景场景01_五点闭环_MABCDM_2026-08-22/run_03
+profile: adaptive_goal_line_045
+world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_01.world
+goal_frame: map
+overall_succeeded: true
+completed_segments: 5
+requested_segments: 5
+total_wall_duration_s: 282.60383024206385
+total_trajectory_length_m: 50.72163613489374
+segments:
+- name: M->A
+  label: 跨场景场景01_五点闭环_MABCDM_2026-08-22/run_03/segment_1
+  goal_frame: map
+  goal_x_m: 5.0
+  goal_y_m: -3.0
+  goal_yaw_rad: 0.0
+  nav2_status: 4
+  succeeded: true
+  wall_start_unix_s: 1787392466.9578917
+  wall_end_unix_s: 1787392538.9592009
+  wall_duration_s: 72.00131104001775
+  simulation_start_s: 37.0
+  simulation_end_s: 95.5
+  simulation_duration_s: 58.5
+  samples: 417
+  trajectory_length_m: 14.756839286730273
+  gazebo_samples: 823
+  gazebo_trajectory_length_m: 14.753709670048167
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: -0.13274715235090606
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_01.world
+  final_x_m: 4.7555582699986685
+  final_y_m: -3.0060810068875545
+  final_xy_error_m: 0.2445173572792131
+  map_frame: map
+  map_received: true
+  global_costmap_received: true
+- name: A->B
+  label: 跨场景场景01_五点闭环_MABCDM_2026-08-22/run_03/segment_2
+  goal_frame: map
+  goal_x_m: 5.0
+  goal_y_m: 6.0
+  goal_yaw_rad: 0.0
+  nav2_status: 4
+  succeeded: true
+  wall_start_unix_s: 1787392544.086472
+  wall_end_unix_s: 1787392602.2826805
+  wall_duration_s: 58.19620691501768
+  simulation_start_s: 99.8
+  simulation_end_s: 146.8
+  simulation_duration_s: 47.000000000000014
+  samples: 302
+  trajectory_length_m: 10.495466382483059
+  gazebo_samples: 596
+  gazebo_trajectory_length_m: 10.4951493634155
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: -0.040730020325063954
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_01.world
+  final_x_m: 5.032866962590436
+  final_y_m: 5.726310093541239
+  final_xy_error_m: 0.27565631160437126
+  map_frame: map
+  map_received: true
+  global_costmap_received: true
+- name: B->C
+  label: 跨场景场景01_五点闭环_MABCDM_2026-08-22/run_03/segment_3
+  goal_frame: map
+  goal_x_m: -5.0
+  goal_y_m: 4.0
+  goal_yaw_rad: 3.1415926
+  nav2_status: 4
+  succeeded: true
+  wall_start_unix_s: 1787392607.3977857
+  wall_end_unix_s: 1787392666.2330189
+  wall_duration_s: 58.8352325889864
+  simulation_start_s: 150.9
+  simulation_end_s: 198.2
+  simulation_duration_s: 47.29999999999998
+  samples: 291
+  trajectory_length_m: 10.422459255880877
+  gazebo_samples: 599
+  gazebo_trajectory_length_m: 10.43390874604295
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: -0.026020707426194722
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_01.world
+  final_x_m: -4.887390978575747
+  final_y_m: 4.03871952476286
+  final_xy_error_m: 0.1190797770571885
+  map_frame: map
+  map_received: true
+  global_costmap_received: true
+- name: C->D
+  label: 跨场景场景01_五点闭环_MABCDM_2026-08-22/run_03/segment_4
+  goal_frame: map
+  goal_x_m: 0.0
+  goal_y_m: 0.0
+  goal_yaw_rad: 0.0
+  nav2_status: 4
+  succeeded: true
+  wall_start_unix_s: 1787392671.3968172
+  wall_end_unix_s: 1787392712.2466545
+  wall_duration_s: 40.84983853902668
+  simulation_start_s: 202.3
+  simulation_end_s: 234.9
+  simulation_duration_s: 32.599999999999994
+  samples: 187
+  trajectory_length_m: 6.404446537201209
+  gazebo_samples: 368
+  gazebo_trajectory_length_m: 6.4124331803080725
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: 0.18920655560730443
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_01.world
+  final_x_m: -0.08027949341175239
+  final_y_m: 0.07744808962414378
+  final_xy_error_m: 0.1115482122173054
+  map_frame: map
+  map_received: true
+  global_costmap_received: true
+- name: D->M
+  label: 跨场景场景01_五点闭环_MABCDM_2026-08-22/run_03/segment_5
+  goal_frame: map
+  goal_x_m: -8.5
+  goal_y_m: 0.0
+  goal_yaw_rad: 3.1415926
+  nav2_status: 4
+  succeeded: true
+  wall_start_unix_s: 1787392717.423362
+  wall_end_unix_s: 1787392770.1446028
+  wall_duration_s: 52.721241159015335
+  simulation_start_s: 239.0
+  simulation_end_s: 281.3
+  simulation_duration_s: 42.30000000000001
+  samples: 261
+  trajectory_length_m: 8.642424672598322
+  gazebo_samples: 526
+  gazebo_trajectory_length_m: 8.647152527602747
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: -0.044850618607175485
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_01.world
+  final_x_m: -8.36746791389677
+  final_y_m: -0.08012096828849298
+  final_xy_error_m: 0.15486808388547926
+  map_frame: map
+  map_received: true
+  global_costmap_received: true
+git_commit: 9670a15e7a86986b6c309232ad5c7a97480073a1
+gazebo_contacts_topic: "/gazebo/indoor_obstacle_course_cross_scene_01/physics/contacts"
+gazebo_contact_messages: 724208
+gazebo_non_ground_contact: false
+gazebo_contact_pairs: "(none)"

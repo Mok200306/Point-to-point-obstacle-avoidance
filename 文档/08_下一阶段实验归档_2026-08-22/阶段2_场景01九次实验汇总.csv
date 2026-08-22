@@ -1,0 +1,10 @@
+组别,run,点位顺序,profile,起点,总耗时_s,总轨迹长度_m,最小末端误差_m,最大末端误差_m,平均末端误差_m,完成段数,非地面contacts,contacts消息数,结果目录,轨迹图
+MABCDM,run_01,M->A->B->C->D->M,adaptive_goal_line_045,M,296.404,49.996,0.118,0.260,0.199,5/5,0,750248,results/跨场景场景01_五点闭环_MABCDM_2026-08-22/run_01,results/跨场景场景01_五点闭环_MABCDM_2026-08-22/run_01/trajectory_comparison.png
+MABCDM,run_02,M->A->B->C->D->M,adaptive_goal_line_045,M,297.679,50.954,0.105,0.244,0.170,5/5,0,748085,results/跨场景场景01_五点闭环_MABCDM_2026-08-22/run_02,results/跨场景场景01_五点闭环_MABCDM_2026-08-22/run_02/trajectory_comparison.png
+MABCDM,run_03,M->A->B->C->D->M,adaptive_goal_line_045,M,282.604,50.722,0.112,0.276,0.181,5/5,0,724208,results/跨场景场景01_五点闭环_MABCDM_2026-08-22/run_03,results/跨场景场景01_五点闭环_MABCDM_2026-08-22/run_03/trajectory_comparison.png
+CADBMC,run_01,C->A->D->B->M->C,adaptive_goal_line_045,C,285.515,49.230,0.083,0.195,0.142,5/5,0,749611,results/跨场景场景01_顺序实验1_CADBMC_2026-08-22/run_01,results/跨场景场景01_顺序实验1_CADBMC_2026-08-22/run_01/trajectory_comparison.png
+CADBMC,run_02,C->A->D->B->M->C,adaptive_goal_line_045,C,288.210,49.208,0.079,0.172,0.140,5/5,0,746611,results/跨场景场景01_顺序实验1_CADBMC_2026-08-22/run_02,results/跨场景场景01_顺序实验1_CADBMC_2026-08-22/run_02/trajectory_comparison.png
+CADBMC,run_03,C->A->D->B->M->C,adaptive_goal_line_045,C,292.215,49.452,0.089,0.181,0.140,5/5,0,737982,results/跨场景场景01_顺序实验1_CADBMC_2026-08-22/run_03,results/跨场景场景01_顺序实验1_CADBMC_2026-08-22/run_03/trajectory_comparison.png
+BMACDB,run_01,B->M->A->C->D->B,adaptive_goal_line_045,B,332.457,60.210,0.080,0.232,0.154,5/5,0,817292,results/跨场景场景01_顺序实验2_BMACDB_2026-08-22/run_01,results/跨场景场景01_顺序实验2_BMACDB_2026-08-22/run_01/trajectory_comparison.png
+BMACDB,run_02,B->M->A->C->D->B,adaptive_goal_line_045,B,350.084,62.977,0.117,0.198,0.163,5/5,0,844355,results/跨场景场景01_顺序实验2_BMACDB_2026-08-22/run_02,results/跨场景场景01_顺序实验2_BMACDB_2026-08-22/run_02/trajectory_comparison.png
+BMACDB,run_03,B->M->A->C->D->B,adaptive_goal_line_045,B,344.694,63.568,0.079,0.244,0.164,5/5,0,831911,results/跨场景场景01_顺序实验2_BMACDB_2026-08-22/run_03,results/跨场景场景01_顺序实验2_BMACDB_2026-08-22/run_03/trajectory_comparison.png

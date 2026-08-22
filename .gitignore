@@ -89,5 +89,33 @@ results/自适应目标线_顺序实验2_BMACDB_2026-08-22/*
 !results/自适应目标线_顺序实验2_BMACDB_2026-08-22/run_03/
 !results/自适应目标线_顺序实验2_BMACDB_2026-08-22/run_03/**
 
+# Keep the nine-run cross-scene scenario 01 validation archive.
+!results/跨场景场景01_五点闭环_MABCDM_2026-08-22/
+results/跨场景场景01_五点闭环_MABCDM_2026-08-22/*
+!results/跨场景场景01_五点闭环_MABCDM_2026-08-22/run_01/
+!results/跨场景场景01_五点闭环_MABCDM_2026-08-22/run_01/**
+!results/跨场景场景01_五点闭环_MABCDM_2026-08-22/run_02/
+!results/跨场景场景01_五点闭环_MABCDM_2026-08-22/run_02/**
+!results/跨场景场景01_五点闭环_MABCDM_2026-08-22/run_03/
+!results/跨场景场景01_五点闭环_MABCDM_2026-08-22/run_03/**
+
+!results/跨场景场景01_顺序实验1_CADBMC_2026-08-22/
+results/跨场景场景01_顺序实验1_CADBMC_2026-08-22/*
+!results/跨场景场景01_顺序实验1_CADBMC_2026-08-22/run_01/
+!results/跨场景场景01_顺序实验1_CADBMC_2026-08-22/run_01/**
+!results/跨场景场景01_顺序实验1_CADBMC_2026-08-22/run_02/
+!results/跨场景场景01_顺序实验1_CADBMC_2026-08-22/run_02/**
+!results/跨场景场景01_顺序实验1_CADBMC_2026-08-22/run_03/
+!results/跨场景场景01_顺序实验1_CADBMC_2026-08-22/run_03/**
+
+!results/跨场景场景01_顺序实验2_BMACDB_2026-08-22/
+results/跨场景场景01_顺序实验2_BMACDB_2026-08-22/*
+!results/跨场景场景01_顺序实验2_BMACDB_2026-08-22/run_01/
+!results/跨场景场景01_顺序实验2_BMACDB_2026-08-22/run_01/**
+!results/跨场景场景01_顺序实验2_BMACDB_2026-08-22/run_02/
+!results/跨场景场景01_顺序实验2_BMACDB_2026-08-22/run_02/**
+!results/跨场景场景01_顺序实验2_BMACDB_2026-08-22/run_03/
+!results/跨场景场景01_顺序实验2_BMACDB_2026-08-22/run_03/**
+
 # Local environment overrides
 .env

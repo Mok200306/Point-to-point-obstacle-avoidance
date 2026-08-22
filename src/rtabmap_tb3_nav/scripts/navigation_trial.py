@@ -115,13 +115,27 @@ def load_world_objects(world_file):
     if world is None:
         return objects, markers
 
+    # Gazebo's saved-world format uses a <state> block for the current model
+    # poses. Materialize those poses for the evidence plot while keeping the
+    # collision geometry from the model definition.
+    state_poses = {}
+    state = world.find('state')
+    if state is not None:
+        state_poses = {
+            model.get('name'): parse_pose(model.findtext('pose'))
+            for model in state.findall('model')
+            if model.get('name') and model.findtext('pose')
+        }
+
     for model in world.findall('model'):
         name = model.get('name', 'model')
-        model_pose = parse_pose(model.findtext('pose'))
+        model_pose = state_poses.get(
+            name, parse_pose(model.findtext('pose')))
         if name in ('start_marker', 'goal_marker'):
             markers[name] = model_pose
 
-        if model.findtext('static', 'false').strip().lower() != 'true':
+        if model.findtext('static', 'false').strip().lower() \
+                not in ('true', '1', 'yes'):
             continue
 
         for link in model.findall('link'):

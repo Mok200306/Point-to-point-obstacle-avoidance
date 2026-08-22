@@ -1,0 +1,150 @@
+label: 跨场景场景01_顺序实验2_BMACDB_2026-08-22/run_03
+profile: adaptive_goal_line_045
+world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_01.world
+goal_frame: map
+overall_succeeded: true
+completed_segments: 5
+requested_segments: 5
+total_wall_duration_s: 344.69383441703394
+total_trajectory_length_m: 63.568214763018815
+segments:
+- name: B->M
+  label: 跨场景场景01_顺序实验2_BMACDB_2026-08-22/run_03/segment_1
+  goal_frame: map
+  goal_x_m: -8.5
+  goal_y_m: 0.0
+  goal_yaw_rad: 3.1415926
+  nav2_status: 4
+  succeeded: true
+  wall_start_unix_s: 1787395041.8624604
+  wall_end_unix_s: 1787395144.111964
+  wall_duration_s: 102.24950081598945
+  simulation_start_s: 54.6
+  simulation_end_s: 136.3
+  simulation_duration_s: 81.70000000000002
+  samples: 531
+  trajectory_length_m: 19.221103042576992
+  gazebo_samples: 1103
+  gazebo_trajectory_length_m: 19.218183075912968
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: -0.12580837998946703
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_01.world
+  final_x_m: -8.480073758350153
+  final_y_m: 0.07618405187428938
+  final_xy_error_m: 0.07874684035739149
+  map_frame: map
+  map_received: true
+  global_costmap_received: true
+- name: M->A
+  label: 跨场景场景01_顺序实验2_BMACDB_2026-08-22/run_03/segment_2
+  goal_frame: map
+  goal_x_m: 5.0
+  goal_y_m: -3.0
+  goal_yaw_rad: 0.0
+  nav2_status: 4
+  succeeded: true
+  wall_start_unix_s: 1787395149.2621562
+  wall_end_unix_s: 1787395234.3810458
+  wall_duration_s: 85.11888870503753
+  simulation_start_s: 140.5
+  simulation_end_s: 208.5
+  simulation_duration_s: 68.0
+  samples: 426
+  trajectory_length_m: 15.977303976957606
+  gazebo_samples: 902
+  gazebo_trajectory_length_m: 15.983249118873227
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: -0.1430103432105861
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_01.world
+  final_x_m: 4.804988997173821
+  final_y_m: -2.9850904105170653
+  final_xy_error_m: 0.19558012956796444
+  map_frame: map
+  map_received: true
+  global_costmap_received: true
+- name: A->C
+  label: 跨场景场景01_顺序实验2_BMACDB_2026-08-22/run_03/segment_3
+  goal_frame: map
+  goal_x_m: -5.0
+  goal_y_m: 4.0
+  goal_yaw_rad: 3.1415926
+  nav2_status: 4
+  succeeded: true
+  wall_start_unix_s: 1787395239.5634913
+  wall_end_unix_s: 1787395306.143266
+  wall_duration_s: 66.57977277698228
+  simulation_start_s: 212.6
+  simulation_end_s: 265.8
+  simulation_duration_s: 53.20000000000002
+  samples: 337
+  trajectory_length_m: 12.446730761421152
+  gazebo_samples: 701
+  gazebo_trajectory_length_m: 12.454772085904136
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: -0.07470944254226247
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_01.world
+  final_x_m: -4.881274327892184
+  final_y_m: 3.924220487041714
+  final_xy_error_m: 0.1408485704636283
+  map_frame: map
+  map_received: true
+  global_costmap_received: true
+- name: C->D
+  label: 跨场景场景01_顺序实验2_BMACDB_2026-08-22/run_03/segment_4
+  goal_frame: map
+  goal_x_m: 0.0
+  goal_y_m: 0.0
+  goal_yaw_rad: 0.0
+  nav2_status: 4
+  succeeded: true
+  wall_start_unix_s: 1787395311.3126397
+  wall_end_unix_s: 1787395350.254757
+  wall_duration_s: 38.94211778603494
+  simulation_start_s: 269.9
+  simulation_end_s: 300.6
+  simulation_duration_s: 30.700000000000045
+  samples: 179
+  trajectory_length_m: 6.302734214992234
+  gazebo_samples: 360
+  gazebo_trajectory_length_m: 6.318192403602808
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: 0.4096519896010183
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_01.world
+  final_x_m: -0.15631529094318208
+  final_y_m: 0.03432265932380466
+  final_xy_error_m: 0.16003910498909202
+  map_frame: map
+  map_received: true
+  global_costmap_received: true
+- name: D->B
+  label: 跨场景场景01_顺序实验2_BMACDB_2026-08-22/run_03/segment_5
+  goal_frame: map
+  goal_x_m: 5.0
+  goal_y_m: 6.0
+  goal_yaw_rad: 0.0
+  nav2_status: 4
+  succeeded: true
+  wall_start_unix_s: 1787395355.4125333
+  wall_end_unix_s: 1787395407.2160883
+  wall_duration_s: 51.803554332989734
+  simulation_start_s: 304.7
+  simulation_end_s: 345.7
+  simulation_duration_s: 41.0
+  samples: 261
+  trajectory_length_m: 9.620342767070833
+  gazebo_samples: 546
+  gazebo_trajectory_length_m: 9.626619297833198
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: -0.055989468161392164
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_01.world
+  final_x_m: 4.759383800318288
+  final_y_m: 5.958309121197791
+  final_xy_error_m: 0.24420132048080753
+  map_frame: map
+  map_received: true
+  global_costmap_received: true
+git_commit: 9670a15e7a86986b6c309232ad5c7a97480073a1
+gazebo_contacts_topic: "/gazebo/indoor_obstacle_course_cross_scene_01/physics/contacts"
+gazebo_contact_messages: 831911
+gazebo_non_ground_contact: false
+gazebo_contact_pairs: "(none)"
