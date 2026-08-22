@@ -13,7 +13,7 @@ start_y='0.0'
 label='五点闭环导航实验'
 profile='adaptive_goal_line_045'
 world_file='src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_large.world'
-contacts_topic='/gazebo/indoor_obstacle_course_large/physics/contacts'
+contacts_topic=''
 contact_timeout='1200'
 startup_timeout='45'
 settle_seconds='5'
@@ -79,6 +79,26 @@ compose_ps() {
     sg docker -c 'docker compose ps --status running --services' | grep -qx ros2
   fi
 }
+
+if [[ ! -f "$world_file" ]]; then
+  printf 'World file does not exist: %s\n' "$world_file" >&2
+  exit 2
+fi
+
+if [[ -z "$contacts_topic" ]]; then
+  world_name="$(python3 - "$world_file" <<'PY'
+import sys
+import xml.etree.ElementTree as element_tree
+
+root = element_tree.parse(sys.argv[1]).getroot()
+world = root.find('world')
+if world is None or not world.get('name'):
+    raise SystemExit('world SDF has no named <world> element')
+print(world.get('name'))
+PY
+)"
+  contacts_topic="/gazebo/${world_name}/physics/contacts"
+fi
 
 stop_contact_listener() {
   if [[ -n "$contact_pid" ]]; then
@@ -175,6 +195,7 @@ contact_pairs_one_line="$(printf '%s' "$contact_pairs" | tr '\n' ';' | sed 's/;$
 if [[ -f "${artifact_dir}/metrics.yaml" ]]; then
   {
     printf 'git_commit: %s\n' "$(git rev-parse HEAD 2>/dev/null || printf unknown)"
+    printf 'gazebo_contacts_topic: "%s"\n' "$contacts_topic"
     printf 'gazebo_contact_messages: %s\n' "$contact_count"
     if [[ -n "$contact_pairs" ]]; then
       printf 'gazebo_non_ground_contact: true\n'
@@ -189,6 +210,8 @@ fi
 printf 'label=%s\n' "$label"
 printf 'trial_exit=%s\n' "$trial_exit"
 printf 'profile=%s\n' "$profile"
+printf 'world_file=%s\n' "$world_file"
+printf 'contacts_topic=%s\n' "$contacts_topic"
 printf 'contact_messages=%s\n' "$contact_count"
 printf 'non_ground_contact_pairs:\n'
 if [[ -n "$contact_pairs" ]]; then

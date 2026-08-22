@@ -315,6 +315,7 @@ def launch_setup(context, *args, **kwargs):
     nav2_share = get_package_share_directory('nav2_bringup')
 
     world_name = LaunchConfiguration('world').perform(context)
+    world_file_override = LaunchConfiguration('world_file').perform(context).strip()
     nav2_params = LaunchConfiguration('nav2_params').perform(context)
     collision_monitor_params = LaunchConfiguration(
         'collision_monitor_params').perform(context)
@@ -330,9 +331,20 @@ def launch_setup(context, *args, **kwargs):
             'online:=false disables incremental mapping; use localization:=true '
             'with an existing RTAB-Map database.')
 
-    if world_name in ('obstacle_course', 'obstacle_course_large'):
+    custom_world = None
+    if world_file_override:
+        custom_world = world_file_override
+        if not os.path.isabs(custom_world):
+            custom_world = os.path.join(package_share, 'worlds', custom_world)
+        custom_world = os.path.realpath(custom_world)
+        if not os.path.isfile(custom_world):
+            raise RuntimeError(
+                f'world_file does not exist: {custom_world}')
+    elif world_name in ('obstacle_course', 'obstacle_course_large'):
         world_file = 'indoor_obstacle_course_large.world' if world_name == 'obstacle_course_large' else 'indoor_obstacle_course.world'
         custom_world = os.path.join(package_share, 'worlds', world_file)
+
+    if custom_world is not None:
         gazebo = [
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
@@ -579,7 +591,15 @@ def generate_launch_description():
             'world',
             default_value='obstacle_course_large',
             choices=['obstacle_course_large', 'obstacle_course', 'house', 'world'],
-            description='Gazebo world. obstacle_course_large is the online RGB-D obstacle course.'),
+            description=(
+                'Gazebo world. obstacle_course_large is the online RGB-D obstacle '
+                'course; world_file takes precedence when supplied.')),
+        DeclareLaunchArgument(
+            'world_file',
+            default_value='',
+            description=(
+                'Optional custom SDF filename under the package worlds directory '
+                'or an absolute SDF path. It takes precedence over world.')),
         DeclareLaunchArgument(
             'x_pose',
             default_value='-8.5',
