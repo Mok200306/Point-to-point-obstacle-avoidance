@@ -157,13 +157,17 @@ cp src/rtabmap_tb3_nav/config/collision_monitor_rgbd_params.yaml \
 cp "$world_file" "${artifact_dir}/世界文件.sdf"
 
 contact_label="${label//\//_}"
+wait_for_nav2
+
+# Start the Gazebo contacts subscriber only after Nav2 has completed its
+# lifecycle transition.  `gz topic -e` can be CPU-intensive on this host; if
+# it is started during bringup it may delay lifecycle service responses and
+# create a false "Nav2 not active" failure before the first goal is sent.
 contact_log="$(mktemp "/tmp/rtabmap-waypoints-${contact_label}.XXXXXX")"
 contact_command="timeout ${contact_timeout}s gz topic -e ${contacts_topic} -u"
 compose_exec "$contact_command" >"$contact_log" 2>/dev/null &
 contact_pid=$!
-
 sleep 2
-wait_for_nav2
 
 goal_arguments=''
 for goal_spec in "${goal_specs[@]}"; do

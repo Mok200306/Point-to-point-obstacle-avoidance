@@ -1,0 +1,42 @@
+label: 05_跨场景验证/场景02/场景02_v9_连续重规划_MNX_pilot_2026-08-23
+profile: adaptive_goal_line_050_recovery_v9_continuous_replanning
+world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_02.world
+goal_frame: map
+settle_seconds: 5.0
+start:
+  name: M
+  x_m: -8.5
+  y_m: 0.0
+waypoints:
+- name: N
+  x: 8.5
+  y: 0.0
+  yaw: 0.0
+- name: X
+  x: -3.0
+  y: -4.0
+  yaw: 0.0
+stages:
+- name: M->N
+  goal_label: N
+  start_label: M
+  start_x_m: -8.5
+  start_y_m: 0.0
+  goal_x_m: 8.5
+  goal_y_m: 0.0
+  goal_yaw_rad: 0.0
+  color: '#d62728'
+- name: N->X
+  goal_label: X
+  start_label: null
+  start_x_m: 8.5
+  start_y_m: 0.0
+  goal_x_m: -3.0
+  goal_y_m: -4.0
+  goal_yaw_rad: 0.0
+  color: '#1f77b4'
+trajectory_colors:
+  M->N: '#d62728'
+  N->X: '#1f77b4'
+black_reference: 每段实际起点到当前终点直线
+mapping_mode: online RGB-D RTAB-Map SLAM

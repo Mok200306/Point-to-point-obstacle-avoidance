@@ -1,0 +1,123 @@
+label: 05_跨场景验证/场景02/场景02_四点闭环_目标导向v6_pilot_2026-08-23
+profile: adaptive_goal_line_050_recovery_v6_goal_directed
+world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_02.world
+goal_frame: map
+overall_succeeded: true
+completed_segments: 4
+requested_segments: 4
+total_wall_duration_s: 546.2851455020136
+total_trajectory_length_m: 102.21545528892382
+segments:
+- name: M->N
+  label: 05_跨场景验证/场景02/场景02_四点闭环_目标导向v6_pilot_2026-08-23/segment_1
+  goal_frame: map
+  goal_x_m: 8.5
+  goal_y_m: 0.0
+  goal_yaw_rad: 0.0
+  nav2_status: 4
+  succeeded: true
+  wall_start_unix_s: 1787480162.845384
+  wall_end_unix_s: 1787480302.7258663
+  wall_duration_s: 139.8804793760064
+  simulation_start_s: 43.2
+  simulation_end_s: 154.6
+  simulation_duration_s: 111.39999999999999
+  samples: 751
+  trajectory_length_m: 26.170148226996172
+  gazebo_samples: 1519
+  gazebo_trajectory_length_m: 26.16188022193671
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: -0.03402632294801389
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_02.world
+  final_x_m: 8.425006039850668
+  final_y_m: 0.07565553081691087
+  final_xy_error_m: 0.10652630380365265
+  map_frame: map
+  map_received: true
+  global_costmap_received: true
+- name: N->X
+  label: 05_跨场景验证/场景02/场景02_四点闭环_目标导向v6_pilot_2026-08-23/segment_2
+  goal_frame: map
+  goal_x_m: -3.0
+  goal_y_m: -4.0
+  goal_yaw_rad: 0.0
+  nav2_status: 4
+  succeeded: true
+  wall_start_unix_s: 1787480307.9769306
+  wall_end_unix_s: 1787480528.3931437
+  wall_duration_s: 220.41621496801963
+  simulation_start_s: 158.7
+  simulation_end_s: 331.2
+  simulation_duration_s: 172.5
+  samples: 1151
+  trajectory_length_m: 42.3075966782848
+  gazebo_samples: 2332
+  gazebo_trajectory_length_m: 42.30513461933143
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: -0.12283487836676665
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_02.world
+  final_x_m: -3.0049109061544206
+  final_y_m: -3.911244182468626
+  final_xy_error_m: 0.0888915752190279
+  map_frame: map
+  map_received: true
+  global_costmap_received: true
+- name: X->Y
+  label: 05_跨场景验证/场景02/场景02_四点闭环_目标导向v6_pilot_2026-08-23/segment_3
+  goal_frame: map
+  goal_x_m: 5.0
+  goal_y_m: 5.0
+  goal_yaw_rad: 0.0
+  nav2_status: 4
+  succeeded: true
+  wall_start_unix_s: 1787480533.6145976
+  wall_end_unix_s: 1787480622.027565
+  wall_duration_s: 88.4129690080299
+  simulation_start_s: 335.2
+  simulation_end_s: 404.7
+  simulation_duration_s: 69.5
+  samples: 470
+  trajectory_length_m: 16.84911943012893
+  gazebo_samples: 969
+  gazebo_trajectory_length_m: 16.893646320934717
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: -0.05368738327839806
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_02.world
+  final_x_m: 4.828022637194192
+  final_y_m: 4.846004850409471
+  final_xy_error_m: 0.23084782739945794
+  map_frame: map
+  map_received: true
+  global_costmap_received: true
+- name: Y->M
+  label: 05_跨场景验证/场景02/场景02_四点闭环_目标导向v6_pilot_2026-08-23/segment_4
+  goal_frame: map
+  goal_x_m: -8.5
+  goal_y_m: 0.0
+  goal_yaw_rad: 0.0
+  nav2_status: 4
+  succeeded: true
+  wall_start_unix_s: 1787480627.2133162
+  wall_end_unix_s: 1787480724.7887979
+  wall_duration_s: 97.57548214995768
+  simulation_start_s: 408.7
+  simulation_end_s: 483.8
+  simulation_duration_s: 75.10000000000002
+  samples: 498
+  trajectory_length_m: 16.88859095351391
+  gazebo_samples: 980
+  gazebo_trajectory_length_m: 16.88805108772362
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: -0.05087201268076341
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_02.world
+  final_x_m: -8.489355914952952
+  final_y_m: 0.0800730790614685
+  final_xy_error_m: 0.0807774382911031
+  map_frame: map
+  map_received: true
+  global_costmap_received: true
+git_commit: 52cd55a9020584667999559ff76ba8453ea65f0f
+gazebo_contacts_topic: "/gazebo/indoor_obstacle_course_cross_scene_02/physics/contacts"
+gazebo_contact_messages: 1275388
+gazebo_non_ground_contact: false
+gazebo_contact_pairs: "(none)"

@@ -1,0 +1,64 @@
+label: 05_跨场景验证/场景02/场景02_v7_N到X单段检查_2026-08-23
+profile: adaptive_goal_line_050_recovery_v7_unknown_line
+world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_02.world
+goal_frame: map
+overall_succeeded: true
+completed_segments: 2
+requested_segments: 2
+total_wall_duration_s: 307.89734646095894
+total_trajectory_length_m: 71.12837545313712
+segments:
+- name: 起点到A
+  label: 05_跨场景验证/场景02/场景02_v7_N到X单段检查_2026-08-23/segment_1
+  goal_frame: map
+  goal_x_m: 8.5
+  goal_y_m: 0.0
+  goal_yaw_rad: 0.0
+  nav2_status: 4
+  succeeded: true
+  wall_start_unix_s: 1787482499.0021808
+  wall_end_unix_s: 1787482619.5321105
+  wall_duration_s: 120.5299317209865
+  simulation_start_s: 52.0
+  simulation_end_s: 169.5
+  simulation_duration_s: 117.5
+  samples: 973
+  trajectory_length_m: 26.977710623860077
+  gazebo_samples: 1599
+  gazebo_trajectory_length_m: 26.971576363268998
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: -0.17191254703167091
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_02.world
+  final_x_m: 8.438643945417137
+  final_y_m: 0.08254787892462195
+  final_xy_error_m: 0.1028528937314321
+  map_frame: map
+  map_received: true
+  global_costmap_received: true
+- name: A到B
+  label: 05_跨场景验证/场景02/场景02_v7_N到X单段检查_2026-08-23/segment_2
+  goal_frame: map
+  goal_x_m: -3.0
+  goal_y_m: -4.0
+  goal_yaw_rad: 0.0
+  nav2_status: 4
+  succeeded: true
+  wall_start_unix_s: 1787482624.7306526
+  wall_end_unix_s: 1787482812.0980675
+  wall_duration_s: 187.36741473997245
+  simulation_start_s: 174.4
+  simulation_end_s: 357.0
+  simulation_duration_s: 182.6
+  samples: 1513
+  trajectory_length_m: 44.15066482927705
+  gazebo_samples: 2502
+  gazebo_trajectory_length_m: 44.15019044569757
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: -0.09857775605794755
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_02.world
+  final_x_m: -3.0000753429125244
+  final_y_m: -3.9129057218614016
+  final_xy_error_m: 0.08709431072715372
+  map_frame: map
+  map_received: true
+  global_costmap_received: true

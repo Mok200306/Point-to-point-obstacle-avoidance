@@ -29,6 +29,22 @@ void GoalLineSmacPlanner::configure(
   node->declare_parameter(
     name + ".line_bias_distance_scale", line_bias_distance_scale_);
   node->declare_parameter(name + ".line_bias_exponent", line_bias_exponent_);
+  node->declare_parameter(
+    name + ".line_bias_apply_to_unknown", line_bias_apply_to_unknown_);
+  node->declare_parameter(
+    name + ".goal_progress_bias_enabled", goal_progress_bias_enabled_);
+  node->declare_parameter(
+    name + ".goal_progress_bias_max_cost", goal_progress_bias_max_cost_);
+  node->declare_parameter(
+    name + ".goal_progress_bias_distance_scale",
+    goal_progress_bias_distance_scale_);
+  node->declare_parameter(
+    name + ".goal_progress_bias_exponent", goal_progress_bias_exponent_);
+  node->declare_parameter(
+    name + ".goal_progress_bias_apply_to_unknown",
+    goal_progress_bias_apply_to_unknown_);
+  node->declare_parameter(name + ".unknown_bias_enabled", unknown_bias_enabled_);
+  node->declare_parameter(name + ".unknown_bias_cost", unknown_bias_cost_);
   node->declare_parameter(name + ".side_bias_enabled", side_bias_enabled_);
   node->declare_parameter(
     name + ".side_bias_preferred_y_sign", side_bias_preferred_y_sign_);
@@ -69,6 +85,22 @@ void GoalLineSmacPlanner::configure(
   node->get_parameter(
     name + ".line_bias_distance_scale", line_bias_distance_scale_);
   node->get_parameter(name + ".line_bias_exponent", line_bias_exponent_);
+  node->get_parameter(
+    name + ".line_bias_apply_to_unknown", line_bias_apply_to_unknown_);
+  node->get_parameter(
+    name + ".goal_progress_bias_enabled", goal_progress_bias_enabled_);
+  node->get_parameter(
+    name + ".goal_progress_bias_max_cost", goal_progress_bias_max_cost_);
+  node->get_parameter(
+    name + ".goal_progress_bias_distance_scale",
+    goal_progress_bias_distance_scale_);
+  node->get_parameter(
+    name + ".goal_progress_bias_exponent", goal_progress_bias_exponent_);
+  node->get_parameter(
+    name + ".goal_progress_bias_apply_to_unknown",
+    goal_progress_bias_apply_to_unknown_);
+  node->get_parameter(name + ".unknown_bias_enabled", unknown_bias_enabled_);
+  node->get_parameter(name + ".unknown_bias_cost", unknown_bias_cost_);
   node->get_parameter(name + ".side_bias_enabled", side_bias_enabled_);
   node->get_parameter(
     name + ".side_bias_preferred_y_sign", side_bias_preferred_y_sign_);
@@ -108,6 +140,12 @@ void GoalLineSmacPlanner::configure(
   line_bias_max_cost_ = std::clamp(line_bias_max_cost_, 0.0, 252.0);
   line_bias_distance_scale_ = std::max(line_bias_distance_scale_, 0.05);
   line_bias_exponent_ = std::max(line_bias_exponent_, 1.0);
+  goal_progress_bias_max_cost_ = std::clamp(
+    goal_progress_bias_max_cost_, 0.0, 252.0);
+  goal_progress_bias_distance_scale_ = std::max(
+    goal_progress_bias_distance_scale_, 0.05);
+  goal_progress_bias_exponent_ = std::max(goal_progress_bias_exponent_, 1.0);
+  unknown_bias_cost_ = std::clamp(unknown_bias_cost_, 0.0, 252.0);
   side_bias_preferred_y_sign_ = side_bias_preferred_y_sign_ >= 0 ? 1 : -1;
   side_bias_max_cost_ = std::clamp(side_bias_max_cost_, 0.0, 252.0);
   side_bias_distance_scale_ = std::max(side_bias_distance_scale_, 0.05);
@@ -145,11 +183,20 @@ void GoalLineSmacPlanner::configure(
   RCLCPP_INFO(
     logger_,
     "Goal-line bias: enabled=%s max_cost=%.1f distance_scale=%.2f m exponent=%.2f; "
+    "line_unknown=%s; goal-progress bias: enabled=%s max_cost=%.1f "
+    "distance_scale=%.2f m exponent=%.2f unknown=%s; "
+    "unknown bias: enabled=%s cost=%.1f; "
     "side bias: enabled=%s preferred_y_sign=%d max_cost=%.1f x=[%.2f, %.2f] "
     "apply_to_unknown=%s unknown_base_cost=%.1f target_world_y=%s ref_y=%.2f "
     "target_y=%.2f target_offset=%.2f target_cost=%.1f target_schedule=%s points=%zu",
     line_bias_enabled_ ? "true" : "false", line_bias_max_cost_,
     line_bias_distance_scale_, line_bias_exponent_,
+    line_bias_apply_to_unknown_ ? "true" : "false",
+    goal_progress_bias_enabled_ ? "true" : "false",
+    goal_progress_bias_max_cost_, goal_progress_bias_distance_scale_,
+    goal_progress_bias_exponent_,
+    goal_progress_bias_apply_to_unknown_ ? "true" : "false",
+    unknown_bias_enabled_ ? "true" : "false", unknown_bias_cost_,
     side_bias_enabled_ ? "true" : "false", side_bias_preferred_y_sign_,
     side_bias_max_cost_, side_bias_world_x_min_, side_bias_world_x_max_,
     side_bias_apply_to_unknown_ ? "true" : "false",
@@ -185,6 +232,8 @@ nav_msgs::msg::Path GoalLineSmacPlanner::createPlan(
   const geometry_msgs::msg::PoseStamped & goal)
 {
   if ((!line_bias_enabled_ || line_bias_max_cost_ <= 0.0) &&
+    (!goal_progress_bias_enabled_ || goal_progress_bias_max_cost_ <= 0.0) &&
+    (!unknown_bias_enabled_ || unknown_bias_cost_ <= 0.0) &&
     (!side_bias_enabled_ || side_bias_max_cost_ <= 0.0))
   {
     return nav2_smac_planner::SmacPlanner2D::createPlan(start, goal);
@@ -210,6 +259,9 @@ nav_msgs::msg::Path GoalLineSmacPlanner::createPlan(
   const double start_y = start.pose.position.y;
   const double goal_x = goal.pose.position.x;
   const double goal_y = goal.pose.position.y;
+  const double goal_dx = goal_x - start_x;
+  const double goal_dy = goal_y - start_y;
+  const double goal_length = std::hypot(goal_dx, goal_dy);
 
   for (unsigned int my = 0; my < size_y; ++my) {
     for (unsigned int mx = 0; mx < size_x; ++mx) {
@@ -233,9 +285,15 @@ nav_msgs::msg::Path GoalLineSmacPlanner::createPlan(
       unsigned int soft_cost = unknown ?
         static_cast<unsigned int>(std::lround(side_bias_unknown_base_cost_)) :
         static_cast<unsigned int>(original_cost);
-      bool unknown_was_adjusted = false;
+      bool unknown_was_adjusted = unknown && unknown_bias_enabled_ &&
+        unknown_bias_cost_ > 0.0;
+      if (unknown_was_adjusted) {
+        soft_cost = static_cast<unsigned int>(std::lround(unknown_bias_cost_));
+      }
 
-      if (!unknown && line_bias_enabled_ && line_bias_max_cost_ > 0.0) {
+      const bool apply_line_bias = line_bias_enabled_ &&
+        line_bias_max_cost_ > 0.0 && (!unknown || line_bias_apply_to_unknown_);
+      if (apply_line_bias) {
         const double distance = distanceToSegment(
           world_x, world_y, start_x, start_y, goal_x, goal_y);
         const double ratio = distance / line_bias_distance_scale_;
@@ -244,6 +302,34 @@ nav_msgs::msg::Path GoalLineSmacPlanner::createPlan(
             line_bias_max_cost_ * std::pow(ratio, line_bias_exponent_),
             252.0)));
         soft_cost = unknown ? soft_cost + line_cost : std::max(soft_cost, line_cost);
+        if (unknown) {
+          unknown_was_adjusted = true;
+        }
+      }
+
+      const bool apply_goal_progress_bias = goal_progress_bias_enabled_ &&
+        goal_progress_bias_max_cost_ > 0.0 &&
+        goal_length > std::numeric_limits<double>::epsilon() &&
+        (!unknown || goal_progress_bias_apply_to_unknown_);
+      if (apply_goal_progress_bias)
+      {
+        // Projection < 0 means the cell is behind the current replanning
+        // start relative to the current goal. Penalize only that backward
+        // component; lateral detours remain available.
+        const double projection =
+          ((world_x - start_x) * goal_dx + (world_y - start_y) * goal_dy) /
+          goal_length;
+        const double backward_distance = std::max(0.0, -projection);
+        const double ratio = backward_distance / goal_progress_bias_distance_scale_;
+        const auto progress_cost = static_cast<unsigned int>(std::lround(
+          std::min(
+            goal_progress_bias_max_cost_ *
+            std::pow(ratio, goal_progress_bias_exponent_),
+            252.0)));
+        soft_cost = std::max(soft_cost, progress_cost);
+        if (unknown) {
+          unknown_was_adjusted = true;
+        }
       }
 
       if (side_bias_enabled_ && side_bias_max_cost_ > 0.0 &&
@@ -306,7 +392,8 @@ nav_msgs::msg::Path GoalLineSmacPlanner::createPlan(
             soft_cost = unknown ? soft_cost + target_cost : std::max(soft_cost, target_cost);
           }
 
-          unknown_was_adjusted = unknown && side_bias_apply_to_unknown_;
+          unknown_was_adjusted = unknown_was_adjusted ||
+            (unknown && side_bias_apply_to_unknown_);
         }
       }
 

@@ -45,6 +45,20 @@ private:
   double line_bias_max_cost_{60.0};
   double line_bias_distance_scale_{1.5};
   double line_bias_exponent_{2.0};
+  // Optional for online exploration: apply the current start-goal line
+  // preference to traversable unknown cells as well as known free cells.
+  bool line_bias_apply_to_unknown_{false};
+  // Penalize cells that lie behind the current replanning start along the
+  // current start-to-goal direction. This is a generic progress preference,
+  // not a world-coordinate route hint: it prevents a local dead-end recovery
+  // from travelling a long way back toward the previous branch.
+  bool goal_progress_bias_enabled_{false};
+  double goal_progress_bias_max_cost_{0.0};
+  double goal_progress_bias_distance_scale_{1.0};
+  double goal_progress_bias_exponent_{2.0};
+  bool goal_progress_bias_apply_to_unknown_{false};
+  bool unknown_bias_enabled_{false};
+  double unknown_bias_cost_{0.0};
   bool side_bias_enabled_{false};
   int side_bias_preferred_y_sign_{1};
   double side_bias_max_cost_{45.0};
