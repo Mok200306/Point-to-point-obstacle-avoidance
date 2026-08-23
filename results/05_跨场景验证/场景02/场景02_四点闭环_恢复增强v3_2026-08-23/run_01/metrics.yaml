@@ -1,0 +1,42 @@
+label: 05_跨场景验证/场景02/场景02_四点闭环_恢复增强v3_2026-08-23/run_01
+profile: adaptive_goal_line_045_recovery_v3
+world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_02.world
+goal_frame: map
+overall_succeeded: false
+completed_segments: 1
+requested_segments: 4
+total_wall_duration_s: 143.92582754598698
+total_trajectory_length_m: 15.310109191635293
+segments:
+- name: M->N
+  label: 05_跨场景验证/场景02/场景02_四点闭环_恢复增强v3_2026-08-23/run_01/segment_1
+  goal_frame: map
+  goal_x_m: 8.5
+  goal_y_m: 0.0
+  goal_yaw_rad: 0.0
+  nav2_status: 6
+  succeeded: false
+  wall_start_unix_s: 1787463876.7046394
+  wall_end_unix_s: 1787464020.6304657
+  wall_duration_s: 143.92582754598698
+  simulation_start_s: 34.6
+  simulation_end_s: 142.6
+  simulation_duration_s: 108.0
+  samples: 531
+  trajectory_length_m: 15.310109191635293
+  gazebo_samples: 1061
+  gazebo_trajectory_length_m: 15.416279166375457
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: -0.29510478484037983
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_02.world
+  final_x_m: -0.7657142165976663
+  final_y_m: -4.096687801567627
+  final_xy_error_m: 10.130958043895607
+  map_frame: map
+  map_received: true
+  global_costmap_received: true
+git_commit: 1b088b3e2af7f7f491e59acb97fedfdef4a44444
+gazebo_contacts_topic: "/gazebo/indoor_obstacle_course_cross_scene_02/physics/contacts"
+gazebo_contact_messages: 244424
+gazebo_non_ground_contact: true
+gazebo_contact_pairs: 'collision1: "waffle::base_link::base_collision" collision2: "crate_center_south::link::collision";collision1: "waffle::base_link::base_collision" collision2: "pillar_center_south::link::collision";collision1: "waffle::wheel_left_link::wheel_left_collision" collision2: "crate_center_south::link::collision"'

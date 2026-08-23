@@ -1,0 +1,36 @@
+profile: adaptive_goal_line_050_recovery_v5
+source_git_commit_at_run: 1b088b3e2af7f7f491e59acb97fedfdef4a44444
+base_navigation_yaml: src/rtabmap_tb3_nav/config/nav2_rgbd_params.yaml
+base_collision_monitor_yaml: src/rtabmap_tb3_nav/config/collision_monitor_rgbd_params.yaml
+world_file: src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_02.world
+online_mapping: true
+localization: false
+planner:
+  plugin: rtabmap_tb3_nav/GoalLineSmacPlanner
+  line_bias_enabled: true
+  line_bias_max_cost: 60.0
+  line_bias_distance_scale: 2.0
+  line_bias_exponent: 2.0
+  side_bias_enabled: false
+  side_bias_target_schedule_enabled: false
+  cost_travel_multiplier: 6.0
+controller:
+  plugin: nav2_regulated_pure_pursuit_controller/RegulatedPurePursuitController
+  desired_linear_vel_mps: 0.28
+  lookahead_dist_m: 0.68
+  min_lookahead_dist_m: 0.52
+  max_lookahead_dist_m: 1.05
+  lookahead_time_s: 1.5
+  use_rotate_to_heading: true
+  allow_reversing: false
+  max_allowed_time_to_collision_up_to_carrot_s: 1.5
+costmap:
+  inflation_radius_m: 0.50
+  inflation_cost_scaling_factor: 4.5
+recovery:
+  behavior_tree: navigate_to_pose_recovery_replanning.xml
+  clear_costmaps: true
+  spin_rad: 1.57
+  backup_dist_m: 0.60
+  backup_speed_mps: 0.12
+  wait_s: 2.0

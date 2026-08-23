@@ -131,10 +131,13 @@ wait_for_nav2() {
   local attempt
   for ((attempt = 1; attempt <= startup_timeout; attempt++)); do
     local active_count
-    active_count="$(compose_exec 'source /opt/ros/humble/setup.bash; {
-      ros2 lifecycle get /controller_server 2>/dev/null;
-      ros2 lifecycle get /planner_server 2>/dev/null;
-    }' 2>/dev/null | grep -c '^active \[3\]$' || true)"
+    # A lifecycle query can wait indefinitely when the service is not ready
+    # (or when a stale ROS 2 CLI daemon still holds an old graph). Keep each
+    # probe bounded so a regression run cannot hang before its first goal.
+    active_count="$(compose_exec 'source /opt/ros/humble/setup.bash;
+      for node_name in /controller_server /planner_server; do
+        timeout 4s ros2 lifecycle get "${node_name}" 2>/dev/null || true;
+      done' 2>/dev/null | grep -c '^active \[3\]$' || true)"
     if [[ "$active_count" -eq 2 ]]; then
       return 0
     fi

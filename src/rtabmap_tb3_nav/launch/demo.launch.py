@@ -213,6 +213,215 @@ def apply_navigation_profile(params, profile):
         global_inflation['cost_scaling_factor'] = 4.5
         return
 
+    if profile == 'adaptive_goal_line_045_recovery_v1':
+        # Generic online-planning profile with recovery-only changes. Keep
+        # all benchmark/world-coordinate side hints disabled; the live map
+        # and the current goal still determine every route.
+        planner = params['planner_server']['ros__parameters']['GridBased']
+        planner['line_bias_enabled'] = True
+        planner['side_bias_enabled'] = False
+        planner['side_bias_apply_to_unknown'] = False
+        planner['side_bias_target_world_y_enabled'] = False
+        planner['side_bias_target_schedule_enabled'] = False
+
+        controller = params['controller_server']['ros__parameters']['FollowPath']
+        controller['desired_linear_vel'] = 0.28
+        controller['lookahead_dist'] = 0.80
+        controller['min_lookahead_dist'] = 0.62
+        controller['max_lookahead_dist'] = 1.20
+        controller['lookahead_time'] = 1.7
+        controller['inflation_cost_scaling_factor'] = 4.5
+        # Permit a short reverse maneuver when the live path requires the
+        # robot to leave a locally blocked pocket before turning to the goal.
+        controller['allow_reversing'] = True
+
+        params['controller_server']['ros__parameters']['progress_checker'][
+            'movement_time_allowance'] = 30.0
+
+        smoother = params['velocity_smoother']['ros__parameters']
+        smoother['max_velocity'] = [0.28, 0.0, 0.90]
+
+        local_inflation = params['local_costmap']['local_costmap'][
+            'ros__parameters']['inflation_layer']
+        global_inflation = params['global_costmap']['global_costmap'][
+            'ros__parameters']['inflation_layer']
+        local_inflation['cost_scaling_factor'] = 4.5
+        global_inflation['cost_scaling_factor'] = 4.5
+        return
+
+    if profile == 'adaptive_goal_line_045_recovery_v2':
+        # Recovery v2 keeps the generic, live-costmap goal-line planner but
+        # gives clearance a stronger priority in the cross-scene world.  The
+        # 0.45 m inflation radius and robot footprint stay unchanged; only the
+        # soft cost gradient and the planner's accumulated traversal cost are
+        # strengthened so a route grazing a crate is less attractive.
+        planner = params['planner_server']['ros__parameters']['GridBased']
+        planner['line_bias_enabled'] = True
+        planner['line_bias_max_cost'] = 30.0
+        planner['line_bias_distance_scale'] = 2.5
+        planner['side_bias_enabled'] = False
+        planner['side_bias_apply_to_unknown'] = False
+        planner['side_bias_target_world_y_enabled'] = False
+        planner['side_bias_target_schedule_enabled'] = False
+        planner['cost_travel_multiplier'] = 12.0
+
+        controller = params['controller_server']['ros__parameters']['FollowPath']
+        controller['desired_linear_vel'] = 0.26
+        controller['lookahead_dist'] = 0.80
+        controller['min_lookahead_dist'] = 0.62
+        controller['max_lookahead_dist'] = 1.20
+        controller['lookahead_time'] = 1.7
+        controller['inflation_cost_scaling_factor'] = 1.8
+        # RPP forbids reversing when rotate-to-heading is enabled.  Disable
+        # that mutually exclusive mode so BackUp and any reverse cusp can be
+        # used in a genuine dead-end recovery.
+        controller['use_rotate_to_heading'] = False
+        controller['allow_reversing'] = True
+
+        params['controller_server']['ros__parameters']['progress_checker'][
+            'movement_time_allowance'] = 30.0
+
+        smoother = params['velocity_smoother']['ros__parameters']
+        smoother['max_velocity'] = [0.26, 0.0, 0.90]
+
+        local_inflation = params['local_costmap']['local_costmap'][
+            'ros__parameters']['inflation_layer']
+        global_inflation = params['global_costmap']['global_costmap'][
+            'ros__parameters']['inflation_layer']
+        # Keep inflation_radius=0.45 m; make the same radius decay more slowly
+        # into cost so the planner prefers the middle of an opening.
+        local_inflation['cost_scaling_factor'] = 1.8
+        global_inflation['cost_scaling_factor'] = 1.8
+        return
+
+    if profile == 'adaptive_goal_line_045_recovery_v3':
+        # Balanced candidate after v2 made narrow passages unavailable:
+        # moderate clearance preference, reduced corner cutting, and the
+        # genuinely reverse-capable RPP mode.
+        planner = params['planner_server']['ros__parameters']['GridBased']
+        planner['line_bias_enabled'] = True
+        planner['line_bias_max_cost'] = 40.0
+        planner['line_bias_distance_scale'] = 2.5
+        planner['line_bias_exponent'] = 2.0
+        planner['side_bias_enabled'] = False
+        planner['side_bias_apply_to_unknown'] = False
+        planner['side_bias_target_world_y_enabled'] = False
+        planner['side_bias_target_schedule_enabled'] = False
+        planner['cost_travel_multiplier'] = 8.0
+
+        controller = params['controller_server']['ros__parameters']['FollowPath']
+        controller['desired_linear_vel'] = 0.26
+        controller['lookahead_dist'] = 0.70
+        controller['min_lookahead_dist'] = 0.54
+        controller['max_lookahead_dist'] = 1.10
+        controller['lookahead_time'] = 1.5
+        controller['inflation_cost_scaling_factor'] = 2.5
+        controller['use_rotate_to_heading'] = False
+        controller['allow_reversing'] = True
+
+        params['controller_server']['ros__parameters']['progress_checker'][
+            'movement_time_allowance'] = 30.0
+
+        smoother = params['velocity_smoother']['ros__parameters']
+        smoother['max_velocity'] = [0.26, 0.0, 0.90]
+
+        local_inflation = params['local_costmap']['local_costmap'][
+            'ros__parameters']['inflation_layer']
+        global_inflation = params['global_costmap']['global_costmap'][
+            'ros__parameters']['inflation_layer']
+        # Keep inflation_radius=0.45 m; only the soft gradient changes.
+        local_inflation['cost_scaling_factor'] = 2.5
+        global_inflation['cost_scaling_factor'] = 2.5
+        return
+
+    if profile == 'adaptive_goal_line_050_recovery_v4':
+        # Balanced safety candidate: keep RPP's proven forward/rotate mode
+        # from v1, add only a small 0.05 m inflation margin, and reduce the
+        # direct-line pull so the live costmap can select a wider detour.
+        planner = params['planner_server']['ros__parameters']['GridBased']
+        planner['line_bias_enabled'] = True
+        planner['line_bias_max_cost'] = 25.0
+        planner['line_bias_distance_scale'] = 2.5
+        planner['line_bias_exponent'] = 2.0
+        planner['side_bias_enabled'] = False
+        planner['side_bias_apply_to_unknown'] = False
+        planner['side_bias_target_world_y_enabled'] = False
+        planner['side_bias_target_schedule_enabled'] = False
+        planner['cost_travel_multiplier'] = 7.0
+
+        controller = params['controller_server']['ros__parameters']['FollowPath']
+        controller['desired_linear_vel'] = 0.28
+        controller['lookahead_dist'] = 0.80
+        controller['min_lookahead_dist'] = 0.62
+        controller['max_lookahead_dist'] = 1.20
+        controller['lookahead_time'] = 1.7
+        controller['inflation_cost_scaling_factor'] = 4.5
+        controller['use_rotate_to_heading'] = True
+        controller['allow_reversing'] = False
+
+        params['controller_server']['ros__parameters']['progress_checker'][
+            'movement_time_allowance'] = 30.0
+
+        smoother = params['velocity_smoother']['ros__parameters']
+        smoother['max_velocity'] = [0.28, 0.0, 0.90]
+
+        local_inflation = params['local_costmap']['local_costmap'][
+            'ros__parameters']['inflation_layer']
+        global_inflation = params['global_costmap']['global_costmap'][
+            'ros__parameters']['inflation_layer']
+        local_inflation['cost_scaling_factor'] = 4.5
+        global_inflation['cost_scaling_factor'] = 4.5
+        local_inflation['inflation_radius'] = 0.50
+        global_inflation['inflation_radius'] = 0.50
+        return
+
+    if profile == 'adaptive_goal_line_050_recovery_v5':
+        # Keep the generic online-planning topology that was successful in
+        # recovery_v1.  v4 weakened the line preference too much and entered
+        # the south dead-end in cross-scene-02.  This profile restores the
+        # ordinary start-to-goal preference, while adding only a small
+        # clearance margin and earlier controller collision projection to
+        # prevent the return leg from cutting into a crate corner.
+        planner = params['planner_server']['ros__parameters']['GridBased']
+        planner['line_bias_enabled'] = True
+        planner['line_bias_max_cost'] = 60.0
+        planner['line_bias_distance_scale'] = 2.0
+        planner['line_bias_exponent'] = 2.0
+        planner['side_bias_enabled'] = False
+        planner['side_bias_apply_to_unknown'] = False
+        planner['side_bias_target_world_y_enabled'] = False
+        planner['side_bias_target_schedule_enabled'] = False
+        planner['cost_travel_multiplier'] = 6.0
+
+        controller = params['controller_server']['ros__parameters']['FollowPath']
+        controller['desired_linear_vel'] = 0.28
+        controller['lookahead_dist'] = 0.68
+        controller['min_lookahead_dist'] = 0.52
+        controller['max_lookahead_dist'] = 1.05
+        controller['lookahead_time'] = 1.5
+        controller['inflation_cost_scaling_factor'] = 4.5
+        controller['use_rotate_to_heading'] = True
+        controller['allow_reversing'] = False
+        controller['cost_scaling_dist'] = 0.65
+        controller['regulated_linear_scaling_min_radius'] = 0.80
+        controller['max_allowed_time_to_collision_up_to_carrot'] = 1.5
+
+        params['controller_server']['ros__parameters']['progress_checker'][
+            'movement_time_allowance'] = 30.0
+
+        smoother = params['velocity_smoother']['ros__parameters']
+        smoother['max_velocity'] = [0.28, 0.0, 0.90]
+
+        local_inflation = params['local_costmap']['local_costmap'][
+            'ros__parameters']['inflation_layer']
+        global_inflation = params['global_costmap']['global_costmap'][
+            'ros__parameters']['inflation_layer']
+        local_inflation['cost_scaling_factor'] = 4.5
+        global_inflation['cost_scaling_factor'] = 4.5
+        local_inflation['inflation_radius'] = 0.50
+        global_inflation['inflation_radius'] = 0.50
+        return
+
     if profile == 'fast_north_045_v1':
         planner = params['planner_server']['ros__parameters']['GridBased']
         planner['side_bias_world_x_min'] = -8.2
@@ -247,7 +456,12 @@ def apply_navigation_profile(params, profile):
         'Unknown navigation_profile={!r}; use current, fast_north_045_v1, '
         'fast_north_045_v2, fast_north_045_v3, fast_goalline_045_v1, '
         'fast_goalline_045_v2, fast_goalline_045_v3, fast_goalline_045_v4, '
-        'adaptive_goal_line_045, or frozen_goal_line_045_v1.'.format(profile))
+        'adaptive_goal_line_045, adaptive_goal_line_045_recovery_v1, '
+        'adaptive_goal_line_045_recovery_v2, '
+        'adaptive_goal_line_045_recovery_v3, or '
+        'adaptive_goal_line_050_recovery_v4, '
+        'adaptive_goal_line_050_recovery_v5, or '
+        'frozen_goal_line_045_v1.'.format(profile))
 
 
 def nav2_params_for_mode(source_file, package_share, online, profile):
@@ -266,10 +480,25 @@ def nav2_params_for_mode(source_file, package_share, online, profile):
     global_params['static_layer']['map_topic'] = '/nav_map' if online else '/map'
     global_params['static_layer']['subscribe_to_updates'] = False
 
-    bt_path = os.path.join(
-        package_share, 'behavior_trees', 'navigate_to_pose_stable_replanning.xml')
-    through_poses_bt_path = os.path.join(
-        package_share, 'behavior_trees', 'navigate_through_poses_stable_replanning.xml')
+    if profile in (
+        'adaptive_goal_line_045_recovery_v1',
+        'adaptive_goal_line_045_recovery_v2',
+        'adaptive_goal_line_045_recovery_v3',
+        'adaptive_goal_line_050_recovery_v4',
+        'adaptive_goal_line_050_recovery_v5'):
+        bt_path = os.path.join(
+            package_share, 'behavior_trees',
+            'navigate_to_pose_recovery_replanning.xml')
+        through_poses_bt_path = os.path.join(
+            package_share, 'behavior_trees',
+            'navigate_through_poses_recovery_replanning.xml')
+    else:
+        bt_path = os.path.join(
+            package_share, 'behavior_trees',
+            'navigate_to_pose_stable_replanning.xml')
+        through_poses_bt_path = os.path.join(
+            package_share, 'behavior_trees',
+            'navigate_through_poses_stable_replanning.xml')
     bt_params = params['bt_navigator']['ros__parameters']
     bt_params['default_nav_to_pose_bt_xml'] = bt_path
     bt_params['default_nav_through_poses_bt_xml'] = through_poses_bt_path
@@ -289,7 +518,12 @@ def collision_monitor_params_for_profile(source_file, profile):
     if profile in (
         'current', 'fast_north_045_v1', 'fast_north_045_v2', 'fast_north_045_v3',
         'fast_goalline_045_v1', 'fast_goalline_045_v2', 'fast_goalline_045_v3',
-        'fast_goalline_045_v4', 'adaptive_goal_line_045'):
+        'fast_goalline_045_v4', 'adaptive_goal_line_045',
+        'adaptive_goal_line_045_recovery_v1',
+        'adaptive_goal_line_045_recovery_v2',
+        'adaptive_goal_line_045_recovery_v3',
+        'adaptive_goal_line_050_recovery_v4',
+        'adaptive_goal_line_050_recovery_v5'):
         pass
     elif profile in ('frozen_goal_line_045_v1', 'goal_line_quad_045_v1'):
         params['collision_monitor']['ros__parameters']['PolygonSlow'][
@@ -299,7 +533,10 @@ def collision_monitor_params_for_profile(source_file, profile):
             'Unknown navigation_profile={!r}; use current, fast_north_045_v1, '
             'fast_north_045_v2, fast_north_045_v3, fast_goalline_045_v1, '
             'fast_goalline_045_v2, fast_goalline_045_v3, fast_goalline_045_v4, '
-            'adaptive_goal_line_045, or frozen_goal_line_045_v1.'.format(profile))
+            'adaptive_goal_line_045, adaptive_goal_line_045_recovery_v1, '
+            'adaptive_goal_line_045_recovery_v2, adaptive_goal_line_045_recovery_v3, '
+            'adaptive_goal_line_050_recovery_v4, adaptive_goal_line_050_recovery_v5, '
+            'or frozen_goal_line_045_v1.'.format(profile))
 
     rewritten = tempfile.NamedTemporaryFile(
         mode='w', suffix='.yaml', prefix='rtabmap_collision_', delete=False)
@@ -671,6 +908,15 @@ def generate_launch_description():
                 'fast_goalline_045_v4 tests a centered detour and 0.30 m/s; '
                 'adaptive_goal_line_045 disables benchmark world-coordinate '
                 'side hints and replans each goal from the live costmap; '
+                'adaptive_goal_line_045_recovery_v1 adds stronger recovery '
+                'actions; adaptive_goal_line_045_recovery_v2 adds clearance '
+                'cost weighting and true reverse recovery; '
+                'adaptive_goal_line_045_recovery_v3 balances clearance, '
+                'feasibility and reduced corner cutting; '
+                'adaptive_goal_line_050_recovery_v4 adds a small 0.50 m '
+                'inflation margin and weaker line pull; '
+                'adaptive_goal_line_050_recovery_v5 restores the generic '
+                'line preference and checks collisions earlier; '
                 'frozen_goal_line_045_v1 restores the pre-optimization run-03 baseline.')),
         OpaqueFunction(function=launch_setup),
     ])

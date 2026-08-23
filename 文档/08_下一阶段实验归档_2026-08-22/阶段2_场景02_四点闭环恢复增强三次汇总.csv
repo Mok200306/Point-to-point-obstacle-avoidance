@@ -1,0 +1,5 @@
+run,profile,world_file,sequence,wall_time_s,simulation_time_s,planner_trajectory_length_m,gazebo_trajectory_length_m,mean_segment_end_error_m,max_segment_end_error_m,completed_segments,requested_segments,segment_success_count,segment_failure_count,overall_success,non_ground_contact,contact_messages
+run_01,adaptive_goal_line_050_recovery_v5,indoor_obstacle_course_cross_scene_02.world,M->N->X->Y->M,568.990892,459.6,104.820535,104.817266,0.096768,0.121184,4,4,4,0,true,false,1340377
+run_02,adaptive_goal_line_050_recovery_v5,indoor_obstacle_course_cross_scene_02.world,M->N->X->Y->M,550.360910,438.1,102.254184,102.250111,0.117896,0.189445,4,4,4,0,true,false,1287592
+run_03,adaptive_goal_line_050_recovery_v5,indoor_obstacle_course_cross_scene_02.world,M->N->X->Y->M,517.025400,414.0,95.576031,95.586401,0.113217,0.167905,4,4,4,0,true,false,1206606
+mean,adaptive_goal_line_050_recovery_v5,indoor_obstacle_course_cross_scene_02.world,M->N->X->Y->M,545.459068,437.233333,100.883584,100.884593,0.109294,0.189445,4,4,4,0,true,false,1278192
