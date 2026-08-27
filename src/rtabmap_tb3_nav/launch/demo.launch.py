@@ -20,6 +20,18 @@ def apply_navigation_profile(params, profile):
     if profile in ('current', 'fast_north_045_v2'):
         return
 
+    if profile == 'reactive_mppi_static':
+        # Gate 1 uses an independent MPPI YAML. Keep this profile generic even
+        # when a caller accidentally points at the historical base YAML: the
+        # live costmap and the current goal must remain the only route inputs.
+        planner = params['planner_server']['ros__parameters']['GridBased']
+        planner['line_bias_enabled'] = True
+        planner['side_bias_enabled'] = False
+        planner['side_bias_apply_to_unknown'] = False
+        planner['side_bias_target_world_y_enabled'] = False
+        planner['side_bias_target_schedule_enabled'] = False
+        return
+
     if profile == 'fast_north_045_v3':
         # Keep the first detour and the central-barrier passage in one fixed
         # map-frame corridor.  v2 only constrained the west-barrier window;
@@ -898,7 +910,8 @@ def apply_navigation_profile(params, profile):
         'Unknown navigation_profile={!r}; use current, fast_north_045_v1, '
         'fast_north_045_v2, fast_north_045_v3, fast_goalline_045_v1, '
         'fast_goalline_045_v2, fast_goalline_045_v3, fast_goalline_045_v4, '
-        'adaptive_goal_line_045, adaptive_goal_line_045_recovery_v1, '
+        'adaptive_goal_line_045, reactive_mppi_static, '
+        'adaptive_goal_line_045_recovery_v1, '
         'adaptive_goal_line_045_recovery_v2, '
         'adaptive_goal_line_045_recovery_v3, or '
         'adaptive_goal_line_050_recovery_v4, '
@@ -1005,6 +1018,7 @@ def collision_monitor_params_for_profile(source_file, profile):
         'current', 'fast_north_045_v1', 'fast_north_045_v2', 'fast_north_045_v3',
         'fast_goalline_045_v1', 'fast_goalline_045_v2', 'fast_goalline_045_v3',
         'fast_goalline_045_v4', 'adaptive_goal_line_045',
+        'reactive_mppi_static',
         'adaptive_goal_line_045_recovery_v1',
         'adaptive_goal_line_045_recovery_v2',
         'adaptive_goal_line_045_recovery_v3',
@@ -1027,7 +1041,8 @@ def collision_monitor_params_for_profile(source_file, profile):
             'Unknown navigation_profile={!r}; use current, fast_north_045_v1, '
             'fast_north_045_v2, fast_north_045_v3, fast_goalline_045_v1, '
             'fast_goalline_045_v2, fast_goalline_045_v3, fast_goalline_045_v4, '
-            'adaptive_goal_line_045, adaptive_goal_line_045_recovery_v1, '
+            'adaptive_goal_line_045, reactive_mppi_static, '
+            'adaptive_goal_line_045_recovery_v1, '
             'adaptive_goal_line_045_recovery_v2, adaptive_goal_line_045_recovery_v3, '
             'adaptive_goal_line_050_recovery_v4, adaptive_goal_line_050_recovery_v5, '
             'or frozen_goal_line_045_v1.'.format(profile))
@@ -1408,6 +1423,8 @@ def generate_launch_description():
                 'fast_goalline_045_v4 tests a centered detour and 0.30 m/s; '
                 'adaptive_goal_line_045 disables benchmark world-coordinate '
                 'side hints and replans each goal from the live costmap; '
+                'reactive_mppi_static selects the independent Gate 1 MPPI '
+                'parameter snapshot without future information; '
                 'adaptive_goal_line_045_recovery_v1 adds stronger recovery '
                 'actions; adaptive_goal_line_045_recovery_v2 adds clearance '
                 'cost weighting and true reverse recovery; '
