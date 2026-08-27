@@ -1,0 +1,27 @@
+scenario_id: S4_stop_go
+description: 动态障碍横穿西侧绕障走廊、短暂停止后再次运动
+obstacle_name: oracle_dynamic_obstacle
+world_file: src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_large.world
+spawn:
+  x: -7.5
+  y: -1.5
+  yaw: 0.0
+robot:
+  start_x: -8.5
+  start_y: 0.0
+  goal_x: 8.5
+  goal_y: 0.0
+  goal_yaw: 0.0
+update_period_s: 0.05
+obstacle_half_size_m: 0.30
+waypoints:
+  - {t: 0.0, x: -7.5, y: -1.5, yaw: 1.5707963267948966}
+  - {t: 12.0, x: -7.5, y: -1.5, yaw: 1.5707963267948966}
+  - {t: 20.0, x: -7.5, y: -0.2, yaw: 1.5707963267948966}
+  - {t: 28.0, x: -7.5, y: -0.2, yaw: 1.5707963267948966}
+  - {t: 38.0, x: -7.5, y: 1.5, yaw: 1.5707963267948966}
+  - {t: 90.0, x: -7.5, y: 1.5, yaw: 1.5707963267948966}
+difficulty_profiles:
+  easy: {time_scale: 1.35, start_delay_s: 5.0}
+  medium: {time_scale: 1.0, start_delay_s: 3.0}
+  hard: {time_scale: 0.78, start_delay_s: 0.0}

@@ -1,0 +1,25 @@
+scenario_id: S1_crossing
+description: 侧向动态障碍横穿机器人在线规划走廊
+obstacle_name: oracle_dynamic_obstacle
+world_file: src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_large.world
+spawn:
+  x: -7.5
+  y: -1.7
+  yaw: 0.0
+robot:
+  start_x: -8.5
+  start_y: 0.0
+  goal_x: 8.5
+  goal_y: 0.0
+  goal_yaw: 0.0
+update_period_s: 0.05
+obstacle_half_size_m: 0.30
+waypoints:
+  - {t: 0.0, x: -7.5, y: -1.7, yaw: 0.0}
+  - {t: 8.0, x: -7.5, y: -1.7, yaw: 0.0}
+  - {t: 20.0, x: -2.5, y: -1.7, yaw: 0.0}
+  - {t: 90.0, x: -2.5, y: -1.7, yaw: 0.0}
+difficulty_profiles:
+  easy: {time_scale: 1.35, start_delay_s: 5.0}
+  medium: {time_scale: 1.0, start_delay_s: 3.0}
+  hard: {time_scale: 0.78, start_delay_s: 0.0}

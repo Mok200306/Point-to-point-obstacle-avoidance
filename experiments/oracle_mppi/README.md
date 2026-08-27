@@ -1,6 +1,6 @@
 # Oracle 预测式导航实验
 
-本目录用于执行任务书《Oracle预测式导航生死实验_分阶段执行任务书_v1.docx》（2026-08-27）规定的逐 Gate 实验。实验在分支 `exp/oracle-mppi-2026-08-27` 上进行，现有 `main` 分支、历史正式结果和既有 RPP profile 不在本实验中直接修改。
+本目录用于执行任务书《Oracle预测式导航生死实验_分阶段执行任务书_v1.docx》（2026-08-27）规定的逐 Gate 实验。当前实验在独立分支 `exp/oracle-g2-dynamic-2026-08-28` 上进行，现有 `main` 分支、历史正式结果和既有 RPP profile 不在本实验中直接修改。
 
 ## 研究问题
 
@@ -47,7 +47,7 @@ experiments/oracle_mppi/
 |---|---|---|
 | Gate 0 | PASS | `adaptive_goal_line_045` + RPP 静态回归基线已完成 6/6 成功、无非地面 contacts |
 | Gate 1 | PASS（硬验收） | `reactive_mppi_static` + 10 Hz Reactive MPPI，A→B/B→A 各 3/3 成功、零非地面 contacts；效率和恢复次数有遗留问题 |
-| Gate 2 | 待开始 | S1 横穿、S2 对向、S3 斜穿、S4 停-走/变速；必须先验证动态碰撞真值 |
+| Gate 2 | 进行中 | S1 横穿、S2 对向、S3 斜穿、S4 停-走/变速；已完成初始 smoke，正在补齐每类 3 次 medium 重复与统一验收 |
 | Gate 3 | 未开始 | Oracle 时空占据接口 |
 | Gate 4 | 未开始 | PredictionCritic 与时间对齐 |
 | Gate 5～8 | 未开始 | 闭环、统计、消融、最终复现包 |
@@ -76,6 +76,28 @@ Gate 1 的正式矩阵汇总见 [gate1/mppi_static.csv](gate1/mppi_static.csv)�
 本轮 MPPI 没有使用未来障碍物信息；3/6 次出现 Nav2 progress recovery，虽然全部成功且
 无非地面 contacts，但不能把它描述为效率优于 Gate 0 RPP。
 
+## Gate 2 动态场景
+
+Gate 2 复用冻结的静态大场景，在 Gazebo 启动后通过
+`gazebo_ros/spawn_entity.py` 载入具有真实 box collision geometry 的
+`worlds/oracle_dynamic_obstacle.sdf`，再由 `dynamic_obstacle_controller.py` 按场景
+YAML 的确定性 waypoint schedule 驱动。控制器只执行动态障碍轨迹并记录 Gazebo
+真值；当前阶段不向 Nav2 发布未来占据，也不使用当前速度外推未来。
+
+四个场景配置位于 `configs/scenarios/`：S1 横穿、S2 对向、S3 斜穿、S4 停-走/变速。
+批量 medium smoke 命令如下，脚本顺序执行且失败目录保留：
+
+```bash
+./experiments/oracle_mppi/scripts/run_gate2_matrix.sh \
+  --difficulty medium --run-prefix medium --start-run 1 \
+  --runs-per-scenario 3
+python3 experiments/oracle_mppi/scripts/summarize_gate2.py
+```
+
+默认结果位于 `gate2/S*/medium_01..03/`，矩阵状态写入
+`gate2/matrix_status_20260828.csv`。每个 run 应包含 `dynamic_groundtruth.csv`、
+`dynamic_summary.yaml`、`metrics.yaml`、轨迹图、参数快照和 contacts 证据。
+
 ## 证据命名
 
 每次实验使用不可覆盖的目录：
@@ -87,6 +109,10 @@ gate0/case_A_to_B/run_03/
 gate0/case_B_to_A/run_01/
 gate0/case_B_to_A/run_02/
 gate0/case_B_to_A/run_03/
+gate2/S1_crossing/medium_01/
+gate2/S2_oncoming/medium_01/
+gate2/S3_diagonal/medium_01/
+gate2/S4_stop_go/medium_01/
 ```
 
 正式实验开始后，不通过删除目录来“清理”结果；如需重新跑，使用新的 `run_04` 或带日期的标签，并在汇总表中保留所有结果。

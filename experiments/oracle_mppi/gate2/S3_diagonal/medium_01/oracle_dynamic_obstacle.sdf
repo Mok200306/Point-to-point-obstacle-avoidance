@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <!-- A real, collidable dynamic proxy. Its pose is controlled by
+       dynamic_obstacle_controller.py through /gazebo/set_entity_state. -->
+  <model name="oracle_dynamic_obstacle">
+    <static>false</static>
+    <allow_auto_disable>false</allow_auto_disable>
+    <self_collide>false</self_collide>
+    <link name="link">
+      <kinematic>true</kinematic>
+      <gravity>false</gravity>
+      <inertial>
+        <pose>0 0 0.45 0 0 0</pose>
+        <mass>8.0</mass>
+        <inertia>
+          <ixx>0.510</ixx>
+          <iyy>0.510</iyy>
+          <izz>0.480</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <collision name="collision">
+        <pose>0 0 0.45 0 0 0</pose>
+        <geometry>
+          <box><size>0.60 0.60 0.90</size></box>
+        </geometry>
+        <surface>
+          <contact>
+            <collide_without_contact>false</collide_without_contact>
+            <collide_without_contact_bitmask>1</collide_without_contact_bitmask>
+          </contact>
+        </surface>
+      </collision>
+      <visual name="visual">
+        <pose>0 0 0.45 0 0 0</pose>
+        <geometry>
+          <box><size>0.60 0.60 0.90</size></box>
+        </geometry>
+        <material>
+          <ambient>0.92 0.05 0.05 1</ambient>
+          <diffuse>0.98 0.10 0.08 1</diffuse>
+          <specular>0.25 0.25 0.25 1</specular>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>

@@ -1,0 +1,28 @@
+scenario_id: S1_crossing
+description: 侧向动态障碍横穿机器人在西侧绕障走廊中的实际轨迹
+obstacle_name: oracle_dynamic_obstacle
+world_file: src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_large.world
+spawn:
+  x: -5.5
+  y: -4.0
+  yaw: 0.0
+robot:
+  start_x: -8.5
+  start_y: 0.0
+  goal_x: 8.5
+  goal_y: 0.0
+  goal_yaw: 0.0
+update_period_s: 0.05
+obstacle_half_size_m: 0.30
+waypoints:
+  # The static course forces the robot below barrier_west near x=-5.5.
+  # This vertical crossing therefore intersects the actual baseline route,
+  # instead of merely moving parallel to y=-1.7 without a time conflict.
+  - {t: 0.0, x: -5.5, y: -4.0, yaw: 1.5707963267948966}
+  - {t: 10.0, x: -5.5, y: -4.0, yaw: 1.5707963267948966}
+  - {t: 26.0, x: -5.5, y: -0.7, yaw: 1.5707963267948966}
+  - {t: 90.0, x: -5.5, y: -0.7, yaw: 1.5707963267948966}
+difficulty_profiles:
+  easy: {time_scale: 1.35, start_delay_s: 5.0}
+  medium: {time_scale: 1.0, start_delay_s: 3.0}
+  hard: {time_scale: 0.78, start_delay_s: 0.0}

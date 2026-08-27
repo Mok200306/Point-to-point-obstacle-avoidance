@@ -1,0 +1,14 @@
+scenario_id: S3_diagonal
+difficulty: medium
+obstacle_name: oracle_dynamic_obstacle
+update_period_s: 0.05
+time_scale: 1.0
+start_delay_s: 3.0
+sim_end_s: 227.3
+model_state_samples: 5116
+service_updates: 1739
+service_failures: 0
+groundtruth_rows_with_clearance: 3478
+minimum_robot_obstacle_clearance_m: 1.2714277842737927
+maximum_script_to_gazebo_position_error_m: 0.008500919067959365
+source: deterministic waypoint schedule; not velocity extrapolation
