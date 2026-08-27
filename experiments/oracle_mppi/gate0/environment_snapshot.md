@@ -9,8 +9,8 @@
 | 快照日期 | 2026-08-27 |
 | 仓库 | `/home/w417/RTAB-Map` |
 | 分支 | `exp/oracle-mppi-2026-08-27` |
-| 基线 commit | `69472452fcf8482db9a9e314ceebc927893df553`（Gate 0 取证脚本提交前的算法基线；正式运行 commit 见每个 run） |
-| 基线提交 | `docs: add complete navigation technical report` |
+| Gate 0 正式运行 commit | `84bff33699f770d7e8a8b785100ecf10e806f671` |
+| Gate 0 正式提交 | `exp: harden Gate 0 lifecycle readiness` |
 | 任务书 | `/home/w417/文档/Oracle预测式导航生死实验_分阶段执行任务书_v1.docx` |
 | ROS 时间口径 | `use_sim_time=true`；Gazebo `/clock` 为时间源 |
 
@@ -112,7 +112,7 @@ sha256: 93e36a103b2564fe6e3af7deda97c27b88712d96648dc45ca9e5e7221df9adb8
 nav2: src/rtabmap_tb3_nav/config/nav2_rgbd_params.yaml
 sha256: 95084f5f3652d39a4ac7cf951ccc42f83c7bccf690e50e15b83c517302c39c99
 launch: src/rtabmap_tb3_nav/launch/demo.launch.py
-sha256: 792ff55e4cb3e075507033f130a7c260d10d52dcd806119b0495b341c6533bfa
+sha256: deb9d352b91275e5fe51967cad603a9e780fa6fda4cd9e600ad45c02d2d84db8
 ```
 
 如果任一版本、镜像或输入文件发生变化，必须建立新的环境快照并说明其对 Gate 的影响，不能静默覆盖本节。

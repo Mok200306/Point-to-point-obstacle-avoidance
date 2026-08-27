@@ -1,0 +1,15 @@
+world_file=src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_large.world
+world_name=indoor_obstacle_course_large
+start_x=8.5
+start_y=0.0
+goal_x=-8.5
+goal_y=0.0
+goal_yaw=3.141592653589793
+profile=adaptive_goal_line_045
+online=true
+localization=false
+reset_db=true
+use_sim_time=true
+rviz=false
+gazebo_gui=false
+rtabmap_viz=false

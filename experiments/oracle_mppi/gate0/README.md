@@ -4,6 +4,17 @@
 
 把当前可运行的 RGB-D 在线建图 + Nav2 + RPP 系统冻结成可复核的静态回归基线，为之后 MPPI 和 Oracle 对照提供参照。这里的“静态”指 world 中没有会主动运动的动态障碍；机器人仍然通过模拟 RGB-D 进行 RTAB-Map 在线建图和实时导航。
 
+## 当前状态
+
+Gate 0 已于 2026-08-27 在提交
+`84bff33699f770d7e8a8b785100ecf10e806f671` 上通过：A→B 3/3、B→A 3/3，
+共 6/6 成功；每次均为 Nav2 `status=4`，过滤地面后没有 Gazebo 非地面物理
+接触，并且证据目录完整。正式汇总见
+[GATE0_REPORT_2026-08-27.md](../reports/GATE0_REPORT_2026-08-27.md)。
+
+这只代表静态 RPP 基线已冻结，不代表 MPPI、动态障碍 Oracle 或 Transformer
+已经完成。下一步应从 Gate 1 开始实现并验证 Reactive MPPI。
+
 ## 固定条件
 
 | 项目 | Gate 0 值 |

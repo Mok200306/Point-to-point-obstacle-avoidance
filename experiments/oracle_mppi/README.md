@@ -45,7 +45,7 @@ experiments/oracle_mppi/
 
 | Gate | 状态 | 说明 |
 |---|---|---|
-| Gate 0 | 进行中 | 已完成启动竞态修正；正在用同一提交重新完成 `adaptive_goal_line_045` + RPP 静态回归基线 |
+| Gate 0 | PASS | `adaptive_goal_line_045` + RPP 静态回归基线已完成 6/6 成功、无非地面 contacts |
 | Gate 1 | 未开始 | MPPI 静态基线 |
 | Gate 2 | 未开始 | S1 横穿、S2 对向、S3 斜穿、S4 停-走/变速 |
 | Gate 3 | 未开始 | Oracle 时空占据接口 |
@@ -67,6 +67,7 @@ Gate 0 的单次运行协议、记录主题和验收条件见：
 
 - [gate0/README.md](gate0/README.md)
 - [gate0/environment_snapshot.md](gate0/environment_snapshot.md)
+- [Gate 0 正式报告](reports/GATE0_REPORT_2026-08-27.md)
 
 ## 证据命名
 
@@ -85,5 +86,5 @@ gate0/case_B_to_A/run_03/
 
 Gate 0 的实验目录会保留完整的本地 rosbag 和压缩 Gazebo contacts 原始流；由于
 这些二进制流可能超过 GitHub 单文件限制，仓库版本化的是其 `metrics.yaml`、
-`experiment.yaml`、CSV、图、参数快照和日志。完整原始流仍与工作区中的同名 run
-目录一起保存，不能据此把未上传的原始流误认为未采集。
+`experiment.yaml`、CSV、图、参数快照和 `rosbag_info.txt`。完整原始流和 verbose
+日志仍与工作区中的同名 run 目录一起保存，不能据此把未上传的原始流误认为未采集。

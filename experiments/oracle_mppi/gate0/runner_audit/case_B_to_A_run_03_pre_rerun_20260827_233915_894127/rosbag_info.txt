@@ -1,0 +1,20 @@
+
+Files:             rosbag_0.db3.zstd
+Bag size:          7.4 MiB
+Storage id:        sqlite3
+Duration:          84.500000000s
+Start:             Jan  1 1970 00:00:34.300000000 (34.300000000)
+End:               Jan  1 1970 00:01:58.800000000 (118.800000000)
+Messages:          17603
+Topic information: Topic: /odom | Type: nav_msgs/msg/Odometry | Count: 2486 | Serialization Format: cdr
+                   Topic: /nav_map | Type: nav_msgs/msg/OccupancyGrid | Count: 74 | Serialization Format: cdr
+                   Topic: /map | Type: nav_msgs/msg/OccupancyGrid | Count: 74 | Serialization Format: cdr
+                   Topic: /local_costmap/costmap | Type: nav_msgs/msg/OccupancyGrid | Count: 281 | Serialization Format: cdr
+                   Topic: /global_costmap/costmap | Type: nav_msgs/msg/OccupancyGrid | Count: 70 | Serialization Format: cdr
+                   Topic: /tf_static | Type: tf2_msgs/msg/TFMessage | Count: 1 | Serialization Format: cdr
+                   Topic: /gazebo/model_states | Type: gazebo_msgs/msg/ModelStates | Count: 2487 | Serialization Format: cdr
+                   Topic: /cmd_vel_safe | Type: geometry_msgs/msg/Twist | Count: 1887 | Serialization Format: cdr
+                   Topic: /cmd_vel | Type: geometry_msgs/msg/Twist | Count: 1887 | Serialization Format: cdr
+                   Topic: /tf | Type: tf2_msgs/msg/TFMessage | Count: 6243 | Serialization Format: cdr
+                   Topic: /clock | Type: rosgraph_msgs/msg/Clock | Count: 845 | Serialization Format: cdr
+                   Topic: /camera/obstacles | Type: sensor_msgs/msg/PointCloud2 | Count: 1268 | Serialization Format: cdr

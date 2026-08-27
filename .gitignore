@@ -39,3 +39,6 @@ results/*
 # raw streams stay beside the checkout for full forensic review.
 experiments/oracle_mppi/**/gazebo_contacts.log.gz
 experiments/oracle_mppi/**/rosbag/*.db3.zstd
+experiments/oracle_mppi/**/*.log
+experiments/oracle_mppi/**/runtime_*.txt
+experiments/oracle_mppi/**/*_probe.txt

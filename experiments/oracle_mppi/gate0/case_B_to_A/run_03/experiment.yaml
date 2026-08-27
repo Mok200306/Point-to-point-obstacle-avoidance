@@ -1,0 +1,22 @@
+label: experiments/oracle_mppi/gate0/case_B_to_A/run_03
+git_commit: 84bff33699f770d7e8a8b785100ecf10e806f671
+world_file: src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_large.world
+world_name: indoor_obstacle_course_large
+contacts_topic: /gazebo/indoor_obstacle_course_large/physics/contacts
+profile: adaptive_goal_line_045
+start_x_m: 8.5
+start_y_m: 0.0
+goal_x_m: -8.5
+goal_y_m: 0.0
+goal_yaw_rad: 3.141592653589793
+online: true
+localization: false
+reset_db: true
+use_sim_time: true
+seed: not explicitly set; static world and fixed launch parameters
+settle_seconds: 5.0
+evidence_time_basis: sim message timestamps; wall time only for process duration
+trial_exit_code: 0
+gazebo_contact_messages: 214764
+gazebo_non_ground_contact: false
+gazebo_contact_pairs: "(none)"
