@@ -46,8 +46,8 @@ experiments/oracle_mppi/
 | Gate | 状态 | 说明 |
 |---|---|---|
 | Gate 0 | PASS | `adaptive_goal_line_045` + RPP 静态回归基线已完成 6/6 成功、无非地面 contacts |
-| Gate 1 | 未开始 | MPPI 静态基线 |
-| Gate 2 | 未开始 | S1 横穿、S2 对向、S3 斜穿、S4 停-走/变速 |
+| Gate 1 | PASS（硬验收） | `reactive_mppi_static` + 10 Hz Reactive MPPI，A→B/B→A 各 3/3 成功、零非地面 contacts；效率和恢复次数有遗留问题 |
+| Gate 2 | 待开始 | S1 横穿、S2 对向、S3 斜穿、S4 停-走/变速；必须先验证动态碰撞真值 |
 | Gate 3 | 未开始 | Oracle 时空占据接口 |
 | Gate 4 | 未开始 | PredictionCritic 与时间对齐 |
 | Gate 5～8 | 未开始 | 闭环、统计、消融、最终复现包 |
@@ -68,6 +68,13 @@ Gate 0 的单次运行协议、记录主题和验收条件见：
 - [gate0/README.md](gate0/README.md)
 - [gate0/environment_snapshot.md](gate0/environment_snapshot.md)
 - [Gate 0 正式报告](reports/GATE0_REPORT_2026-08-27.md)
+- [Gate 1 正式报告](reports/GATE1_REPORT_2026-08-28.md)
+- [Gate 1 参数调优与候选审计](gate1/GATE1_PARAMETER_TUNING_2026-08-28.md)
+
+Gate 1 的正式矩阵汇总见 [gate1/mppi_static.csv](gate1/mppi_static.csv)。最终使用的
+10 Hz 参数为 [nav2_mppi_reactive_10hz_params.yaml](configs/nav2_mppi_reactive_10hz_params.yaml)。
+本轮 MPPI 没有使用未来障碍物信息；3/6 次出现 Nav2 progress recovery，虽然全部成功且
+无非地面 contacts，但不能把它描述为效率优于 Gate 0 RPP。
 
 ## 证据命名
 

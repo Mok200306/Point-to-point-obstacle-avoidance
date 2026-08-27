@@ -1,6 +1,6 @@
 # RTAB-Map TurtleBot3 RGB-D + Nav2
 
-更新时间：2026-08-27
+更新时间：2026-08-28
 主机：Ubuntu 20.04 + RTX 4090
 容器：Ubuntu 22.04 + ROS 2 Humble
 
@@ -34,12 +34,14 @@
 ### Oracle 预测式导航实验
 
 已在独立分支 `exp/oracle-mppi-2026-08-27` 完成任务书规定的 Gate 0 静态
-RPP 基线冻结。该阶段使用 `adaptive_goal_line_045`、RGB-D 在线 RTAB-Map、
-Nav2 全局/局部 costmap 和 RPP，在 `indoor_obstacle_course_large.world`
-中执行 A→B、B→A 各 3 次；当前正式结果为 6/6 成功且无非地面 Gazebo
-contacts。完整协议、证据索引和下一步 Gate 1 入口见
-[Oracle 实验目录](experiments/oracle_mppi/README.md)与
-[Gate 0 报告](experiments/oracle_mppi/reports/GATE0_REPORT_2026-08-27.md)。
+RPP 基线冻结，并完成 Gate 1 Reactive MPPI 静态基线。Gate 1 使用独立的
+10 Hz `reactive_mppi_static` profile，在 `indoor_obstacle_course_large.world`
+中执行 A→B、B→A 各 3 次；当前正式结果为 6/6 成功、无非地面 Gazebo contacts，
+控制周期 P95 约为 0.1003 s。该 MPPI 基线仍有 3/6 次触发 Nav2 progress recovery，
+效率明显低于 RPP，不能把它描述为性能提升。完整协议、证据索引、参数和下一步
+Gate 2 入口见 [Oracle 实验目录](experiments/oracle_mppi/README.md)、
+[Gate 0 报告](experiments/oracle_mppi/reports/GATE0_REPORT_2026-08-27.md)与
+[Gate 1 报告](experiments/oracle_mppi/reports/GATE1_REPORT_2026-08-28.md)。
 
 ## 当前 profile
 

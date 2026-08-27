@@ -1,0 +1,15 @@
+topic: /cmd_vel
+samples: 2092
+interval_samples: 2091
+sim_duration_s: 207.8027684688568
+expected_period_s: 0.1
+mean_period_s: 0.09937961189328398
+median_period_s: 0.09999918937683105
+p95_period_s: 0.10027050971984863
+max_period_s: 0.13276314735412598
+mean_frequency_hz: 10.062426094738848
+median_frequency_hz: 10.00008106297401
+p95_frequency_hz: 9.973022006110828
+p95_period_ratio_to_expected: 1.0027050971984863
+nonzero_command_samples: 2062
+status: PASS

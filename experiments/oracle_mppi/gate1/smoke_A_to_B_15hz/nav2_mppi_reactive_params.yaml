@@ -1,0 +1,392 @@
+# Nav2 parameters for the Gate 1 Reactive MPPI static baseline.
+# This is an independent 15 Hz candidate derived from the Gate 1 MPPI snapshot.
+# It keeps the RGB-D online map, GoalLineSmacPlanner and costmaps, but replaces
+# RPP with nav2_mppi_controller::MPPIController. No Oracle/future information
+# is used in this profile.
+# There is intentionally no LaserScan observation source here. The local
+# voxel layer and the rolling global layer are fed by PointCloud2 clouds
+# derived from the depth camera. RTAB-Map continuously updates /map while
+# Nav2 replans through unknown space.
+
+bt_navigator:
+  ros__parameters:
+    use_sim_time: true
+    global_frame: map
+    robot_base_frame: base_link
+    odom_topic: /odom
+    bt_loop_duration: 10
+    default_server_timeout: 20
+    wait_for_service_timeout: 1000
+    plugin_lib_names:
+      - nav2_compute_path_to_pose_action_bt_node
+      - nav2_compute_path_through_poses_action_bt_node
+      - nav2_smooth_path_action_bt_node
+      - nav2_follow_path_action_bt_node
+      - nav2_spin_action_bt_node
+      - nav2_wait_action_bt_node
+      - nav2_assisted_teleop_action_bt_node
+      - nav2_back_up_action_bt_node
+      - nav2_drive_on_heading_bt_node
+      - nav2_clear_costmap_service_bt_node
+      - nav2_is_stuck_condition_bt_node
+      - nav2_goal_reached_condition_bt_node
+      - nav2_goal_updated_condition_bt_node
+      - nav2_globally_updated_goal_condition_bt_node
+      - nav2_is_path_valid_condition_bt_node
+      - nav2_initial_pose_received_condition_bt_node
+      - nav2_reinitialize_global_localization_service_bt_node
+      - nav2_rate_controller_bt_node
+      - nav2_distance_controller_bt_node
+      - nav2_speed_controller_bt_node
+      - nav2_truncate_path_action_bt_node
+      - nav2_truncate_path_local_action_bt_node
+      - nav2_goal_updater_node_bt_node
+      - nav2_recovery_node_bt_node
+      - nav2_pipeline_sequence_bt_node
+      - nav2_round_robin_node_bt_node
+      - nav2_transform_available_condition_bt_node
+      - nav2_time_expired_condition_bt_node
+      - nav2_path_expiring_timer_condition
+      - nav2_distance_traveled_condition_bt_node
+      - nav2_single_trigger_bt_node
+      - nav2_goal_updated_controller_bt_node
+      - nav2_is_battery_low_condition_bt_node
+      - nav2_navigate_through_poses_action_bt_node
+      - nav2_navigate_to_pose_action_bt_node
+      - nav2_remove_passed_goals_action_bt_node
+      - nav2_planner_selector_bt_node
+      - nav2_controller_selector_bt_node
+      - nav2_goal_checker_selector_bt_node
+      - nav2_controller_cancel_bt_node
+      - nav2_path_longer_on_approach_bt_node
+      - nav2_wait_cancel_bt_node
+      - nav2_spin_cancel_bt_node
+      - nav2_back_up_cancel_bt_node
+      - nav2_assisted_teleop_cancel_bt_node
+      - nav2_drive_on_heading_cancel_bt_node
+      - nav2_is_battery_charging_condition_bt_node
+
+bt_navigator_navigate_through_poses_rclcpp_node:
+  ros__parameters:
+    use_sim_time: true
+
+bt_navigator_navigate_to_pose_rclcpp_node:
+  ros__parameters:
+    use_sim_time: true
+
+controller_server:
+  ros__parameters:
+    use_sim_time: true
+    # Regulated Pure Pursuit is deliberately used here instead of sampling many
+    # unrelated velocity trajectories. It follows the smoothed global path
+    # with a forward carrot and regulates speed on curvature and cost.
+    # Candidate V2: 15 Hz leaves more compute budget per MPPI cycle.
+    controller_frequency: 15.0
+    min_x_velocity_threshold: 0.001
+    min_y_velocity_threshold: 0.5
+    min_theta_velocity_threshold: 0.001
+    # RPP can briefly report a predicted collision while the RGB-D obstacle
+    # layer is being updated and the behavior tree is computing a new route.
+    # Allow that short handoff to complete; collision_monitor remains the
+    # independent hard stop path.
+    failure_tolerance: 1.0
+    progress_checker_plugin: progress_checker
+    goal_checker_plugins: [general_goal_checker]
+    controller_plugins: [FollowPath]
+    progress_checker:
+      plugin: nav2_controller::SimpleProgressChecker
+      # A corner maneuver or a reverse-direction goal can spend several
+      # seconds rotating before its position changes. Do not abort that
+      # legitimate maneuver as stalled while the map is still growing.
+      required_movement_radius: 0.20
+      movement_time_allowance: 20.0
+    general_goal_checker:
+      plugin: nav2_controller::SimpleGoalChecker
+      stateful: true
+      xy_goal_tolerance: 0.12
+      yaw_goal_tolerance: 0.15
+    FollowPath:
+      plugin: nav2_mppi_controller::MPPIController
+      # Gate 1 static Reactive MPPI baseline.
+      # H_mppi = time_steps * model_dt = 56 * 0.05 = 2.80 s.
+      # The controller period is 0.05 s, exactly matching model_dt.
+      time_steps: 56
+      model_dt: 0.05
+      batch_size: 1000
+      iteration_count: 1
+      temperature: 0.3
+      gamma: 0.015
+      retry_attempt_limit: 1
+      motion_model: DiffDrive
+      vx_max: 0.28
+      vx_min: 0.0
+      vy_max: 0.0
+      wz_max: 0.90
+      vx_std: 0.20
+      vy_std: 0.0
+      wz_std: 0.30
+      visualize: false
+      critics: [
+        ConstraintCritic,
+        CostCritic,
+        ObstaclesCritic,
+        GoalCritic,
+        GoalAngleCritic,
+        PathAlignCritic,
+        PathFollowCritic,
+        PathAngleCritic,
+        PreferForwardCritic,
+      ]
+      ConstraintCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 4.0
+      CostCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 3.81
+        critical_cost: 300.0
+        collision_cost: 1000000.0
+        near_goal_distance: 0.5
+        # Humble's MPPI polygon-cost path is too expensive for a 20 Hz Waffle
+        # loop at the current local-costmap size; the hard costmap/collision
+        # monitor still use the full polygon footprint.
+        consider_footprint: false
+      ObstaclesCritic:
+        enabled: true
+        cost_power: 1
+        repulsion_weight: 1.5
+        critical_weight: 20.0
+        collision_cost: 10000.0
+        collision_margin_distance: 0.10
+        near_goal_distance: 0.5
+        # See CostCritic above. This baseline uses the controller's circular
+        # circumscribed-cost check; footprint-aware scoring is a later ablation.
+        consider_footprint: false
+        cost_scaling_factor: 4.5
+        inflation_radius: 0.45
+      GoalCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 5.0
+        threshold_to_consider: 1.4
+      GoalAngleCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 3.0
+        threshold_to_consider: 0.5
+        symmetric_yaw_tolerance: false
+      PathAlignCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 10.0
+        max_path_occupancy_ratio: 0.07
+        offset_from_furthest: 20
+        trajectory_point_step: 4
+        threshold_to_consider: 0.5
+        use_path_orientations: false
+      PathFollowCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 5.0
+        offset_from_furthest: 6
+        threshold_to_consider: 1.4
+      PathAngleCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 2.0
+        offset_from_furthest: 4
+        threshold_to_consider: 0.5
+        max_angle_to_furthest: 1.2
+        forward_preference: true
+      PreferForwardCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 5.0
+        threshold_to_consider: 0.5
+
+planner_server:
+  ros__parameters:
+    use_sim_time: true
+    expected_planner_frequency: 2.0
+    planner_plugins: [GridBased]
+    GridBased:
+      plugin: rtabmap_tb3_nav/GoalLineSmacPlanner
+      tolerance: 0.25
+      downsample_costmap: false
+      downsampling_factor: 1
+      allow_unknown: true
+      max_iterations: 1000000
+      max_on_approach_iterations: 1000
+      max_planning_time: 1.0
+      # Smac's A* accumulates the costmap value along the route. A multiplier
+      # above 1 makes a slightly longer open route preferable to a short route
+      # grazing the inflated edge.
+      # Baseline value kept unchanged while testing the goal-line preference
+      # planner on top of the frozen 0.45 m inflation configuration.
+      cost_travel_multiplier: 6.0
+      # Softly penalize deviation from the actual start-to-goal segment. This
+      # is evaluated per planning call and never changes lethal obstacle cells.
+      line_bias_enabled: true
+      line_bias_max_cost: 60.0
+      line_bias_distance_scale: 2.0
+      line_bias_exponent: 2.0
+      line_bias_apply_to_unknown: false
+      goal_progress_bias_enabled: false
+      goal_progress_bias_max_cost: 0.0
+      goal_progress_bias_distance_scale: 1.0
+      goal_progress_bias_exponent: 2.0
+      goal_progress_bias_apply_to_unknown: false
+      unknown_bias_enabled: false
+      unknown_bias_cost: 0.0
+      # Benchmark route hint: prefer the north (+Y) side of barrier_west only.
+      # The bounded window makes the A->B route repeatable without forcing a
+      # left/right preference on unrelated maps or later obstacles.
+      side_bias_enabled: false
+      side_bias_preferred_y_sign: 1
+      side_bias_max_cost: 45.0
+      side_bias_distance_scale: 0.9
+      side_bias_exponent: 2.0
+      # Start the benchmark hint shortly before barrier_west becomes visible.
+      # Leaving the initial 1.3 m un-biased keeps the approach on the goal
+      # line; the bounded north corridor then only selects the detour.
+      side_bias_world_x_min: -7.2
+      side_bias_world_x_max: -2.5
+      side_bias_apply_to_unknown: false
+      side_bias_unknown_base_cost: 1.0
+      # Fixed map-frame north corridor. Unlike a target offset measured from
+      # the current replanning start, this does not drift farther north after
+      # each replanning cycle.
+      side_bias_target_world_y_enabled: false
+      side_bias_reference_world_y: 0.0
+      side_bias_target_world_y: 0.95
+      side_bias_target_offset: 0.95
+      side_bias_target_max_cost: 90.0
+      side_bias_target_distance_scale: 0.75
+      side_bias_target_exponent: 2.0
+      use_final_approach_orientation: false
+      smoother:
+        max_iterations: 1000
+        w_data: 0.20
+        w_smooth: 0.40
+        do_refinement: true
+
+smoother_server:
+  ros__parameters:
+    use_sim_time: true
+    smoother_plugins: [simple_smoother]
+    simple_smoother:
+      plugin: nav2_smoother::SimpleSmoother
+      tolerance: 1.0e-10
+      max_its: 1000
+      do_refinement: true
+
+behavior_server:
+  ros__parameters:
+    use_sim_time: true
+    costmap_topic: local_costmap/costmap_raw
+    footprint_topic: local_costmap/published_footprint
+    cycle_frequency: 10.0
+    behavior_plugins: [spin, backup, drive_on_heading, assisted_teleop, wait]
+    spin:
+      plugin: nav2_behaviors/Spin
+    backup:
+      plugin: nav2_behaviors/BackUp
+    drive_on_heading:
+      plugin: nav2_behaviors/DriveOnHeading
+    assisted_teleop:
+      plugin: nav2_behaviors/AssistedTeleop
+    wait:
+      plugin: nav2_behaviors/Wait
+    global_frame: odom
+    robot_base_frame: base_link
+    transform_tolerance: 0.1
+    simulate_ahead_time: 2.0
+    max_rotational_vel: 1.0
+    min_rotational_vel: 0.4
+    rotational_acc_lim: 3.2
+
+waypoint_follower:
+  ros__parameters:
+    use_sim_time: true
+    loop_rate: 20
+    stop_on_failure: false
+    waypoint_task_executor_plugin: wait_at_waypoint
+    wait_at_waypoint:
+      plugin: nav2_waypoint_follower::WaitAtWaypoint
+      enabled: true
+      waypoint_pause_duration: 200
+
+velocity_smoother:
+  ros__parameters:
+    use_sim_time: true
+    smoothing_frequency: 20.0
+    scale_velocities: false
+    feedback: OPEN_LOOP
+    # Match Regulated Pure Pursuit's desired speed; the collision monitor can
+    # still reduce this command in its slowdown polygon.
+    max_velocity: [0.26, 0.0, 0.85]
+    min_velocity: [-0.12, 0.0, -0.75]
+    max_accel: [0.9, 0.0, 2.0]
+    max_decel: [-1.1, 0.0, -2.0]
+    odom_topic: odom
+    odom_duration: 0.1
+    deadband_velocity: [0.0, 0.0, 0.0]
+    velocity_timeout: 1.0
+
+local_costmap:
+  local_costmap:
+    ros__parameters:
+      use_sim_time: true
+      update_frequency: 10.0
+      publish_frequency: 5.0
+      global_frame: odom
+      robot_base_frame: base_link
+      rolling_window: true
+      width: 6
+      height: 5
+      resolution: 0.05
+      footprint: "[[0.30, 0.24], [0.30, -0.24], [-0.30, -0.24], [-0.30, 0.24]]"
+      footprint_padding: 0.03
+      transform_tolerance: 0.3
+      plugins: [voxel_layer, inflation_layer]
+      voxel_layer:
+        plugin: nav2_costmap_2d::VoxelLayer
+        enabled: true
+        publish_voxel_map: true
+        origin_z: 0.0
+        z_resolution: 0.05
+        z_voxels: 16
+        max_obstacle_height: 1.5
+        mark_threshold: 0
+        observation_sources: ground obstacles
+        ground:
+          topic: /camera/ground
+          data_type: PointCloud2
+          max_obstacle_height: 0.4
+          clearing: true
+          marking: false
+          raytrace_max_range: 4.0
+          raytrace_min_range: 0.0
+          obstacle_max_range: 3.8
+          obstacle_min_range: 0.0
+          observation_persistence: 0.4
+        obstacles:
+          topic: /camera/obstacles
+          data_type: PointCloud2
+          max_obstacle_height: 1.5
+          clearing: true
+          marking: true
+          raytrace_max_range: 4.0
+          raytrace_min_range: 0.0
+          obstacle_max_range: 3.8
+          obstacle_min_range: 0.0
+          observation_persistence: 0.5
+      inflation_layer:
+        plugin: nav2_costmap_2d::InflationLayer
+        # Inflation is a soft clearance preference, not the robot size. The
+        # padded Waffle footprint has an inscribed radius of about 0.27 m;
+        # 0.30 m leaves only 3 cm of gradient and makes Smac paths hug edges.
+        # Keep the hard footprint unchanged and use a wider gradient so the
+        # center of an opening is cheaper than its boundary.
+
