@@ -1,0 +1,23 @@
+snapshot_date: 2026-08-27
+host_os: Ubuntu 20.04.6 LTS
+kernel: Linux 5.15.0-139-generic x86_64
+gpu: NVIDIA GeForce RTX 4090
+nvidia_driver: 580.82.09
+gpu_memory: 24564 MiB
+docker: 28.1.1
+ros_distro: humble
+nav2_bringup: 1.1.20
+nav2_mppi_controller: 1.1.20
+nav2_regulated_pure_pursuit_controller: 1.1.20
+nav2_collision_monitor: 1.1.20
+rtabmap_slam: 0.23.7
+rtabmap_util: 0.23.7
+gazebo_ros: 3.9.0
+gazebo_classic: 11.10.2
+turtlebot3_gazebo: 2.3.8
+python: 3.10.12
+PyYAML: 5.4.1
+matplotlib: 3.5.1
+numpy: 1.21.5
+RMW_IMPLEMENTATION: unset (image default)
+TURTLEBOT3_MODEL: waffle

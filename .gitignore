@@ -32,3 +32,10 @@ results/*
 
 # Local environment overrides
 .env
+
+# Oracle Gate evidence is retained locally in full. The raw Gazebo transport
+# and compressed sqlite bags are large binary streams; their reproducible
+# summaries, metadata, CSVs, plots and logs remain versioned below, while the
+# raw streams stay beside the checkout for full forensic review.
+experiments/oracle_mppi/**/gazebo_contacts.log.gz
+experiments/oracle_mppi/**/rosbag/*.db3.zstd

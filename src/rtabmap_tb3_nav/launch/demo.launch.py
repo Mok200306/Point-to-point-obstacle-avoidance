@@ -1296,12 +1296,18 @@ def launch_setup(context, *args, **kwargs):
         output='screen',
     )
 
+    # Keep a generous gap between process creation and the independent
+    # lifecycle manager.  On a cold Gazebo/RTAB-Map start the collision
+    # monitor can take longer to create its PointCloud source; starting its
+    # manager too soon races the change_state service and leaves the safety
+    # chain inactive.  The runner also waits for the active state before
+    # sending a navigation goal.
     delayed_collision_monitor = TimerAction(
-        period=4.0,
+        period=5.0,
         actions=[
             collision_monitor_node,
             TimerAction(
-                period=2.0,
+                period=5.0,
                 actions=[collision_monitor_lifecycle_manager]),
         ])
 
