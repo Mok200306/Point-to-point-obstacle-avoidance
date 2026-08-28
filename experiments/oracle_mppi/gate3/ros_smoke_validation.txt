@@ -1,0 +1,35 @@
+Gate 3 ROS 2 live publisher smoke
+date: 2026-08-28
+branch: exp/oracle-g3-publisher-2026-08-28
+scenario: S4_stop_go / medium
+publisher: oracle_prediction_publisher
+topic: /oracle/predicted_occupancy
+
+Build:
+  colcon build --symlink-install --packages-select oracle_dynamic_nav_msgs oracle_prediction_publisher
+  result: PASS
+
+Validator command:
+  python3 experiments/oracle_mppi/scripts/validate_gate3_ros_message.py \
+    --topic /oracle/predicted_occupancy \
+    --expected-frame odom --expected-source oracle \
+    --expected-resolution 0.05 --expected-width 120 --expected-height 100 \
+    --expected-dt 0.10 --expected-steps 31 \
+    --min-occupied-cells 1 --timeout-s 10
+
+Observed:
+  frame=odom
+  stamp=2160.500000000
+  grid=120x100@0.050m
+  dt=0.100
+  steps=31
+  data_len=372000
+  occupied_cells=5408
+  source=oracle
+  origin=(-11.437, -2.498)
+  result: PASS: Gate 3 message interface fields are valid
+
+Interpretation:
+  The live payload has the expected temporal layers and non-empty local occupancy.
+  The timestamp is from the ROS simulation clock. The publisher is independent of
+  Nav2 and does not send goals or velocity commands.

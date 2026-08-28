@@ -1,0 +1,33 @@
+Gate 3 build/interface validation
+date: 2026-08-28
+branch: exp/oracle-g3-publisher-2026-08-28
+
+Packages:
+  oracle_dynamic_nav_msgs
+  oracle_prediction_publisher
+
+Build result:
+  colcon build --symlink-install --packages-select oracle_dynamic_nav_msgs oracle_prediction_publisher
+  Summary: 2 packages finished
+
+Fresh-shell environment result:
+  source /opt/ros/humble/setup.bash
+  source install/setup.bash
+  AMENT_PREFIX_PATH includes:
+    /workspaces/rtabmap_tb3_nav/install/oracle_dynamic_nav_msgs
+  ros2 pkg prefix oracle_dynamic_nav_msgs:
+    /workspaces/rtabmap_tb3_nav/install/oracle_dynamic_nav_msgs
+  ros2 pkg list includes:
+    oracle_dynamic_nav_msgs
+    oracle_prediction_publisher
+
+Implementation fixes made during smoke:
+  1. ROS 2 logger calls use preformatted strings rather than ROS 1-style
+     positional format arguments.
+  2. A stale generated install marker/cache was isolated outside the active
+     build/install package paths; source packages and experiment evidence were
+     not removed.
+  3. oracle_dynamic_nav_msgs explicitly exports its ament_cmake build type and
+     runtime interface dependencies.
+
+Result: PASS

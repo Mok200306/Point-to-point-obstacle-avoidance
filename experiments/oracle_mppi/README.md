@@ -1,6 +1,6 @@
 # Oracle 预测式导航实验
 
-本目录用于执行任务书《Oracle预测式导航生死实验_分阶段执行任务书_v1.docx》（2026-08-27）规定的逐 Gate 实验。当前实验在独立分支 `exp/oracle-g2-dynamic-2026-08-28` 上进行，现有 `main` 分支、历史正式结果和既有 RPP profile 不在本实验中直接修改。
+本目录用于执行任务书《Oracle预测式导航生死实验_分阶段执行任务书_v1.docx》（2026-08-27）规定的逐 Gate 实验。当前实验在独立分支 `exp/oracle-g3-publisher-2026-08-28` 上进行，现有 `main` 分支、历史正式结果和既有 RPP profile 不在本实验中直接修改。
 
 ## 研究问题
 
@@ -34,6 +34,7 @@ experiments/oracle_mppi/
 │   ├── case_A_to_B/
 │   └── case_B_to_A/
 ├── configs/       # 后续 MPPI / Oracle 冻结配置
+├── gate3/          # Oracle 时空占据接口验收与可视化
 ├── worlds/        # 后续 S1～S4 动态世界快照
 ├── launch/        # 后续独立 launch
 ├── scripts/       # Gate 自动化脚本
@@ -48,7 +49,7 @@ experiments/oracle_mppi/
 | Gate 0 | PASS | `adaptive_goal_line_045` + RPP 静态回归基线已完成 6/6 成功、无非地面 contacts |
 | Gate 1 | PASS（硬验收） | `reactive_mppi_static` + 10 Hz Reactive MPPI，A→B/B→A 各 3/3 成功、零非地面 contacts；效率和恢复次数有遗留问题 |
 | Gate 2 | PASS（环境与证据链路） | 四类动态场景均已参数化；真实 collision、contacts、Gazebo 真值距离和动态轨迹证据已验证。Reactive MPPI 在 S2/S4 仍有真实动态碰撞，不能写成动态导航 100% 成功 |
-| Gate 3 | 未开始 | Oracle 时空占据接口 |
+| Gate 3 | PASS（接口硬验收） | Oracle 时空占据接口已完成离线和 ROS 2 smoke；尚未接入 Nav2 |
 | Gate 4 | 未开始 | PredictionCritic 与时间对齐 |
 | Gate 5～8 | 未开始 | 闭环、统计、消融、最终复现包 |
 
@@ -106,6 +107,24 @@ Gate 2 正式报告见 [GATE2_REPORT_2026-08-28.md](reports/GATE2_REPORT_2026-08
 - 尚未实现 Oracle publisher、PredictionCritic 或 Transformer。
 
 只有在报告和 `summary.csv` 复核完成后，才允许创建 `oracle-g2-pass` 标签。
+
+## Gate 3 Oracle 未来真值接口
+
+Gate 3 新增 `oracle_dynamic_nav_msgs` 和 `oracle_prediction_publisher`。publisher
+从与 Gate 2 相同的确定性 waypoint schedule 查询 `pose_obstacle(t0 + tau)`，将
+0.60 m × 0.60 m 动态障碍 footprint 栅格化为时间层；不使用当前速度外推，也不读取
+Gazebo 当前状态猜测未来。
+
+首版接口参数为：`frame=odom`、local rolling grid `6×5 m`、`0.05 m` 分辨率、
+`dt=0.10 s`、`horizon=3.0 s`、`steps=31`、`publish=10 Hz`。消息类型为
+`oracle_dynamic_nav_msgs/msg/PredictedOccupancyGrid`，主题为
+`/oracle/predicted_occupancy`。
+
+离线与 live smoke 命令、消息字段、时间语义和回退规则见
+[Gate 3 README](gate3/README.md)。正式结论见
+[Gate 3 报告](reports/GATE3_REPORT_2026-08-28.md)。Gate 3 通过只表示未来信息
+接口在空间、时间和 ROS 2 消息层面正确；PredictionCritic 仍未实现，不能把本 Gate
+写成 Oracle 动态导航性能通过。
 
 ## 证据命名
 

@@ -1,0 +1,12 @@
+std_msgs/Header header
+float32 resolution
+uint32 width
+uint32 height
+geometry_msgs/Pose origin
+float32 dt
+uint32 steps
+float32[] data
+string source
+float32 footprint_half_size_m
+float32 risk_padding_m
+bool conservative_cell

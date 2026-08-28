@@ -1,0 +1,21 @@
+Gate 3 Reactive fallback smoke
+date: 2026-08-28
+branch: exp/oracle-g3-publisher-2026-08-28
+
+After terminating the standalone oracle_prediction_publisher process:
+
+  oracle node: absent
+  /oracle/predicted_occupancy publisher count: 0
+  /collision_monitor: active [3]
+  /controller_server: active [3]
+  /planner_server: active [3]
+  persistent nodes: /rtabmap, /collision_monitor, /controller_server,
+    /planner_server
+  persistent topics: /map, /odom, /cmd_vel, /local_costmap/costmap
+
+Result: PASS
+
+Interpretation:
+  Removing the Gate 3 publisher removes only its future-information source.
+  The Gate 1 Reactive MPPI/Nav2/RTAB-Map chain remains alive. No baseline
+  parameter, world, goal or costmap setting is changed by the publisher.

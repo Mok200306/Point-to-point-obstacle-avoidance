@@ -1,0 +1,17 @@
+scenario_id,difficulty,tau_s,frame_id,resolution_m,width_cells,height_cells,origin_x_m,origin_y_m,scheduled_x_m,scheduled_y_m,raster_centroid_x_m,raster_centroid_y_m,centroid_error_m,one_cell_diagonal_threshold_m,occupied_cells,passed,source
+S1_crossing,medium,0.0,odom,0.05,120,100,-7.0,-1.6,-4.0,0.9,-4.0,0.9,0.0,0.07071067811865477,196,True,deterministic waypoint schedule; not velocity extrapolation
+S1_crossing,medium,0.5,odom,0.05,120,100,-7.0,-1.6,-4.0,0.9,-4.0,0.9,0.0,0.07071067811865477,196,True,deterministic waypoint schedule; not velocity extrapolation
+S1_crossing,medium,1.0,odom,0.05,120,100,-7.0,-1.6,-4.0,0.9,-4.0,0.9,0.0,0.07071067811865477,196,True,deterministic waypoint schedule; not velocity extrapolation
+S1_crossing,medium,1.5,odom,0.05,120,100,-7.0,-1.6,-4.0,0.9,-4.0,0.9,0.0,0.07071067811865477,196,True,deterministic waypoint schedule; not velocity extrapolation
+S2_oncoming,medium,0.0,odom,0.05,120,100,4.5,-1.9,7.5,0.6,7.5,0.6000000000000003,3.3306690738754696e-16,0.07071067811865477,196,True,deterministic waypoint schedule; not velocity extrapolation
+S2_oncoming,medium,0.5,odom,0.05,120,100,4.5,-1.9,7.5,0.6,7.5,0.6000000000000003,3.3306690738754696e-16,0.07071067811865477,196,True,deterministic waypoint schedule; not velocity extrapolation
+S2_oncoming,medium,1.0,odom,0.05,120,100,4.5,-1.9,7.5,0.6,7.5,0.6000000000000003,3.3306690738754696e-16,0.07071067811865477,196,True,deterministic waypoint schedule; not velocity extrapolation
+S2_oncoming,medium,1.5,odom,0.05,120,100,4.5,-1.9,7.5,0.6,7.5,0.6000000000000003,3.3306690738754696e-16,0.07071067811865477,196,True,deterministic waypoint schedule; not velocity extrapolation
+S3_diagonal,medium,0.0,odom,0.05,120,100,-8.5,-0.7,-5.5,1.8,-5.5,1.8000000000000003,2.220446049250313e-16,0.07071067811865477,180,True,deterministic waypoint schedule; not velocity extrapolation
+S3_diagonal,medium,0.5,odom,0.05,120,100,-8.5,-0.7,-5.5,1.8,-5.5,1.8000000000000003,2.220446049250313e-16,0.07071067811865477,180,True,deterministic waypoint schedule; not velocity extrapolation
+S3_diagonal,medium,1.0,odom,0.05,120,100,-8.5,-0.7,-5.5,1.8,-5.5,1.8000000000000003,2.220446049250313e-16,0.07071067811865477,180,True,deterministic waypoint schedule; not velocity extrapolation
+S3_diagonal,medium,1.5,odom,0.05,120,100,-8.5,-0.7,-5.5,1.8,-5.5,1.8000000000000003,2.220446049250313e-16,0.07071067811865477,180,True,deterministic waypoint schedule; not velocity extrapolation
+S4_stop_go,medium,0.0,odom,0.05,120,100,-10.5,-4.0,-7.5,-1.5,-7.5,-1.4999999999999998,2.220446049250313e-16,0.07071067811865477,196,True,deterministic waypoint schedule; not velocity extrapolation
+S4_stop_go,medium,0.5,odom,0.05,120,100,-10.5,-4.0,-7.5,-1.5,-7.5,-1.4999999999999998,2.220446049250313e-16,0.07071067811865477,196,True,deterministic waypoint schedule; not velocity extrapolation
+S4_stop_go,medium,1.0,odom,0.05,120,100,-10.5,-4.0,-7.5,-1.5,-7.5,-1.4999999999999998,2.220446049250313e-16,0.07071067811865477,196,True,deterministic waypoint schedule; not velocity extrapolation
+S4_stop_go,medium,1.5,odom,0.05,120,100,-10.5,-4.0,-7.5,-1.5,-7.5,-1.4999999999999998,2.220446049250313e-16,0.07071067811865477,196,True,deterministic waypoint schedule; not velocity extrapolation
