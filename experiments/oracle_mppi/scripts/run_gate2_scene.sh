@@ -268,6 +268,7 @@ contact_pid=''
 bag_pid=''
 control_pid=''
 tmp_label="oracle_gate2_${scenario_id}_$(basename "$label")_$$"
+startup_recovery_attempted=false
 
 stop_dynamic() {
   if [[ -n "$dynamic_pid" ]]; then
@@ -341,11 +342,40 @@ printf 'Starting Gate 2 launch for %s (%s)\n' "$label" "$scenario_id"
 launch_pid=$!
 
 wait_for_nav2() {
-  local states count
+  local states count collision_state
   for ((attempt = 1; attempt <= startup_timeout; attempt++)); do
     states="$(compose_exec 'source /opt/ros/humble/setup.bash; for n in /controller_server /planner_server /collision_monitor; do timeout 4s ros2 lifecycle get "$n" 2>/dev/null || true; done' 2>/dev/null || true)"
     count="$(printf '%s\n' "$states" | grep -c '^active \[3\]$' || true)"
     [[ "$count" -eq 3 ]] && return 0
+
+    # On a cold Gazebo/DDS start the independently launched collision monitor
+    # can remain inactive after its lifecycle manager times out.  Retry that
+    # one lifecycle transition once, while still requiring all three nodes to
+    # be active before a goal is sent.  This is orchestration recovery only:
+    # it does not bypass the safety node or change any navigation parameter.
+    if [[ "$startup_recovery_attempted" == false ]] && \
+       [[ "$count" -ge 2 ]] && \
+       printf '%s\n' "$states" | grep -q '^inactive \[2\]$' && \
+       (( attempt >= 15 )); then
+      startup_recovery_attempted=true
+      {
+        printf 'attempt: %s\n' "$attempt"
+        printf 'states_before_retry:\n%s\n' "$states"
+        printf 'transition_log:\n'
+      } >>"$artifact_dir/startup_recovery.txt"
+
+      collision_state="$(compose_exec 'source /opt/ros/humble/setup.bash; timeout 8s ros2 lifecycle get /collision_monitor 2>/dev/null || true' 2>/dev/null || true)"
+      if printf '%s\n' "$collision_state" | grep -q '^unconfigured \[1\]$'; then
+        compose_exec 'source /opt/ros/humble/setup.bash; timeout 20s ros2 lifecycle set /collision_monitor configure' \
+          >>"$artifact_dir/startup_recovery.txt" 2>&1 || true
+      fi
+      compose_exec 'source /opt/ros/humble/setup.bash; timeout 20s ros2 lifecycle set /collision_monitor activate' \
+        >>"$artifact_dir/startup_recovery.txt" 2>&1 || true
+      printf 'states_after_retry:\n' >>"$artifact_dir/startup_recovery.txt"
+      compose_exec 'source /opt/ros/humble/setup.bash; timeout 8s ros2 lifecycle get /collision_monitor 2>&1 || true' \
+        >>"$artifact_dir/startup_recovery.txt" 2>&1 || true
+    fi
+
     kill -0 "$launch_pid" 2>/dev/null || return 1
     sleep 1
   done
@@ -355,10 +385,13 @@ wait_for_nav2() {
 if ! wait_for_nav2; then
   printf 'Nav2 startup failed; evidence kept at %s\n' "$artifact_dir" >&2
   printf 'startup_failure: true\n' >>"$artifact_dir/experiment.yaml"
+  printf 'startup_recovery_attempted: %s\n' "$startup_recovery_attempted" >>"$artifact_dir/experiment.yaml"
   compose_exec 'source /opt/ros/humble/setup.bash; for n in /controller_server /planner_server /bt_navigator /collision_monitor; do echo "[$n]"; timeout 4s ros2 lifecycle get "$n" 2>&1 || true; done' \
     >"$artifact_dir/startup_readiness.txt" 2>&1 || true
   exit 4
 fi
+
+printf 'startup_recovery_attempted: %s\n' "$startup_recovery_attempted" >>"$artifact_dir/experiment.yaml"
 
 compose_exec 'source /opt/ros/humble/setup.bash; ros2 topic list | sort; echo "--- lifecycle ---"; for n in /controller_server /planner_server /bt_navigator /collision_monitor; do echo "[$n]"; timeout 4s ros2 lifecycle get "$n" 2>&1 || true; done' \
   >"$artifact_dir/runtime_topics_and_lifecycle.txt" 2>&1 || true
