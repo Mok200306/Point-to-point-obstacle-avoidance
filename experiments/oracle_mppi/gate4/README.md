@@ -6,6 +6,20 @@ execution task book. Gate 4 verifies that future occupancy can be connected to
 MPPI and sampled with the correct time alignment. It does not claim that
 Oracle has improved dynamic navigation; that question belongs to Gate 5/6.
 
+## Formal status
+
+**PASS for Gate 4 hard acceptance, with a launch-wide teardown caveat.**
+
+T1-T5, pluginlib loading, Oracle message validation, and the formal 3+3 Reactive
+versus zero-risk Oracle regression passed. The six runs all reached the goal and
+had zero non-ground Gazebo contacts. The formal report records the observed
+`Failed to make progress` recovery events, Oracle run 02's stale fallback, and
+an additional planner teardown diagnostic that was not observed during
+PredictionCritic configure/score or navigation.
+
+See [GATE4_REPORT_2026-08-28.md](../reports/GATE4_REPORT_2026-08-28.md) for the
+acceptance checklist, metrics, evidence links, and Gate 5 boundary.
+
 ## Frozen interface
 
 - Oracle topic: `/oracle/predicted_occupancy`
@@ -38,8 +52,7 @@ docker compose exec -T ros2 bash -lc \
 docker compose exec -T ros2 bash -lc \
   'source /opt/ros/humble/setup.bash &&
    source /workspaces/rtabmap_tb3_nav/install/setup.bash &&
-   /workspaces/rtabmap_tb3_nav/install/nav2_mppi_prediction_critic/lib/
-   nav2_mppi_prediction_critic/prediction_critic_offline_test \
+   /workspaces/rtabmap_tb3_nav/install/nav2_mppi_prediction_critic/lib/nav2_mppi_prediction_critic/prediction_critic_offline_test \
    --output /workspaces/rtabmap_tb3_nav/experiments/oracle_mppi/gate4/critic_debug.csv'
 ```
 

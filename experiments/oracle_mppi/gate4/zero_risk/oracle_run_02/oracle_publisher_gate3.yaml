@@ -1,0 +1,23 @@
+# Gate 3 frozen first-pass Oracle publisher configuration.
+# This file is an interface/geometry test profile only. It is not connected
+# to Nav2 MPPI and must not be used to claim Oracle navigation improvement.
+oracle_prediction_publisher:
+  ros__parameters:
+    use_sim_time: true
+    scenario_file: experiments/oracle_mppi/configs/scenarios/s1_crossing.yaml
+    difficulty: medium
+    topic: /oracle/predicted_occupancy
+    nav2_params_file: experiments/oracle_mppi/configs/nav2_mppi_reactive_10hz_params.yaml
+    costmap_name: local_costmap
+    frame_id: odom
+    # The deterministic Gate 2 world schedule and reset odom basis coincide.
+    # Do not change this to map without supplying a validated transform.
+    source_frame: odom
+    robot_base_frame: base_link
+    origin_mode: robot_center
+    prediction_dt: 0.10
+    prediction_horizon_s: 3.0
+    publish_period_s: 0.10
+    risk_padding_m: 0.0
+    conservative_cell: true
+    scenario_start_sim_time: -1.0

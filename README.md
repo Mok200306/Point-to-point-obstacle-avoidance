@@ -33,7 +33,7 @@
 
 ### Oracle 预测式导航实验
 
-已在独立分支 `exp/oracle-g3-publisher-2026-08-28` 继续执行任务书规定的逐 Gate
+已在独立分支 `exp/oracle-g4-critic-2026-08-28` 继续执行任务书规定的逐 Gate
 实验：Gate 0 静态 RPP 基线、Gate 1 Reactive MPPI 静态基线、Gate 2 动态场景与
 碰撞真值链路均已完成，Gate 3 Oracle 未来时空占据接口也已通过硬验收。Gate 1 使用独立的
 10 Hz `reactive_mppi_static` profile，在 `indoor_obstacle_course_large.world`
@@ -42,12 +42,16 @@
 效率明显低于 RPP，不能把它描述为性能提升。Gate 2 证明四类动态场景、真实碰撞、
 Gazebo contacts、连续 clearance 和证据采集可复现，但 Reactive MPPI 在 S2/S4
 仍有动态碰撞。Gate 3 仅证明 Oracle 未来信息消息接口的 frame、时间、栅格几何和
-独立启停正确，尚未接入 PredictionCritic。完整协议、证据索引、参数和下一步
+独立启停正确。Gate 4 已完成 `PredictionCritic` 的 T1–T5、pluginlib 加载、时间对齐
+和 3+3 全零风险静态回归；六次运行全部到达且无非地面 contacts。Gate 4 报告同时记录
+了 progress recovery、stale 安全回退和 launch-wide planner teardown caveat；当前尚未
+证明 Oracle 的动态导航收益，也尚未进入 Transformer。完整协议、证据索引、参数和下一步
 Gate 4 入口见 [Oracle 实验目录](experiments/oracle_mppi/README.md)、
 [Gate 0 报告](experiments/oracle_mppi/reports/GATE0_REPORT_2026-08-27.md)与
 [Gate 1 报告](experiments/oracle_mppi/reports/GATE1_REPORT_2026-08-28.md)、
-[Gate 2 报告](experiments/oracle_mppi/reports/GATE2_REPORT_2026-08-28.md)和
-[Gate 3 报告](experiments/oracle_mppi/reports/GATE3_REPORT_2026-08-28.md)。
+[Gate 2 报告](experiments/oracle_mppi/reports/GATE2_REPORT_2026-08-28.md)、
+[Gate 3 报告](experiments/oracle_mppi/reports/GATE3_REPORT_2026-08-28.md)和
+[Gate 4 报告](experiments/oracle_mppi/reports/GATE4_REPORT_2026-08-28.md)。
 
 ## 当前 profile
 

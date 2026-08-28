@@ -1,6 +1,6 @@
 # Oracle 预测式导航实验
 
-本目录用于执行任务书《Oracle预测式导航生死实验_分阶段执行任务书_v1.docx》（2026-08-27）规定的逐 Gate 实验。当前 Gate 4 在独立分支 `exp/oracle-g4-critic-2026-08-28` 上进行，现有 `main` 分支、历史正式结果和既有 RPP profile 不在本实验中直接修改。
+本目录用于执行任务书《Oracle预测式导航生死实验_分阶段执行任务书_v1.docx》（2026-08-27）规定的逐 Gate 实验。当前 Gate 4 已在独立分支 `exp/oracle-g4-critic-2026-08-28` 上完成硬验收，现有 `main` 分支、历史正式结果和既有 RPP profile 不在本实验中直接修改。
 
 ## 研究问题
 
@@ -50,7 +50,7 @@ experiments/oracle_mppi/
 | Gate 1 | PASS（硬验收） | `reactive_mppi_static` + 10 Hz Reactive MPPI，A→B/B→A 各 3/3 成功、零非地面 contacts；效率和恢复次数有遗留问题 |
 | Gate 2 | PASS（环境与证据链路） | 四类动态场景均已参数化；真实 collision、contacts、Gazebo 真值距离和动态轨迹证据已验证。Reactive MPPI 在 S2/S4 仍有真实动态碰撞，不能写成动态导航 100% 成功 |
 | Gate 3 | PASS（接口硬验收） | Oracle 时空占据接口已完成离线和 ROS 2 smoke；尚未接入 Nav2 |
-| Gate 4 | 实现完成，回归进行中 | PredictionCritic、时间对齐、T1–T5、pluginlib 生命周期已通过；全零 Oracle 3+3 静态回归待正式完成 |
+| Gate 4 | PASS（硬验收；teardown caveat） | PredictionCritic、时间对齐、T1–T5、pluginlib 加载和全零 Oracle 3+3 静态回归均已完成；动态收益留给 Gate 5/6 |
 | Gate 5～8 | 未开始 | 闭环、统计、消融、最终复现包 |
 
 ## 基线启动
@@ -137,7 +137,14 @@ Gate 4 新增 `src/nav2_mppi_prediction_critic`，以 pluginlib 方式加载
 
 T1–T5 离线测试、真实 Nav2 pluginlib configure/activate 和全零风险 smoke 的命令与
 证据规则见 [gate4/README.md](gate4/README.md)。截至当前实现，已证明插件能够加载并
-在零风险 Oracle 下工作；这还不是动态场景收益结论。
+在零风险 Oracle 下工作；正式 3+3 对照已经完成。结果和 caveat 见
+[Gate 4 正式报告](reports/GATE4_REPORT_2026-08-28.md)。这还不是动态场景收益结论。
+
+Gate 4 正式矩阵位于 `gate4/zero_risk/`：Reactive 与 Oracle zero-risk 均为 3/3
+成功、0/3 非地面 contacts，控制周期 P95 约 0.1003 s。Oracle run 02 有 17 次
+stale 计数但按设计安全回退；所有正式运行均最终到达。日志中的
+`Failed to make progress` 是两组都出现的 MPPI/recovery 事件，不能省略。整套 launch
+联动退出时仍有 planner teardown 工程告警，需在 Gate 5 前做隔离生命周期复核。
 
 ## 证据命名
 

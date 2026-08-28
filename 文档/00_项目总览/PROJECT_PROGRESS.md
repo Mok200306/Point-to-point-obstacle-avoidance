@@ -1,6 +1,6 @@
 # 项目进度总结
 
-更新时间：2026-08-24（完成场景02结果清理、阶段2文档分层和项目交接）
+更新时间：2026-08-28（完成 Oracle Gate 4 PredictionCritic 与零风险回归）
 
 ## 当前状态
 
@@ -22,6 +22,7 @@
 | cross_scene_02 四点闭环 v13 | 3/3 成功，12/12 段，0/3 非地面 contacts |
 | 场景 03 | 尚未创建 |
 | 真实 D435i | 软件入口准备，尚未实机验收 |
+| Oracle Gate 4 PredictionCritic | 硬验收 PASS；3+3 zero-risk 回归通过，动态收益尚未验证 |
 
 ## 最新正式结果：场景02 v13
 
@@ -64,3 +65,16 @@ costmap重新规划；黑色起终点连线只用于可视化和目标线软偏�
 3. 运行单段 smoke test，再做三次完整回归；
 4. 若失败，按感知/TF、全局规划、局部控制、恢复、场景几何分类，不覆盖 v13；
 5. 场景 03 稳定后，才进入真实 D435i 的低速分级验证。
+
+## Oracle 实验当前状态
+
+Oracle 任务书的 Gate 0–3 已通过，Gate 4 已在分支
+`exp/oracle-g4-critic-2026-08-28` 完成硬验收。新增 `PredictionCritic` 按
+`tau_k=(t_eval-t_msg)+k*model_dt` 读取 `/oracle/predicted_occupancy`，T1–T5 和
+pluginlib 加载均通过。Reactive 与全零风险 Oracle 各运行 3 次，均为 3/3 成功、
+0/3 非地面 Gazebo contacts，控制周期 P95 约 0.1003 s。
+
+这不是动态 Oracle 收益结论：全零风险回归只验证插件接入不会改变静态基线。正式日志
+中的 progress recovery、run02 的 stale 回退和 launch-wide planner teardown caveat
+均已记录在 [Gate 4 报告](../../experiments/oracle_mppi/reports/GATE4_REPORT_2026-08-28.md)。
+下一步是 Gate 5 的 S1/S2 动态闭环 smoke，必须保持 Reactive 与 Oracle 的公平对照。

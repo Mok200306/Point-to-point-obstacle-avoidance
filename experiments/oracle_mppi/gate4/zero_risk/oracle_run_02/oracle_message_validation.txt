@@ -1,0 +1,2 @@
+frame=odom stamp=48.500000000 grid=120x100@0.050m dt=0.100 steps=31 data_len=372000 occupied_cells=0 source=oracle origin=(-11.498, -2.500)
+PASS: Gate 3 message interface fields are valid

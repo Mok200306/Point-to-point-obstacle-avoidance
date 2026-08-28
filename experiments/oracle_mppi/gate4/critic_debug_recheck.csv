@@ -1,0 +1,9 @@
+test,tau_s,risk,valid,out_of_bounds,out_of_horizon,cost,passed,note
+T1_zero_risk,1,0,true,false,false,0,true,all Oracle layers zero
+T2_same_space_before,0.2,0.200000003,true,false,false,10,true,same x,y before conflict time
+T2_same_space_conflict,1,1,true,false,false,50,true,same x,y at conflict time
+T2_linear_interpolation,0.5,0.5,true,false,false,25,true,linear risk between layers
+T3_message_age_alignment,1,1,true,false,false,50,true,tau_k=(t_eval-t_msg)+k*model_dt
+T4_out_of_horizon,4,0,false,false,true,0,true,ignore_out_of_horizon=true
+T5_bounds_finite,0,0,false,true,false,0,true,non-finite sample rejected safely
+cost_separation,1,1,true,false,false,50,true,conflict trajectory cost > pre-conflict trajectory cost

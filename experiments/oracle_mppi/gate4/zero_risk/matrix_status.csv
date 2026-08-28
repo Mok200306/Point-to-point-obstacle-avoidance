@@ -1,0 +1,7 @@
+method,run,label,exit_code
+reactive,1,experiments/oracle_mppi/gate4/zero_risk/reactive_run_01,0
+reactive,2,experiments/oracle_mppi/gate4/zero_risk/reactive_run_02,0
+reactive,3,experiments/oracle_mppi/gate4/zero_risk/reactive_run_03,0
+oracle,1,experiments/oracle_mppi/gate4/zero_risk/oracle_run_01,0
+oracle,2,experiments/oracle_mppi/gate4/zero_risk/oracle_run_02,0
+oracle,3,experiments/oracle_mppi/gate4/zero_risk/oracle_run_03,0
