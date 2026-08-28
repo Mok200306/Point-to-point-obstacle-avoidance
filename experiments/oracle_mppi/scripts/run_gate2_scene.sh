@@ -404,11 +404,45 @@ compose_exec 'source /opt/ros/humble/setup.bash; timeout 8s ros2 topic echo /gaz
 
 spawn_command="source /opt/ros/humble/setup.bash; timeout 45s ros2 run gazebo_ros spawn_entity.py -entity ${obstacle_name} -file ${model_container} -x ${spawn_x} -y ${spawn_y} -z 0.0"
 printf 'Spawning collidable dynamic obstacle: %s\n' "$obstacle_name"
+spawn_recovery_attempted=false
+spawn_attempts=1
 set +e
 compose_exec "$spawn_command" >"$artifact_dir/spawn_obstacle.log" 2>&1
 spawn_exit=$?
 set -e
-printf 'spawn_exit_code: %s\n' "$spawn_exit" >>"$artifact_dir/experiment.yaml"
+
+# Gazebo Classic may expose /spawn_entity before the factory callback is
+# ready.  A cold start can therefore time out the client even though the
+# model was created, or fail before creation.  Check model_states first and
+# retry once only when the model is absent.  This is launch orchestration
+# recovery; the model remains a real collidable object and no navigation
+# parameter or scenario trajectory is changed.
+if [[ "$spawn_exit" -ne 0 ]]; then
+  spawn_recovery_attempted=true
+  {
+    printf '\n--- spawn recovery ---\n'
+    printf 'initial_spawn_exit_code: %s\n' "$spawn_exit"
+    printf 'model_state_probe:\n'
+  } >>"$artifact_dir/spawn_obstacle.log"
+  model_state_probe="$(compose_exec 'source /opt/ros/humble/setup.bash; timeout 8s ros2 topic echo /gazebo/model_states --once 2>/dev/null || true' 2>/dev/null || true)"
+  printf '%s\n' "$model_state_probe" >>"$artifact_dir/spawn_obstacle.log"
+  if printf '%s\n' "$model_state_probe" | grep -qF -- "- $obstacle_name"; then
+    spawn_exit=0
+    printf 'model already present after client timeout; accepting spawn\n' \
+      >>"$artifact_dir/spawn_obstacle.log"
+  else
+    sleep 2
+    spawn_attempts=2
+    printf 'retrying spawn_entity once\n' >>"$artifact_dir/spawn_obstacle.log"
+    set +e
+    compose_exec "$spawn_command" >>"$artifact_dir/spawn_obstacle.log" 2>&1
+    spawn_exit=$?
+    set -e
+  fi
+fi
+printf 'spawn_attempts: %s\nspawn_recovery_attempted: %s\nspawn_exit_code: %s\n' \
+  "$spawn_attempts" "$spawn_recovery_attempted" "$spawn_exit" \
+  >>"$artifact_dir/experiment.yaml"
 if [[ "$spawn_exit" -ne 0 ]]; then
   printf 'Dynamic obstacle spawn failed; evidence kept at %s\n' "$artifact_dir" >&2
   exit 4
