@@ -1,0 +1,47 @@
+label: experiments/oracle_mppi/gate2/S3_diagonal/postfix2_01
+scenario_id: S3_diagonal
+scenario: experiments/oracle_mppi/configs/scenarios/s3_diagonal.yaml
+difficulty: medium
+git_commit: bfab28f87d6f66339175c7116159a7b8d2fc1bc3
+world_file: src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_large.world
+world_name: indoor_obstacle_course_large
+contacts_topic: /gazebo/indoor_obstacle_course_large/physics/contacts
+obstacle_name: oracle_dynamic_obstacle
+start_x_m: -8.5
+start_y_m: 0.0
+goal_x_m: 8.5
+goal_y_m: 0.0
+goal_yaw_rad: 0.0
+profile: reactive_mppi_static
+nav2_params: experiments/oracle_mppi/configs/nav2_mppi_reactive_10hz_params.yaml
+online: true
+localization: false
+reset_db: true
+use_sim_time: true
+seed: deterministic waypoint schedule; no randomization
+difficulty_time_scale: from scenario profile
+start_delay_s: from scenario profile
+scenario_update_period_s: 0.05
+expected_control_period_s: 0.1
+dynamic_startup_timeout_s: 12
+evidence_time_basis: sim message timestamps; wall time only for process duration
+startup_recovery_attempted: false
+spawn_attempts: 1
+spawn_recovery_attempted: false
+spawn_exit_code: 0
+dynamic_controller_startup_failure: false
+nav2_params: experiments/oracle_mppi/configs/nav2_mppi_reactive_10hz_params.yaml
+cmd_vel_topic: /cmd_vel
+cmd_vel_csv: cmd_vel.csv
+trial_exit_code: 0
+spawn_exit_code: 0
+gazebo_contact_messages: 478140
+dynamic_groundtruth_rows: 3896
+dynamic_service_updates: 1948
+dynamic_service_failures: 0
+minimum_robot_obstacle_clearance_m: 0.5974627805624368
+maximum_script_to_gazebo_position_error_m: 0.008500919067959365
+gazebo_non_ground_contact: false
+gazebo_contact_pairs: "(none)"
+gazebo_robot_dynamic_contact: false
+gazebo_robot_dynamic_contact_pairs: "(none)"

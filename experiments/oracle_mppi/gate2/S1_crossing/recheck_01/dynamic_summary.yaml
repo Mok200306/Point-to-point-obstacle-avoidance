@@ -1,0 +1,14 @@
+scenario_id: S1_crossing
+difficulty: medium
+obstacle_name: oracle_dynamic_obstacle
+update_period_s: 0.05
+time_scale: 1.0
+start_delay_s: 3.0
+sim_end_s: 225.2
+model_state_samples: 5168
+service_updates: 1757
+service_failures: 0
+groundtruth_rows_with_clearance: 3514
+minimum_robot_obstacle_clearance_m: 0.7727163664647262
+maximum_script_to_gazebo_position_error_m: 0.015000000000000568
+source: deterministic waypoint schedule; not velocity extrapolation

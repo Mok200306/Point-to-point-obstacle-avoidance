@@ -1,0 +1,14 @@
+scenario_id: S4_stop_go
+difficulty: medium
+obstacle_name: oracle_dynamic_obstacle
+update_period_s: 0.05
+time_scale: 1.0
+start_delay_s: 3.0
+sim_end_s: 402.0
+model_state_samples: 10391
+service_updates: 3533
+service_failures: 0
+groundtruth_rows_with_clearance: 7066
+minimum_robot_obstacle_clearance_m: 0.0
+maximum_script_to_gazebo_position_error_m: 0.017000000000000237
+source: deterministic waypoint schedule; not velocity extrapolation

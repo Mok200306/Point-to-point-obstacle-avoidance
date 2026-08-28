@@ -1,0 +1,30 @@
+scenario_id: S3_diagonal
+description: 斜向动态障碍进入机器人未来路径
+obstacle_name: oracle_dynamic_obstacle
+world_file: src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_large.world
+spawn:
+  x: -5.5
+  y: 1.8
+  yaw: -0.3000000000000000
+robot:
+  start_x: -8.5
+  start_y: 0.0
+  goal_x: 8.5
+  goal_y: 0.0
+  goal_yaw: 0.0
+update_period_s: 0.05
+obstacle_half_size_m: 0.30
+waypoints:
+  # The diagonal remains above barrier_west and below barrier_center while
+  # it enters the robot's north-to-center bypass. The endpoint is kept clear
+  # of crate_center_south; the old diagonal ended inside that static box and
+  # could not serve as a clean dynamic-scene stimulus.
+  - {t: 0.0, x: -5.5, y: 1.8, yaw: -0.3000000000000000}
+  - {t: 10.0, x: -5.5, y: 1.8, yaw: -0.3000000000000000}
+  - {t: 42.0, x: -2.9, y: 1.0, yaw: -0.3000000000000000}
+  - {t: 58.0, x: -1.8, y: 0.8, yaw: -0.3000000000000000}
+  - {t: 90.0, x: -1.8, y: 0.8, yaw: -0.3000000000000000}
+difficulty_profiles:
+  easy: {time_scale: 1.35, start_delay_s: 5.0}
+  medium: {time_scale: 1.0, start_delay_s: 3.0}
+  hard: {time_scale: 0.78, start_delay_s: 0.0}

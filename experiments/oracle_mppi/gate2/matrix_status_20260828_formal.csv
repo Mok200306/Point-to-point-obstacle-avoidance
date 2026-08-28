@@ -1,0 +1,13 @@
+scenario_id,run,label,exit_code,started_at,finished_at
+S1_crossing,formal_01,experiments/oracle_mppi/gate2/S1_crossing/formal_01,0,2026-08-27T23:37:40Z,2026-08-27T23:43:31Z
+S1_crossing,formal_02,experiments/oracle_mppi/gate2/S1_crossing/formal_02,0,2026-08-27T23:43:33Z,2026-08-27T23:49:16Z
+S1_crossing,formal_03,experiments/oracle_mppi/gate2/S1_crossing/formal_03,0,2026-08-27T23:49:18Z,2026-08-27T23:55:19Z
+S2_oncoming,formal_01,experiments/oracle_mppi/gate2/S2_oncoming/formal_01,0,2026-08-27T23:55:21Z,2026-08-28T00:01:09Z
+S2_oncoming,formal_02,experiments/oracle_mppi/gate2/S2_oncoming/formal_02,5,2026-08-28T00:01:11Z,2026-08-28T00:10:20Z
+S2_oncoming,formal_03,experiments/oracle_mppi/gate2/S2_oncoming/formal_03,5,2026-08-28T00:10:22Z,2026-08-28T00:15:45Z
+S3_diagonal,formal_01,experiments/oracle_mppi/gate2/S3_diagonal/formal_01,0,2026-08-28T00:15:47Z,2026-08-28T00:21:26Z
+S3_diagonal,formal_02,experiments/oracle_mppi/gate2/S3_diagonal/formal_02,0,2026-08-28T00:21:27Z,2026-08-28T00:27:01Z
+S3_diagonal,formal_03,experiments/oracle_mppi/gate2/S3_diagonal/formal_03,0,2026-08-28T00:27:03Z,2026-08-28T00:32:32Z
+S4_stop_go,formal_01,experiments/oracle_mppi/gate2/S4_stop_go/formal_01,0,2026-08-28T00:32:34Z,2026-08-28T00:38:28Z
+S4_stop_go,formal_02,experiments/oracle_mppi/gate2/S4_stop_go/formal_02,5,2026-08-28T00:38:30Z,2026-08-28T00:48:59Z
+S4_stop_go,formal_03,experiments/oracle_mppi/gate2/S4_stop_go/formal_03,4,2026-08-28T00:49:01Z,2026-08-28T01:02:11Z

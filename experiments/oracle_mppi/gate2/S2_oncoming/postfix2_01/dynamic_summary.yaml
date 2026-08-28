@@ -1,0 +1,14 @@
+scenario_id: S2_oncoming
+difficulty: medium
+obstacle_name: oracle_dynamic_obstacle
+update_period_s: 0.05
+time_scale: 1.0
+start_delay_s: 3.0
+sim_end_s: 279.4
+model_state_samples: 6788
+service_updates: 2308
+service_failures: 0
+groundtruth_rows_with_clearance: 4616
+minimum_robot_obstacle_clearance_m: 0.0
+maximum_script_to_gazebo_position_error_m: 0.021428571428571352
+source: deterministic waypoint schedule; not velocity extrapolation

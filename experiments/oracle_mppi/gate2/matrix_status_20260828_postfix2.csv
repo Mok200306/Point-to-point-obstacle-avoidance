@@ -1,0 +1,5 @@
+scenario_id,run,label,exit_code,started_at,finished_at
+S1_crossing,postfix2_01,experiments/oracle_mppi/gate2/S1_crossing/postfix2_01,0,2026-08-28T02:51:11Z,2026-08-28T02:57:26Z
+S2_oncoming,postfix2_01,experiments/oracle_mppi/gate2/S2_oncoming/postfix2_01,5,2026-08-28T02:57:28Z,2026-08-28T03:04:46Z
+S3_diagonal,postfix2_01,experiments/oracle_mppi/gate2/S3_diagonal/postfix2_01,0,2026-08-28T03:04:48Z,2026-08-28T03:10:49Z
+S4_stop_go,postfix2_01,experiments/oracle_mppi/gate2/S4_stop_go/postfix2_01,5,2026-08-28T03:10:51Z,2026-08-28T03:15:45Z

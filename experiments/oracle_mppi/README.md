@@ -47,7 +47,7 @@ experiments/oracle_mppi/
 |---|---|---|
 | Gate 0 | PASS | `adaptive_goal_line_045` + RPP 静态回归基线已完成 6/6 成功、无非地面 contacts |
 | Gate 1 | PASS（硬验收） | `reactive_mppi_static` + 10 Hz Reactive MPPI，A→B/B→A 各 3/3 成功、零非地面 contacts；效率和恢复次数有遗留问题 |
-| Gate 2 | 进行中 | S1 横穿、S2 对向、S3 斜穿、S4 停-走/变速；已完成初始 smoke，正在补齐每类 3 次 medium 重复与统一验收 |
+| Gate 2 | PASS（环境与证据链路） | 四类动态场景均已参数化；真实 collision、contacts、Gazebo 真值距离和动态轨迹证据已验证。Reactive MPPI 在 S2/S4 仍有真实动态碰撞，不能写成动态导航 100% 成功 |
 | Gate 3 | 未开始 | Oracle 时空占据接口 |
 | Gate 4 | 未开始 | PredictionCritic 与时间对齐 |
 | Gate 5～8 | 未开始 | 闭环、统计、消融、最终复现包 |
@@ -85,7 +85,7 @@ YAML 的确定性 waypoint schedule 驱动。控制器只执行动态障碍轨�
 真值；当前阶段不向 Nav2 发布未来占据，也不使用当前速度外推未来。
 
 四个场景配置位于 `configs/scenarios/`：S1 横穿、S2 对向、S3 斜穿、S4 停-走/变速。
-批量 medium smoke 命令如下，脚本顺序执行且失败目录保留：
+批量 medium 命令如下，脚本顺序执行且失败目录保留：
 
 ```bash
 ./experiments/oracle_mppi/scripts/run_gate2_matrix.sh \
@@ -94,9 +94,18 @@ YAML 的确定性 waypoint schedule 驱动。控制器只执行动态障碍轨�
 python3 experiments/oracle_mppi/scripts/summarize_gate2.py
 ```
 
-默认结果位于 `gate2/S*/medium_01..03/`，矩阵状态写入
-`gate2/matrix_status_20260828.csv`。每个 run 应包含 `dynamic_groundtruth.csv`、
-`dynamic_summary.yaml`、`metrics.yaml`、轨迹图、参数快照和 contacts 证据。
+正式结果位于 `gate2/S*/formal_*`，修复后的补跑位于 `postfix2_*`、`recheck_*` 等不可覆盖目录；矩阵状态写入
+`gate2/matrix_status_20260828_*.csv`。所有带 `scenario.yaml` 的目录都会递归纳入
+`gate2/summary.csv`，包括启动失败、spawn 失败和真实碰撞目录。完整 run 应包含
+`dynamic_groundtruth.csv`、`dynamic_summary.yaml`、`metrics.yaml`、动态轨迹图、参数快照和 contacts 证据。
+
+Gate 2 正式报告见 [GATE2_REPORT_2026-08-28.md](reports/GATE2_REPORT_2026-08-28.md)。报告严格区分：
+
+- 动态环境与证据链路已经通过；
+- Reactive MPPI 动态避障仍有 S2/S4 碰撞；
+- 尚未实现 Oracle publisher、PredictionCritic 或 Transformer。
+
+只有在报告和 `summary.csv` 复核完成后，才允许创建 `oracle-g2-pass` 标签。
 
 ## 证据命名
 

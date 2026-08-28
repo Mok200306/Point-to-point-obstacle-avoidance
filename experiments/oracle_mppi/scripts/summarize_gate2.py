@@ -41,6 +41,42 @@ def value(data, key, default=''):
     return data.get(key, default)
 
 
+def infer_failure_reason(run, metrics, experiment, scenario):
+    """Return a short audit label without hiding incomplete runs."""
+    if not metrics:
+        if experiment.get('startup_failure') is True:
+            return 'Nav2 startup/lifecycle readiness failure'
+        try:
+            if int(experiment.get('spawn_exit_code', 0)) != 0:
+                return 'dynamic obstacle spawn failure'
+        except (TypeError, ValueError):
+            pass
+        if experiment.get('dynamic_controller_startup_failure') is True:
+            return 'dynamic controller startup failure'
+        runner_log = run / 'runner.log'
+        if runner_log.exists():
+            text = runner_log.read_text(encoding='utf-8', errors='replace')
+            if 'Nav2 startup failed' in text:
+                return 'Nav2 startup/lifecycle readiness failure'
+            if 'Dynamic obstacle spawn failed' in text:
+                return 'dynamic obstacle spawn failure'
+            if 'Dynamic controller failed startup' in text:
+                return 'dynamic controller startup failure'
+        return 'incomplete run: metrics.yaml missing'
+
+    if value(metrics, 'gazebo_robot_dynamic_contact', False) is True:
+        return 'robot-dynamic physical collision'
+    if value(metrics, 'gazebo_non_ground_contact', False) is True:
+        return 'non-ground physical contact'
+    if not (run / 'dynamic_groundtruth.csv').exists() or \
+            not (run / 'dynamic_summary.yaml').exists():
+        return 'incomplete run: dynamic evidence missing'
+    if value(metrics, 'succeeded', False) is not True:
+        status = value(metrics, 'nav2_status', '')
+        return f'Nav2 trial failure (status={status})'
+    return ''
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--root', default='experiments/oracle_mppi/gate2')
@@ -48,24 +84,39 @@ def main():
     args = parser.parse_args()
     root = Path(args.root)
     rows = []
-    # Include both the exploratory smoke runs and the later formal medium
-    # runs.  The recursive pattern intentionally keeps every evidence
-    # directory; no failed run is filtered out.
-    for metrics_path in sorted(root.glob('S*/**/metrics.yaml')):
-        run = metrics_path.parent
-        metrics = load_yaml_or_fallback(metrics_path)
+    # Include every evidence directory, including startup/spawn failures that
+    # do not have metrics.yaml.  The scenario.yaml is the run-directory marker
+    # and the recursive pattern intentionally keeps every failure in the CSV.
+    for scenario_path in sorted(root.glob('S*/**/scenario.yaml')):
+        run = scenario_path.parent
+        metrics_path = run / 'metrics.yaml'
+        experiment_path = run / 'experiment.yaml'
+        metrics = load_yaml_or_fallback(metrics_path) \
+            if metrics_path.exists() else {}
+        experiment = load_yaml_or_fallback(experiment_path) \
+            if experiment_path.exists() else {}
         scenario = load_yaml_or_fallback(run / 'scenario.yaml')
         dynamic = load_yaml_or_fallback(run / 'dynamic_summary.yaml') \
             if (run / 'dynamic_summary.yaml').exists() else {}
-        contact_pairs = str(value(metrics, 'gazebo_contact_pairs', '(none)'))
-        dynamic_pair = str(value(metrics, 'gazebo_robot_dynamic_contact_pairs', '(none)'))
+        contact_pairs = str(value(metrics, 'gazebo_contact_pairs',
+                                  value(experiment, 'gazebo_contact_pairs', '(none)')))
+        dynamic_pair = str(value(
+            metrics, 'gazebo_robot_dynamic_contact_pairs',
+            value(experiment, 'gazebo_robot_dynamic_contact_pairs', '(none)')))
+        source = metrics or experiment
+        failure_reason = infer_failure_reason(
+            run, metrics, experiment, scenario)
         rows.append({
-            'scenario_id': value(metrics, 'scenario_id', value(scenario, 'scenario_id', '')),
+            'scenario_id': value(source, 'scenario_id', value(scenario, 'scenario_id', '')),
             'run': run.name,
             'run_path': str(run),
+            'run_class': run.name.rsplit('_', 1)[0]
+                if '_' in run.name else run.name,
+            'git_commit': value(source, 'git_commit', ''),
             'nav2_status': value(metrics, 'nav2_status', ''),
             'succeeded': value(metrics, 'succeeded', ''),
-            'wrapper_trial_exit': value(metrics, 'wrapper_trial_exit', ''),
+            'wrapper_trial_exit': value(metrics, 'wrapper_trial_exit',
+                                        value(experiment, 'trial_exit_code', '')),
             'wall_duration_s': value(metrics, 'wall_duration_s', ''),
             'simulation_duration_s': value(metrics, 'simulation_duration_s', ''),
             'trajectory_length_m': value(metrics, 'gazebo_trajectory_length_m',
@@ -86,12 +137,17 @@ def main():
             'gazebo_robot_dynamic_contact_pairs': dynamic_pair,
             'dynamic_plot': str(run / 'dynamic_trajectory_comparison.png')
                 if (run / 'dynamic_trajectory_comparison.png').exists() else '',
+            'evidence_complete': bool(metrics and
+                                      (run / 'dynamic_groundtruth.csv').exists() and
+                                      (run / 'dynamic_summary.yaml').exists()),
+            'failure_reason': failure_reason,
         })
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     if rows:
         with output.open('w', newline='', encoding='utf-8') as stream:
-            writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
+            writer = csv.DictWriter(stream, fieldnames=list(rows[0]),
+                                    lineterminator='\n')
             writer.writeheader()
             writer.writerows(rows)
     else:
