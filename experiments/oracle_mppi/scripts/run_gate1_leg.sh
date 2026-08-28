@@ -20,6 +20,8 @@ settle_seconds='5.0'
 startup_timeout='75'
 contact_timeout='420'
 expected_control_period='0.1'
+oracle_scenario=''
+oracle_publisher_config=''
 
 usage() {
   cat <<'EOF'
@@ -28,7 +30,8 @@ Usage:
     --start-x X --start-y Y --x X --y Y [--yaw RAD] \
     --label experiments/oracle_mppi/gate1/case_A_to_B/run_01 \
     [--profile NAME] [--nav2-params PATH] [--expected-control-period SEC]
-    [--settle-seconds SEC]
+    [--settle-seconds SEC] [--oracle-scenario PATH]
+    [--oracle-publisher-config PATH]
 EOF
 }
 
@@ -47,6 +50,8 @@ while [[ $# -gt 0 ]]; do
     --settle-seconds) settle_seconds="$2"; shift 2 ;;
     --startup-timeout) startup_timeout="$2"; shift 2 ;;
     --contact-timeout) contact_timeout="$2"; shift 2 ;;
+    --oracle-scenario) oracle_scenario="$2"; shift 2 ;;
+    --oracle-publisher-config) oracle_publisher_config="$2"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *) printf 'Unknown argument: %s\n' "$1" >&2; usage >&2; exit 2 ;;
   esac
@@ -56,7 +61,8 @@ if [[ -z "$goal_x" || -z "$label" ]]; then
   usage >&2
   exit 2
 fi
-if [[ "$label" != experiments/oracle_mppi/gate1/* || "$label" == *..* ]]; then
+if [[ ("$label" != experiments/oracle_mppi/gate1/* &&
+       "$label" != experiments/oracle_mppi/gate4/*) || "$label" == *..* ]]; then
   printf 'Unsafe Gate 1 label: %s\n' "$label" >&2
   exit 2
 fi
@@ -87,6 +93,53 @@ else
   nav2_params_host="$repo_root/$nav2_params"
 fi
 [[ -f "$nav2_params_host" ]] || { printf 'Nav2 params not found: %s\n' "$nav2_params_host" >&2; exit 2; }
+
+if [[ -n "$oracle_scenario" ]]; then
+  if [[ "$oracle_scenario" == /* ]]; then
+    case "$oracle_scenario" in
+      "$repo_root"/*)
+        oracle_scenario_host="$oracle_scenario"
+        oracle_scenario="${oracle_scenario#"$repo_root/"}"
+        ;;
+      *) printf 'Oracle scenario must be inside repository: %s\n' "$oracle_scenario" >&2; exit 2 ;;
+    esac
+  else
+    oracle_scenario="${oracle_scenario#./}"
+    oracle_scenario_host="$repo_root/$oracle_scenario"
+  fi
+  [[ -f "$oracle_scenario_host" ]] || {
+    printf 'Oracle scenario not found: %s\n' "$oracle_scenario_host" >&2
+    exit 2
+  }
+fi
+
+if [[ -n "$oracle_publisher_config" ]]; then
+  if [[ "$oracle_publisher_config" == /* ]]; then
+    case "$oracle_publisher_config" in
+      "$repo_root"/*)
+        oracle_publisher_config_host="$oracle_publisher_config"
+        oracle_publisher_config="${oracle_publisher_config#"$repo_root/"}"
+        ;;
+      *) printf 'Oracle publisher config must be inside repository: %s\n' "$oracle_publisher_config" >&2; exit 2 ;;
+    esac
+  else
+    oracle_publisher_config="${oracle_publisher_config#./}"
+    oracle_publisher_config_host="$repo_root/$oracle_publisher_config"
+  fi
+  [[ -f "$oracle_publisher_config_host" ]] || {
+    printf 'Oracle publisher config not found: %s\n' "$oracle_publisher_config_host" >&2
+    exit 2
+  }
+fi
+if [[ -n "$oracle_scenario" && -z "$oracle_publisher_config" ]] ||
+   [[ -z "$oracle_scenario" && -n "$oracle_publisher_config" ]]; then
+  printf '%s\n' '--oracle-scenario and --oracle-publisher-config must be supplied together' >&2
+  exit 2
+fi
+oracle_enabled=false
+if [[ -n "$oracle_scenario" ]]; then
+  oracle_enabled=true
+fi
 
 artifact_dir="$repo_root/$label"
 if [[ -e "$artifact_dir" ]] && find "$artifact_dir" -mindepth 1 -print -quit | grep -q .; then
@@ -152,16 +205,43 @@ world_container="/workspaces/rtabmap_tb3_nav/$world_file"
 nav2_params_container="/workspaces/rtabmap_tb3_nav/$nav2_params"
 nav2_params_snapshot="$(basename "$nav2_params")"
 commit="$(git rev-parse HEAD)"
+oracle_scenario_container="/workspaces/rtabmap_tb3_nav/$oracle_scenario"
+oracle_publisher_config_container="/workspaces/rtabmap_tb3_nav/$oracle_publisher_config"
 
 cp "$nav2_params_host" "$artifact_dir/$nav2_params_snapshot"
 cp src/rtabmap_tb3_nav/config/collision_monitor_rgbd_params.yaml "$artifact_dir/collision_monitor_rgbd_params.yaml"
 cp src/rtabmap_tb3_nav/launch/demo.launch.py "$artifact_dir/demo.launch.py"
 cp src/rtabmap_tb3_nav/src/goal_line_smac_planner.cpp "$artifact_dir/goal_line_smac_planner.cpp"
 cp "$world_host" "$artifact_dir/world.sdf"
+if [[ -n "$oracle_scenario" ]]; then
+  cp "$oracle_scenario_host" "$artifact_dir/$(basename "$oracle_scenario")"
+fi
+if [[ -n "$oracle_publisher_config" ]]; then
+  cp "$oracle_publisher_config_host" "$artifact_dir/$(basename "$oracle_publisher_config")"
+fi
 
 printf '%s\n'   "world_file=$world_file"   "world_name=$world_name"   "start_x=$start_x"   "start_y=$start_y"   "goal_x=$goal_x"   "goal_y=$goal_y"   "goal_yaw=$goal_yaw"   "profile=$profile"   "nav2_params=$nav2_params"   "expected_control_period=$expected_control_period"   "online=true"   "localization=false"   "reset_db=true"   "use_sim_time=true"   "rviz=false"   "gazebo_gui=false"   "rtabmap_viz=false"   >"$artifact_dir/launch_arguments.txt"
+if [[ -n "$oracle_scenario" ]]; then
+  printf 'oracle_scenario=%s\noracle_publisher_config=%s\n' \
+    "$oracle_scenario" "$oracle_publisher_config" >>"$artifact_dir/launch_arguments.txt"
+fi
 
-cat >"$artifact_dir/reproduce_command.sh" <<EOF
+if [[ "$oracle_enabled" == true ]]; then
+  cat >"$artifact_dir/reproduce_command.sh" <<EOF
+#!/usr/bin/env bash
+set -Eeuo pipefail
+cd "$repo_root"
+./experiments/oracle_mppi/scripts/run_gate1_leg.sh \\
+  --start-x "$start_x" --start-y "$start_y" \\
+  --x "$goal_x" --y "$goal_y" --yaw "$goal_yaw" \\
+  --profile "$profile" --nav2-params "$nav2_params" --expected-control-period "$expected_control_period" --settle-seconds "$settle_seconds" \\
+  --startup-timeout "$startup_timeout" --contact-timeout "$contact_timeout" \\
+  --label "$label" \\
+  --oracle-scenario "$oracle_scenario" \\
+  --oracle-publisher-config "$oracle_publisher_config"
+EOF
+else
+  cat >"$artifact_dir/reproduce_command.sh" <<EOF
 #!/usr/bin/env bash
 set -Eeuo pipefail
 cd "$repo_root"
@@ -172,6 +252,7 @@ cd "$repo_root"
   --startup-timeout "$startup_timeout" --contact-timeout "$contact_timeout" \\
   --label "$label"
 EOF
+fi
 chmod +x "$artifact_dir/reproduce_command.sh"
 
 {
@@ -190,10 +271,16 @@ chmod +x "$artifact_dir/reproduce_command.sh"
   printf 'seed: not explicitly set; static world and fixed launch parameters\n'
   printf 'settle_seconds: %s\n' "$settle_seconds"
   printf 'expected_control_period_s: %s\n' "$expected_control_period"
+  printf 'oracle_enabled: %s\n' "$oracle_enabled"
   printf 'evidence_time_basis: sim message timestamps; wall time only for process duration\n'
 } >"$artifact_dir/experiment.yaml"
+if [[ "$oracle_enabled" == true ]]; then
+  printf 'oracle_scenario: %s\noracle_publisher_config: %s\n' \
+    "$oracle_scenario" "$oracle_publisher_config" >>"$artifact_dir/experiment.yaml"
+fi
 
 launch_pid=''
+oracle_pid=''
 contact_pid=''
 bag_pid=''
 control_pid=''
@@ -205,6 +292,16 @@ stop_control() {
     kill -TERM "$control_pid" 2>/dev/null || true
     wait "$control_pid" 2>/dev/null || true
     control_pid=''
+  fi
+}
+
+stop_oracle() {
+  if [[ -n "$oracle_pid" ]]; then
+    compose_exec 'pkill -INT -f "[o]racle_prediction_publisher" || true' \
+      >/dev/null 2>&1 || true
+    kill -TERM "$oracle_pid" 2>/dev/null || true
+    wait "$oracle_pid" 2>/dev/null || true
+    oracle_pid=''
   fi
 }
 
@@ -241,6 +338,7 @@ stop_launch() {
 
 cleanup() {
   stop_control
+  stop_oracle
   stop_bag
   stop_contact
   stop_launch
@@ -284,6 +382,34 @@ compose_exec 'source /opt/ros/humble/setup.bash; for n in /controller_server /pl
 compose_exec 'source /opt/ros/humble/setup.bash; timeout 8s ros2 topic echo /clock --once' >"$artifact_dir/clock_probe.txt" 2>&1 || true
 compose_exec 'source /opt/ros/humble/setup.bash; timeout 8s ros2 topic echo /gazebo/model_states --once' >"$artifact_dir/model_states_probe.txt" 2>&1 || true
 
+oracle_validation_exit=0
+if [[ "$oracle_enabled" == true ]]; then
+  oracle_command="source /opt/ros/humble/setup.bash && source /workspaces/rtabmap_tb3_nav/install/setup.bash && ros2 run oracle_prediction_publisher oracle_prediction_publisher --ros-args --params-file $oracle_publisher_config_container -p scenario_file:=$oracle_scenario_container -p nav2_params_file:=$nav2_params_container"
+  printf 'Starting Oracle publisher for %s\n' "$label"
+  (compose_exec "$oracle_command" >"$artifact_dir/oracle_publisher.log" 2>&1) &
+  oracle_pid=$!
+  sleep 2
+  if ! kill -0 "$oracle_pid" 2>/dev/null; then
+    printf 'Oracle publisher exited during startup; evidence kept at %s\n' \
+      "$artifact_dir" >&2
+    printf 'oracle_startup_failure: true\n' >>"$artifact_dir/experiment.yaml"
+    exit 6
+  fi
+  compose_exec 'source /opt/ros/humble/setup.bash; ros2 topic info /oracle/predicted_occupancy --verbose' \
+    >"$artifact_dir/oracle_topic_info.txt" 2>&1 || true
+  set +e
+  compose_exec "source /opt/ros/humble/setup.bash; source /workspaces/rtabmap_tb3_nav/install/setup.bash; timeout 15s python3 /workspaces/rtabmap_tb3_nav/experiments/oracle_mppi/scripts/validate_gate3_ros_message.py --topic /oracle/predicted_occupancy --expected-frame odom --expected-source oracle --expected-resolution 0.05 --expected-width 120 --expected-height 100 --expected-dt 0.10 --expected-steps 31" \
+    >"$artifact_dir/oracle_message_validation.txt" 2>&1
+  oracle_validation_exit=$?
+  set -e
+  printf 'oracle_message_validation_exit: %s\n' "$oracle_validation_exit" >>"$artifact_dir/experiment.yaml"
+  if [[ "$oracle_validation_exit" -ne 0 ]]; then
+    printf 'Oracle message validation failed; evidence kept at %s\n' \
+      "$artifact_dir" >&2
+    exit 6
+  fi
+fi
+
 contact_command="timeout ${contact_timeout}s gz topic -e ${contacts_topic} -u"
 (compose_exec "$contact_command" >"$artifact_dir/gazebo_contacts.log" 2>&1) &
 contact_pid=$!
@@ -309,6 +435,7 @@ trial_exit=$?
 set -e
 
 stop_control
+stop_oracle
 stop_bag
 stop_contact
 stop_launch
@@ -336,6 +463,7 @@ contact_pairs_one_line="$(printf '%s' "$contact_pairs" | tr '\n' ';' | sed 's/;$
   printf 'nav2_params: %s\n' "$nav2_params"
   printf 'cmd_vel_topic: /cmd_vel\ncmd_vel_csv: cmd_vel.csv\n'
   printf 'trial_exit_code: %s\n' "$trial_exit"
+  printf 'oracle_message_validation_exit: %s\n' "$oracle_validation_exit"
   printf 'gazebo_contact_messages: %s\n' "$contact_count"
   if [[ -n "$contact_pairs" ]]; then
     printf 'gazebo_non_ground_contact: true\n'
@@ -359,6 +487,9 @@ if [[ -f "$artifact_dir/metrics.yaml" ]]; then
     printf 'gazebo_contacts_topic: "%s"\n' "$contacts_topic"
     printf 'gazebo_contact_messages: %s\n' "$contact_count"
     printf 'wrapper_trial_exit: %s\n' "$trial_exit"
+    printf 'oracle_message_validation_exit: %s\n' "$oracle_validation_exit"
+    printf 'oracle_active_log_lines: %s\n' "$(grep -c 'PredictionCritic status=active' "$artifact_dir/launch.log" 2>/dev/null || true)"
+    printf 'oracle_stale_log_lines: %s\n' "$(grep -c 'PredictionCritic status=stale' "$artifact_dir/launch.log" 2>/dev/null || true)"
     if [[ -n "$contact_pairs" ]]; then
       printf 'gazebo_non_ground_contact: true\n'
       printf 'gazebo_contact_pairs: "%s"\n' "$contact_pairs_one_line"

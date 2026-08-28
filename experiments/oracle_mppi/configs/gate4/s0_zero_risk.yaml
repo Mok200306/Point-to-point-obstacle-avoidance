@@ -1,0 +1,21 @@
+scenario_id: S0_zero_risk
+description: Gate 4 zero-risk publisher stream; the scheduled proxy remains outside the local grid.
+obstacle_name: oracle_dynamic_obstacle
+world_file: src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_large.world
+spawn:
+  x: 100.0
+  y: 100.0
+  yaw: 0.0
+robot:
+  start_x: -8.5
+  start_y: 0.0
+  goal_x: 8.5
+  goal_y: 0.0
+  goal_yaw: 0.0
+update_period_s: 0.05
+obstacle_half_size_m: 0.30
+waypoints:
+  - {t: 0.0, x: 100.0, y: 100.0, yaw: 0.0}
+  - {t: 120.0, x: 100.0, y: 100.0, yaw: 0.0}
+difficulty_profiles:
+  medium: {time_scale: 1.0, start_delay_s: 0.0}

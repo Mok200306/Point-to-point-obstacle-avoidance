@@ -1,6 +1,6 @@
 # Oracle 预测式导航实验
 
-本目录用于执行任务书《Oracle预测式导航生死实验_分阶段执行任务书_v1.docx》（2026-08-27）规定的逐 Gate 实验。当前实验在独立分支 `exp/oracle-g3-publisher-2026-08-28` 上进行，现有 `main` 分支、历史正式结果和既有 RPP profile 不在本实验中直接修改。
+本目录用于执行任务书《Oracle预测式导航生死实验_分阶段执行任务书_v1.docx》（2026-08-27）规定的逐 Gate 实验。当前 Gate 4 在独立分支 `exp/oracle-g4-critic-2026-08-28` 上进行，现有 `main` 分支、历史正式结果和既有 RPP profile 不在本实验中直接修改。
 
 ## 研究问题
 
@@ -50,7 +50,7 @@ experiments/oracle_mppi/
 | Gate 1 | PASS（硬验收） | `reactive_mppi_static` + 10 Hz Reactive MPPI，A→B/B→A 各 3/3 成功、零非地面 contacts；效率和恢复次数有遗留问题 |
 | Gate 2 | PASS（环境与证据链路） | 四类动态场景均已参数化；真实 collision、contacts、Gazebo 真值距离和动态轨迹证据已验证。Reactive MPPI 在 S2/S4 仍有真实动态碰撞，不能写成动态导航 100% 成功 |
 | Gate 3 | PASS（接口硬验收） | Oracle 时空占据接口已完成离线和 ROS 2 smoke；尚未接入 Nav2 |
-| Gate 4 | 未开始 | PredictionCritic 与时间对齐 |
+| Gate 4 | 实现完成，回归进行中 | PredictionCritic、时间对齐、T1–T5、pluginlib 生命周期已通过；全零 Oracle 3+3 静态回归待正式完成 |
 | Gate 5～8 | 未开始 | 闭环、统计、消融、最终复现包 |
 
 ## 基线启动
@@ -123,8 +123,21 @@ Gazebo 当前状态猜测未来。
 离线与 live smoke 命令、消息字段、时间语义和回退规则见
 [Gate 3 README](gate3/README.md)。正式结论见
 [Gate 3 报告](reports/GATE3_REPORT_2026-08-28.md)。Gate 3 通过只表示未来信息
-接口在空间、时间和 ROS 2 消息层面正确；PredictionCritic 仍未实现，不能把本 Gate
-写成 Oracle 动态导航性能通过。
+接口在空间、时间和 ROS 2 消息层面正确；Gate 3 本身不包含 PredictionCritic，不能把
+本 Gate 写成 Oracle 动态导航性能通过。Critic 的接入与时间对齐在 Gate 4 单独验收。
+
+## Gate 4 PredictionCritic
+
+Gate 4 新增 `src/nav2_mppi_prediction_critic`，以 pluginlib 方式加载
+`mppi::critics::PredictionCritic`。它只订阅 Gate 3 的
+`/oracle/predicted_occupancy`，并按
+`tau_k = (t_eval - t_msg) + k * model_dt` 对 MPPI 候选轨迹逐点采样。消息 frame、
+网格尺寸、时间层、数据长度和时间新鲜度均经过检查；无消息、stale、越界或超出预测
+时域时回退，不会让 controller 崩溃。
+
+T1–T5 离线测试、真实 Nav2 pluginlib configure/activate 和全零风险 smoke 的命令与
+证据规则见 [gate4/README.md](gate4/README.md)。截至当前实现，已证明插件能够加载并
+在零风险 Oracle 下工作；这还不是动态场景收益结论。
 
 ## 证据命名
 

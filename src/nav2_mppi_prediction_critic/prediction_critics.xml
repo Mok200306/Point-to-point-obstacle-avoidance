@@ -1,0 +1,7 @@
+<library path="nav2_mppi_prediction_critic">
+  <class
+    type="mppi::critics::PredictionCritic"
+    base_class_type="mppi::critics::CriticFunction">
+    <description>Time-aligned future occupancy risk critic for MPPI.</description>
+  </class>
+</library>

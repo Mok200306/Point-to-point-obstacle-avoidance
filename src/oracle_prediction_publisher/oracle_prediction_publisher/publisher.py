@@ -15,6 +15,7 @@ from geometry_msgs.msg import Pose
 from nav_msgs.msg import Odometry
 from oracle_dynamic_nav_msgs.msg import PredictedOccupancyGrid
 from rclpy.node import Node
+from rclpy.executors import ExternalShutdownException
 from rclpy.time import Time
 import tf2_ros
 import yaml
@@ -253,10 +254,16 @@ def main(args=None) -> None:
     try:
         node = OraclePredictionPublisher()
         rclpy.spin(node)
-    except (KeyboardInterrupt, ValueError) as exc:
+    except (KeyboardInterrupt, ExternalShutdownException):
+        # A launch/system shutdown can invalidate the rcl context before the
+        # executor raises ExternalShutdownException.  Do not log through
+        # rosout after that context has already been torn down.
+        pass
+    except ValueError as exc:
         if node is not None:
             node.get_logger().error(str(exc))
     finally:
         if node is not None:
             node.destroy_node()
-        rclpy.shutdown()
+        if rclpy.ok():
+            rclpy.shutdown()

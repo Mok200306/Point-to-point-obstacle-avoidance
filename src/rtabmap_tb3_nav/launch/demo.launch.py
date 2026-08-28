@@ -32,6 +32,30 @@ def apply_navigation_profile(params, profile):
         planner['side_bias_target_schedule_enabled'] = False
         return
 
+    if profile == 'oracle_mppi_prediction':
+        controller = params['controller_server']['ros__parameters']['FollowPath']
+        if controller.get('plugin') != 'nav2_mppi_controller::MPPIController':
+            raise RuntimeError(
+                'oracle_mppi_prediction requires a Nav2 MPPI controller; '
+                'use experiments/oracle_mppi/configs/nav2_mppi_oracle_params.yaml')
+        critics = list(controller.get('critics', []))
+        if 'PredictionCritic' not in critics:
+            critics.append('PredictionCritic')
+        controller['critics'] = critics
+        controller.setdefault('PredictionCritic', {
+            'enabled': True,
+            'cost_power': 1,
+            'cost_weight': 50.0,
+            'oracle_topic': '/oracle/predicted_occupancy',
+            'expected_frame': 'odom',
+            'temporal_interpolation': 'linear',
+            'stale_threshold_s': 0.30,
+            'clock_skew_tolerance_s': 0.05,
+            'ignore_out_of_bounds': True,
+            'ignore_out_of_horizon': True,
+        })
+        return
+
     if profile == 'fast_north_045_v3':
         # Keep the first detour and the central-barrier passage in one fixed
         # map-frame corridor.  v2 only constrained the west-barrier window;
@@ -910,7 +934,7 @@ def apply_navigation_profile(params, profile):
         'Unknown navigation_profile={!r}; use current, fast_north_045_v1, '
         'fast_north_045_v2, fast_north_045_v3, fast_goalline_045_v1, '
         'fast_goalline_045_v2, fast_goalline_045_v3, fast_goalline_045_v4, '
-        'adaptive_goal_line_045, reactive_mppi_static, '
+        'adaptive_goal_line_045, reactive_mppi_static, oracle_mppi_prediction, '
         'adaptive_goal_line_045_recovery_v1, '
         'adaptive_goal_line_045_recovery_v2, '
         'adaptive_goal_line_045_recovery_v3, or '
@@ -1019,6 +1043,7 @@ def collision_monitor_params_for_profile(source_file, profile):
         'fast_goalline_045_v1', 'fast_goalline_045_v2', 'fast_goalline_045_v3',
         'fast_goalline_045_v4', 'adaptive_goal_line_045',
         'reactive_mppi_static',
+        'oracle_mppi_prediction',
         'adaptive_goal_line_045_recovery_v1',
         'adaptive_goal_line_045_recovery_v2',
         'adaptive_goal_line_045_recovery_v3',
@@ -1041,7 +1066,7 @@ def collision_monitor_params_for_profile(source_file, profile):
             'Unknown navigation_profile={!r}; use current, fast_north_045_v1, '
             'fast_north_045_v2, fast_north_045_v3, fast_goalline_045_v1, '
             'fast_goalline_045_v2, fast_goalline_045_v3, fast_goalline_045_v4, '
-            'adaptive_goal_line_045, reactive_mppi_static, '
+            'adaptive_goal_line_045, reactive_mppi_static, oracle_mppi_prediction, '
             'adaptive_goal_line_045_recovery_v1, '
             'adaptive_goal_line_045_recovery_v2, adaptive_goal_line_045_recovery_v3, '
             'adaptive_goal_line_050_recovery_v4, adaptive_goal_line_050_recovery_v5, '
@@ -1425,6 +1450,8 @@ def generate_launch_description():
                 'side hints and replans each goal from the live costmap; '
                 'reactive_mppi_static selects the independent Gate 1 MPPI '
                 'parameter snapshot without future information; '
+                'oracle_mppi_prediction loads the independent Gate 4 MPPI '
+                'snapshot with only the time-aligned PredictionCritic added; '
                 'adaptive_goal_line_045_recovery_v1 adds stronger recovery '
                 'actions; adaptive_goal_line_045_recovery_v2 adds clearance '
                 'cost weighting and true reverse recovery; '
