@@ -19,13 +19,15 @@ contact_timeout='420'
 settle_seconds='5.0'
 goal_timeout_seconds='300'
 oracle_publisher_config='experiments/oracle_mppi/configs/oracle_publisher_gate3.yaml'
+oracle_nav2_params='experiments/oracle_mppi/configs/nav2_mppi_oracle_params.yaml'
 
 usage() {
   cat <<'EOF'
 Usage:
   experiments/oracle_mppi/scripts/run_gate5_smoke_matrix.sh \
     [--difficulty medium] [--runs N] [--root PATH] \
-    [--oracle-publisher-config PATH] [--goal-timeout-seconds SEC]
+    [--oracle-publisher-config PATH] [--oracle-nav2-params PATH] \
+    [--goal-timeout-seconds SEC]
 
 The default smoke matrix runs:
   S1 Reactive, S1 Oracle, S2 Reactive, S2 Oracle (one run each)
@@ -46,6 +48,7 @@ while [[ $# -gt 0 ]]; do
     --settle-seconds) settle_seconds="$2"; shift 2 ;;
     --goal-timeout-seconds) goal_timeout_seconds="$2"; shift 2 ;;
     --oracle-publisher-config) oracle_publisher_config="$2"; shift 2 ;;
+    --oracle-nav2-params) oracle_nav2_params="$2"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *) printf 'Unknown argument: %s\n' "$1" >&2; usage >&2; exit 2 ;;
   esac
@@ -65,6 +68,23 @@ if [[ "$oracle_publisher_config" != experiments/oracle_mppi/configs/* ||
       ! -f "$repo_root/$oracle_publisher_config" ]]; then
   printf 'Oracle publisher config must be an existing repository config: %s\n' \
     "$oracle_publisher_config" >&2
+  exit 2
+fi
+
+case "$oracle_nav2_params" in
+  /*)
+    case "$oracle_nav2_params" in
+      "$repo_root"/*) oracle_nav2_params="${oracle_nav2_params#"$repo_root/"}" ;;
+      *) printf 'Oracle Nav2 params must be inside repository: %s\n' \
+        "$oracle_nav2_params" >&2; exit 2 ;;
+    esac
+    ;;
+  *) oracle_nav2_params="${oracle_nav2_params#./}" ;;
+esac
+if [[ "$oracle_nav2_params" != experiments/oracle_mppi/configs/* ||
+      ! -f "$repo_root/$oracle_nav2_params" ]]; then
+  printf 'Oracle Nav2 params must be an existing repository config: %s\n' \
+    "$oracle_nav2_params" >&2
   exit 2
 fi
 
@@ -137,7 +157,7 @@ run_one() {
       --scenario "$repo_root/$scenario_path" \
       --difficulty "$difficulty" \
       --profile oracle_mppi_prediction \
-      --nav2-params experiments/oracle_mppi/configs/nav2_mppi_oracle_params.yaml \
+      --nav2-params "$oracle_nav2_params" \
       --expected-control-period 0.1 \
       --settle-seconds "$settle_seconds" \
       --startup-timeout "$startup_timeout" \
