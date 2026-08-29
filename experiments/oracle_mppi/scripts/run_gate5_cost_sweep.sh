@@ -191,7 +191,9 @@ done
 
 summary_output="$root/gate5_smoke_summary.csv"
 python3 "$repo_root/experiments/oracle_mppi/scripts/summarize_gate5.py" \
-  --root "$root" --output "$summary_output" >"$root/summarize.log" 2>&1 || {
+  --root "$root" --output "$summary_output" --status "$status_output" \
+  --pairs-output "$root/gate5_paired_summary.csv" \
+  >"$root/summarize.log" 2>&1 || {
     matrix_failures=$((matrix_failures + 1))
   }
 

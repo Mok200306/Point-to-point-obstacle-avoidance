@@ -1,0 +1,12 @@
+scenario_id: S2_gate5_conflict
+scenario: experiments/oracle_mppi/configs/scenarios/s2_gate5_conflict.yaml
+difficulty: medium
+cost_weights: [0,10,50]
+runs_per_method_per_weight: 1
+reactive_nav2_params: experiments/oracle_mppi/configs/nav2_mppi_reactive_10hz_params.yaml
+oracle_publisher_config: experiments/oracle_mppi/configs/oracle_publisher_gate3.yaml
+oracle_nav2_params:
+  0: experiments/oracle_mppi/configs/nav2_mppi_oracle_cost0_diagnostic.yaml
+  10: experiments/oracle_mppi/configs/nav2_mppi_oracle_cost10_diagnostic.yaml
+  50: experiments/oracle_mppi/configs/nav2_mppi_oracle_params.yaml
+fairness: same scenario/world/start/goal/difficulty; Oracle adds only future information

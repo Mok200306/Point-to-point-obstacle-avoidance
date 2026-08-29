@@ -1,0 +1,7 @@
+scenario_id,cost_weight,method,run,label,exit_code,started_at,finished_at
+S2_gate5_conflict,0,reactive,1,experiments/oracle_mppi/gate5/cost_sweep_20260829_01/S2_gate5_conflict/cost_000/reactive_run_01,0,2026-08-29T08:01:03Z,2026-08-29T08:04:57Z
+S2_gate5_conflict,0,oracle,1,experiments/oracle_mppi/gate5/cost_sweep_20260829_01/S2_gate5_conflict/cost_000/oracle_run_01,0,2026-08-29T08:05:02Z,2026-08-29T08:09:16Z
+S2_gate5_conflict,10,reactive,1,experiments/oracle_mppi/gate5/cost_sweep_20260829_01/S2_gate5_conflict/cost_010/reactive_run_01,0,2026-08-29T08:09:20Z,2026-08-29T08:13:01Z
+S2_gate5_conflict,10,oracle,1,experiments/oracle_mppi/gate5/cost_sweep_20260829_01/S2_gate5_conflict/cost_010/oracle_run_01,0,2026-08-29T08:13:05Z,2026-08-29T08:20:02Z
+S2_gate5_conflict,50,reactive,1,experiments/oracle_mppi/gate5/cost_sweep_20260829_01/S2_gate5_conflict/cost_050/reactive_run_01,5,2026-08-29T08:20:08Z,2026-08-29T08:23:40Z
+S2_gate5_conflict,50,oracle,1,experiments/oracle_mppi/gate5/cost_sweep_20260829_01/S2_gate5_conflict/cost_050/oracle_run_01,0,2026-08-29T08:23:45Z,2026-08-29T08:27:44Z

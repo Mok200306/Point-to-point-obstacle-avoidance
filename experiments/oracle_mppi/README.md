@@ -1,6 +1,6 @@
 # Oracle 预测式导航实验
 
-本目录用于执行任务书《Oracle预测式导航生死实验_分阶段执行任务书_v1.docx》（2026-08-27）规定的逐 Gate 实验。当前 Gate 4 已在独立分支 `exp/oracle-g4-critic-2026-08-28` 上完成硬验收，现有 `main` 分支、历史正式结果和既有 RPP profile 不在本实验中直接修改。
+本目录用于执行任务书《Oracle预测式导航生死实验_分阶段执行任务书_v1.docx》（2026-08-27）规定的逐 Gate 实验。Gate 4 已在独立分支 `exp/oracle-g4-critic-2026-08-28` 上完成硬验收；当前工作在独立分支 `exp/oracle-g5-closed-loop-2026-08-29` 上，Gate 5 正式闭环批次已完成但结论为 `BLOCKED`。现有 `main` 分支、历史正式结果和既有 RPP profile 不在本实验中直接修改。
 
 ## 研究问题
 
@@ -51,7 +51,8 @@ experiments/oracle_mppi/
 | Gate 2 | PASS（环境与证据链路） | 四类动态场景均已参数化；真实 collision、contacts、Gazebo 真值距离和动态轨迹证据已验证。Reactive MPPI 在 S2/S4 仍有真实动态碰撞，不能写成动态导航 100% 成功 |
 | Gate 3 | PASS（接口硬验收） | Oracle 时空占据接口已完成离线和 ROS 2 smoke；尚未接入 Nav2 |
 | Gate 4 | PASS（硬验收；teardown caveat） | PredictionCritic、时间对齐、T1–T5、pluginlib 加载和全零 Oracle 3+3 静态回归均已完成；动态收益留给 Gate 5/6 |
-| Gate 5～8 | 未开始 | 闭环、统计、消融、最终复现包 |
+| Gate 5 | **BLOCKED** | S1/S2 各方法 5 次正式闭环已完成；Reactive 6/10、Oracle 6/10 通过，包含启动失败、超时和真实动态 contacts；不能进入 Gate 6 |
+| Gate 6～8 | 未开始 | 必须先解除 Gate 5 的启动可靠性、超时和 Oracle 因果收益证据缺口 |
 
 ## 基线启动
 
@@ -145,6 +146,48 @@ Gate 4 正式矩阵位于 `gate4/zero_risk/`：Reactive 与 Oracle zero-risk 均
 stale 计数但按设计安全回退；所有正式运行均最终到达。日志中的
 `Failed to make progress` 是两组都出现的 MPPI/recovery 事件，不能省略。整套 launch
 联动退出时仍有 planner teardown 工程告警，需在 Gate 5 前做隔离生命周期复核。
+
+## Gate 5：闭环 Oracle 对照（当前为 BLOCKED）
+
+Gate 5 的正式批次位于
+`gate5/formal_20260830_01/`，共 20 个计划 run：S1 横穿和 S2 对向各 5 次
+Reactive、5 次 Oracle。完整的机器可读汇总为：
+
+- [20 行运行汇总](gate5/formal_20260830_01/gate5_smoke_summary.csv)
+- [10 行配对汇总](gate5/formal_20260830_01/gate5_paired_summary.csv)
+- [Gate 5 正式报告](reports/GATE5_REPORT_2026-08-30.md)
+- [Gate 5 参数扫频审查](reports/GATE5_PARAMETER_SWEEP_2026-08-30.md)
+- [Gate 5 阻塞报告](reports/GATE5_BLOCKER_REPORT_2026-08-30.md)
+
+当前硬验收结果：
+
+```text
+S1 Reactive: 5/5    S1 Oracle: 3/5
+S2 Reactive: 1/5    S2 Oracle: 3/5
+总计 Reactive: 6/10    Oracle: 6/10
+```
+
+失败原因必须保留在统计分母中：S1 Oracle 有 2 次导航超时；S2 有 3 次
+Nav2 启动失败；S2 Reactive 有 2 次真实动态障碍 contacts（其中一次最终到达、
+一次超时）。因此“Oracle 已接入且记录到部分风险”成立，但“Oracle 已稳定改善
+动态导航”尚未成立，不能进入 Gate 6 正式统计或 Transformer 训练。
+
+正式汇总脚本现在会扫描每个 `reactive_run_N`/`oracle_run_N` 目录的
+`experiment.yaml`/`scenario.yaml`，再结合 `matrix_status.csv`。即使运行在 Nav2
+启动前结束，也会作为 `STARTUP_FAILURE` 进入 CSV；不会因缺少
+`gate5_analysis.yaml` 而被漏计。未来重新生成汇总：
+
+```bash
+python3 experiments/oracle_mppi/scripts/summarize_gate5.py \
+  --root experiments/oracle_mppi/gate5/formal_20260830_01 \
+  --status experiments/oracle_mppi/gate5/formal_20260830_01/matrix_status.csv \
+  --output experiments/oracle_mppi/gate5/formal_20260830_01/gate5_smoke_summary.csv \
+  --pairs-output experiments/oracle_mppi/gate5/formal_20260830_01/gate5_paired_summary.csv
+```
+
+参数扫频 `gate5/cost_sweep_20260829_01/` 只有每个权重一组配对、且使用旧
+commit 和诊断场景，只能作为诊断参考，不能据此冻结 `cost_weight=10` 或 `50`。
+正式下一步应在当前 commit、正式 S1/S2 场景上进行至少 3 次配对的单变量扫频。
 
 ## 证据命名
 
