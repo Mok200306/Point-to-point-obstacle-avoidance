@@ -247,6 +247,8 @@ class NavigationTrial:
         self.sim_end = None
         self.status = None
         self.goal_handle = None
+        self.goal_result_received = False
+        self.goal_timed_out = False
 
     def map_callback(self, message):
         self.map_message = message
@@ -364,8 +366,36 @@ class NavigationTrial:
         self.node.get_logger().info('Goal accepted; recording trajectory.')
 
         result_future = self.goal_handle.get_result_async()
-        rclpy.spin_until_future_complete(self.node, result_future)
+        timeout_s = max(float(self.args.goal_timeout_seconds), 0.0)
+        deadline = time.monotonic() + timeout_s if timeout_s > 0.0 else None
+        while not result_future.done():
+            if deadline is not None:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0.0:
+                    break
+                spin_timeout = min(0.20, remaining)
+            else:
+                spin_timeout = 0.20
+            rclpy.spin_once(self.node, timeout_sec=spin_timeout)
+
+        if not result_future.done():
+            self.goal_timed_out = True
+            self.node.get_logger().error(
+                f'NavigateToPose result timed out after {timeout_s:.1f}s; '
+                'requesting goal cancellation.')
+            cancel_future = self.goal_handle.cancel_goal_async()
+            rclpy.spin_until_future_complete(
+                self.node, cancel_future, timeout_sec=5.0)
+            # Nav2 action status 5 is CANCELED. The explicit timeout flag
+            # distinguishes this safety bound from a normal user cancel.
+            self.status = 5
+            self.wall_end_mono = time.monotonic()
+            self.wall_end_unix = time.time()
+            self.sim_end = stamp_seconds(self.node.get_clock().now().to_msg())
+            return
+
         result = result_future.result()
+        self.goal_result_received = result is not None
         self.wall_end_mono = time.monotonic()
         self.wall_end_unix = time.time()
         self.sim_end = stamp_seconds(self.node.get_clock().now().to_msg())
@@ -413,6 +443,9 @@ class NavigationTrial:
             'goal_yaw_rad': self.args.yaw,
             'nav2_status': self.status,
             'succeeded': self.status == 4,
+            'goal_result_received': self.goal_result_received,
+            'goal_timed_out': self.goal_timed_out,
+            'goal_timeout_seconds': self.args.goal_timeout_seconds,
             'wall_start_unix_s': self.wall_start_unix,
             'wall_end_unix_s': self.wall_end_unix,
             'wall_duration_s': wall_duration,
@@ -641,6 +674,10 @@ def main():
     parser.add_argument(
         '--settle-seconds', type=float, default=0.0,
         help='Wait for live map/costmap updates before sending the goal.')
+    parser.add_argument(
+        '--goal-timeout-seconds', type=float, default=360.0,
+        help=('Wall-time safety bound for the NavigateToPose result; '
+              '0 disables the bound.'))
     parser.add_argument('--label', default='navigation_trial', help='Output folder name.')
     parser.add_argument('--output-dir', default='/workspaces/rtabmap_tb3_nav/results',
                         help='Parent directory for trial artifacts.')

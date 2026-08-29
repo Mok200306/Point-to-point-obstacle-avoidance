@@ -22,6 +22,7 @@ startup_timeout='90'
 dynamic_startup_timeout='12'
 contact_timeout='420'
 expected_control_period='0.1'
+goal_timeout_seconds='360'
 oracle_scenario=''
 oracle_publisher_config=''
 
@@ -36,6 +37,7 @@ Usage:
     [--obstacle-model PATH] [--expected-control-period SEC] \
     [--settle-seconds SEC] [--startup-timeout SEC] \
     [--dynamic-startup-timeout SEC] [--contact-timeout SEC] \
+    [--goal-timeout-seconds SEC] \
     [--oracle-scenario PATH] [--oracle-publisher-config PATH]
 EOF
 }
@@ -50,6 +52,7 @@ while [[ $# -gt 0 ]]; do
     --world-file) world_file="$2"; shift 2 ;;
     --obstacle-model) obstacle_model="$2"; shift 2 ;;
     --expected-control-period) expected_control_period="$2"; shift 2 ;;
+    --goal-timeout-seconds) goal_timeout_seconds="$2"; shift 2 ;;
     --settle-seconds) settle_seconds="$2"; shift 2 ;;
     --startup-timeout) startup_timeout="$2"; shift 2 ;;
     --dynamic-startup-timeout) dynamic_startup_timeout="$2"; shift 2 ;;
@@ -295,6 +298,7 @@ cd "$repo_root"
   --scenario "$scenario" --difficulty "$difficulty" \\
   --profile "$profile" --nav2-params "$nav2_params" \\
   --expected-control-period "$expected_control_period" \\
+  --goal-timeout-seconds "$goal_timeout_seconds" \\
   --settle-seconds "$settle_seconds" --startup-timeout "$startup_timeout" \\
   --contact-timeout "$contact_timeout" \\
   --label "$label" \\
@@ -310,6 +314,7 @@ cd "$repo_root"
   --scenario "$scenario" --difficulty "$difficulty" \\
   --profile "$profile" --nav2-params "$nav2_params" \\
   --expected-control-period "$expected_control_period" \\
+  --goal-timeout-seconds "$goal_timeout_seconds" \\
   --settle-seconds "$settle_seconds" --startup-timeout "$startup_timeout" \\
   --contact-timeout "$contact_timeout" \\
   --label "$label"
@@ -335,6 +340,7 @@ chmod +x "$artifact_dir/reproduce_command.sh"
   printf 'difficulty_time_scale: %s\nstart_delay_s: %s\n' 'from scenario profile' 'from scenario profile'
   printf 'scenario_update_period_s: %s\n' "$scenario_update_period"
   printf 'expected_control_period_s: %s\n' "$expected_control_period"
+  printf 'goal_timeout_seconds: %s\n' "$goal_timeout_seconds"
   printf 'oracle_enabled: %s\n' "$oracle_enabled"
   printf 'dynamic_startup_timeout_s: %s\n' "$dynamic_startup_timeout"
   printf 'evidence_time_basis: sim message timestamps; wall time only for process duration\n'
@@ -645,7 +651,7 @@ control_command="source /opt/ros/humble/setup.bash; python3 /workspaces/rtabmap_
 control_pid=$!
 sleep 1
 
-trial_command="source /opt/ros/humble/setup.bash && source /workspaces/rtabmap_tb3_nav/install/setup.bash && ros2 run rtabmap_tb3_nav navigation_trial.py --x ${goal_x} --y ${goal_y} --yaw ${goal_yaw} --settle-seconds ${settle_seconds} --label ${tmp_label} --output-dir /workspaces/rtabmap_tb3_nav/results --world-file ${world_container}"
+trial_command="source /opt/ros/humble/setup.bash && source /workspaces/rtabmap_tb3_nav/install/setup.bash && ros2 run rtabmap_tb3_nav navigation_trial.py --x ${goal_x} --y ${goal_y} --yaw ${goal_yaw} --settle-seconds ${settle_seconds} --goal-timeout-seconds ${goal_timeout_seconds} --label ${tmp_label} --output-dir /workspaces/rtabmap_tb3_nav/results --world-file ${world_container}"
 printf 'Running Reactive MPPI navigation and dynamic evidence capture...\n'
 set +e
 compose_exec "$trial_command" >"$artifact_dir/navigation.log" 2>&1

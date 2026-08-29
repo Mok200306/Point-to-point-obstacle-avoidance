@@ -1,0 +1,24 @@
+# Gate 5 single-variable Oracle risk-coverage candidate.
+# Compared with oracle_publisher_gate3.yaml, the only experiment variable is
+# risk_padding_m=0.05.  The true dynamic obstacle footprint, timing, frame,
+# grid and publisher period remain unchanged.  Reactive never uses this file.
+oracle_prediction_publisher:
+  ros__parameters:
+    use_sim_time: true
+    scenario_file: experiments/oracle_mppi/configs/scenarios/s1_crossing.yaml
+    difficulty: medium
+    topic: /oracle/predicted_occupancy
+    nav2_params_file: experiments/oracle_mppi/configs/nav2_mppi_reactive_10hz_params.yaml
+    costmap_name: local_costmap
+    frame_id: odom
+    source_frame: odom
+    robot_base_frame: base_link
+    origin_mode: robot_center
+    origin_x: 0.0
+    origin_y: 0.0
+    prediction_dt: 0.10
+    prediction_horizon_s: 3.0
+    publish_period_s: 0.10
+    risk_padding_m: 0.05
+    conservative_cell: true
+    scenario_start_sim_time: -1.0

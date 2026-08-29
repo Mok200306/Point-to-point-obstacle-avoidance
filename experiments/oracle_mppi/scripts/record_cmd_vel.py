@@ -48,7 +48,7 @@ class CmdVelRecorder(Node):
         self._count += 1
 
     def close(self):
-        self.get_logger().info('Recorded %d %s messages', self._count, 'cmd_vel')
+        self.get_logger().info(f'Recorded {self._count} cmd_vel messages')
         self._stream.close()
 
 

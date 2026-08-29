@@ -17,12 +17,15 @@ startup_timeout='110'
 dynamic_startup_timeout='12'
 contact_timeout='420'
 settle_seconds='5.0'
+goal_timeout_seconds='300'
+oracle_publisher_config='experiments/oracle_mppi/configs/oracle_publisher_gate3.yaml'
 
 usage() {
   cat <<'EOF'
 Usage:
   experiments/oracle_mppi/scripts/run_gate5_smoke_matrix.sh \
-    [--difficulty medium] [--runs N] [--root PATH]
+    [--difficulty medium] [--runs N] [--root PATH] \
+    [--oracle-publisher-config PATH] [--goal-timeout-seconds SEC]
 
 The default smoke matrix runs:
   S1 Reactive, S1 Oracle, S2 Reactive, S2 Oracle (one run each)
@@ -41,10 +44,29 @@ while [[ $# -gt 0 ]]; do
     --dynamic-startup-timeout) dynamic_startup_timeout="$2"; shift 2 ;;
     --contact-timeout) contact_timeout="$2"; shift 2 ;;
     --settle-seconds) settle_seconds="$2"; shift 2 ;;
+    --goal-timeout-seconds) goal_timeout_seconds="$2"; shift 2 ;;
+    --oracle-publisher-config) oracle_publisher_config="$2"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *) printf 'Unknown argument: %s\n' "$1" >&2; usage >&2; exit 2 ;;
   esac
 done
+
+case "$oracle_publisher_config" in
+  /*)
+    case "$oracle_publisher_config" in
+      "$repo_root"/*) oracle_publisher_config="${oracle_publisher_config#"$repo_root/"}" ;;
+      *) printf 'Oracle publisher config must be inside repository: %s\n' \
+        "$oracle_publisher_config" >&2; exit 2 ;;
+    esac
+    ;;
+  *) oracle_publisher_config="${oracle_publisher_config#./}" ;;
+esac
+if [[ "$oracle_publisher_config" != experiments/oracle_mppi/configs/* ||
+      ! -f "$repo_root/$oracle_publisher_config" ]]; then
+  printf 'Oracle publisher config must be an existing repository config: %s\n' \
+    "$oracle_publisher_config" >&2
+  exit 2
+fi
 
 [[ "$runs" =~ ^[1-9][0-9]*$ ]] || {
   printf '%s\n' '--runs must be a positive integer' >&2
@@ -106,6 +128,7 @@ run_one() {
       --startup-timeout "$startup_timeout" \
       --dynamic-startup-timeout "$dynamic_startup_timeout" \
       --contact-timeout "$contact_timeout" \
+      --goal-timeout-seconds "$goal_timeout_seconds" \
       --label "$label" \
       >"$runner_log" 2>&1
     exit_code=$?
@@ -120,8 +143,9 @@ run_one() {
       --startup-timeout "$startup_timeout" \
       --dynamic-startup-timeout "$dynamic_startup_timeout" \
       --contact-timeout "$contact_timeout" \
+      --goal-timeout-seconds "$goal_timeout_seconds" \
       --oracle-scenario "$repo_root/$scenario_path" \
-      --oracle-publisher-config experiments/oracle_mppi/configs/oracle_publisher_gate3.yaml \
+      --oracle-publisher-config "$oracle_publisher_config" \
       --label "$label" \
       >"$runner_log" 2>&1
     exit_code=$?
