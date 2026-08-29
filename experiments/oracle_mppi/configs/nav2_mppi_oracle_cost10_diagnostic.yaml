@@ -202,7 +202,7 @@ controller_server:
       PredictionCritic:
         enabled: true
         cost_power: 1
-        cost_weight: 50.0
+        cost_weight: 10.0
         oracle_topic: /oracle/predicted_occupancy
         expected_frame: odom
         temporal_interpolation: linear

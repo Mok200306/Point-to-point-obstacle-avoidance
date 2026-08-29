@@ -30,6 +30,9 @@ void PredictionCritic::initialize()
   getParam(interpolation_, "temporal_interpolation", std::string("linear"));
   getParam(stale_threshold_s_, "stale_threshold_s", 0.30);
   getParam(clock_skew_tolerance_s_, "clock_skew_tolerance_s", 0.05);
+  getParam(use_footprint_, "use_footprint", true);
+  int footprint_edge_samples = 2;
+  getParam(footprint_edge_samples, "footprint_edge_samples", 2);
   getParam(ignore_out_of_bounds_, "ignore_out_of_bounds", true);
   getParam(ignore_out_of_horizon_, "ignore_out_of_horizon", true);
 
@@ -39,9 +42,25 @@ void PredictionCritic::initialize()
   if (stale_threshold_s_ < 0.0 || clock_skew_tolerance_s_ < 0.0) {
     throw std::runtime_error("PredictionCritic stale and clock tolerances must be >= 0");
   }
+  if (footprint_edge_samples < 0) {
+    throw std::runtime_error("PredictionCritic footprint_edge_samples must be >= 0");
+  }
+  footprint_edge_samples_ = static_cast<unsigned int>(footprint_edge_samples);
   if (interpolation_ != "linear" && interpolation_ != "nearest") {
     throw std::runtime_error(
             "PredictionCritic temporal_interpolation must be 'linear' or 'nearest'");
+  }
+
+  if (footprint_edge_samples_ > 16U) {
+    throw std::runtime_error("PredictionCritic footprint_edge_samples must be <= 16");
+  }
+  footprint_samples_.clear();
+  if (use_footprint_ && costmap_ros_) {
+    footprint_samples_ = makeFootprintSamples(
+      costmap_ros_->getRobotFootprint(), footprint_edge_samples_);
+  }
+  if (footprint_samples_.empty()) {
+    footprint_samples_.push_back({0.0F, 0.0F});
   }
 
   sampler_ = PredictionGridSampler(
@@ -59,9 +78,11 @@ void PredictionCritic::initialize()
   RCLCPP_INFO(
     logger_,
     "PredictionCritic enabled: topic=%s expected_frame=%s weight=%.3f power=%u "
-    "stale_threshold=%.3fs interpolation=%s out_of_bounds=%s out_of_horizon=%s",
+    "stale_threshold=%.3fs interpolation=%s footprint=%s footprint_samples=%zu "
+    "out_of_bounds=%s out_of_horizon=%s",
     topic_.c_str(), expected_frame_.c_str(), weight_, power_, stale_threshold_s_,
-    interpolation_.c_str(), ignore_out_of_bounds_ ? "ignore" : "penalize",
+    interpolation_.c_str(), use_footprint_ ? "enabled" : "center_only",
+    footprint_samples_.size(), ignore_out_of_bounds_ ? "ignore" : "penalize",
     ignore_out_of_horizon_ ? "ignore" : "last_layer");
 }
 
@@ -166,22 +187,29 @@ void PredictionCritic::score(CriticData & data)
   for (std::size_t trajectory = 0; trajectory < batch_size; ++trajectory) {
     float risk_sum = 0.0F;
     for (std::size_t k = 0; k < trajectory_steps; ++k) {
-      float risk = 0.0F;
+      float pose_max_risk = 0.0F;
+      const auto pose_x = data.trajectories.x(trajectory, k);
+      const auto pose_y = data.trajectories.y(trajectory, k);
+      const auto pose_yaw = data.trajectories.yaws(trajectory, k);
       const double tau_s = effective_age_s + static_cast<double>(k) * data.model_dt;
-      const auto sample = sampler_.sample(
-        grid_view, data.trajectories.x(trajectory, k), data.trajectories.y(trajectory, k), tau_s);
-      if (sample.out_of_bounds) {
-        ++out_of_bounds;
+      for (const auto & local_sample : footprint_samples_) {
+        const auto sample_pose = transformFootprintSample(
+          pose_x, pose_y, pose_yaw, local_sample);
+        const auto sample = sampler_.sample(
+          grid_view, sample_pose.x, sample_pose.y, tau_s);
+        if (sample.out_of_bounds) {
+          ++out_of_bounds;
+        }
+        if (sample.out_of_horizon) {
+          ++out_of_horizon;
+        }
+        if (sample.valid) {
+          pose_max_risk = std::max(pose_max_risk, sample.risk);
+          global_max_risk = std::max(global_max_risk, sample.risk);
+          ++valid_samples;
+        }
       }
-      if (sample.out_of_horizon) {
-        ++out_of_horizon;
-      }
-      if (sample.valid) {
-        risk = sample.risk;
-        risk_sum += risk;
-        global_max_risk = std::max(global_max_risk, risk);
-        ++valid_samples;
-      }
+      risk_sum += pose_max_risk;
     }
 
     const float critic_cost = std::pow(weight_ * risk_sum, static_cast<float>(power_));

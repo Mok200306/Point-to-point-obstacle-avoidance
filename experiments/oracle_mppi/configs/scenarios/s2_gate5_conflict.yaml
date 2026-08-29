@@ -1,0 +1,31 @@
+scenario_id: S2_gate5_conflict
+description: Gate 5 专用对向/进入路线冲突：障碍先在路线北侧，随后进入机器人未来直线路径
+obstacle_name: oracle_dynamic_obstacle
+world_file: experiments/oracle_mppi/worlds/gate5_open_corridor.world
+spawn:
+  x: 0.0
+  y: 2.0
+  yaw: -1.5707963267948966
+robot:
+  start_x: -8.5
+  start_y: 0.0
+  goal_x: 8.5
+  goal_y: 0.0
+  goal_yaw: 0.0
+update_period_s: 0.05
+obstacle_half_size_m: 0.30
+waypoints:
+  # The obstacle is initially visible only above the direct route. It then
+  # enters y=0 while the robot is approaching x=0, remains there long enough
+  # to create a genuine time conflict, and exits again. Oracle can see the
+  # transition up to 3 s before it happens; Reactive sees only current state.
+  - {t: 0.0, x: 0.0, y: 2.0, yaw: -1.5707963267948966}
+  - {t: 22.0, x: 0.0, y: 2.0, yaw: -1.5707963267948966}
+  - {t: 28.0, x: 0.0, y: 0.0, yaw: -1.5707963267948966}
+  - {t: 58.0, x: 0.0, y: 0.0, yaw: -1.5707963267948966}
+  - {t: 64.0, x: 0.0, y: 2.0, yaw: -1.5707963267948966}
+  - {t: 100.0, x: 0.0, y: 2.0, yaw: -1.5707963267948966}
+difficulty_profiles:
+  easy: {time_scale: 1.35, start_delay_s: 5.0}
+  medium: {time_scale: 1.0, start_delay_s: 3.0}
+  hard: {time_scale: 0.78, start_delay_s: 0.0}

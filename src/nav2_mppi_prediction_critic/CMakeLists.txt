@@ -9,6 +9,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_ros REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(nav2_costmap_2d REQUIRED)
 find_package(nav2_mppi_controller REQUIRED)
 find_package(oracle_dynamic_nav_msgs REQUIRED)
 find_package(pluginlib REQUIRED)
@@ -31,6 +33,8 @@ target_include_directories(nav2_mppi_prediction_critic PUBLIC
 )
 
 ament_target_dependencies(nav2_mppi_prediction_critic
+  geometry_msgs
+  nav2_costmap_2d
   nav2_mppi_controller
   oracle_dynamic_nav_msgs
   pluginlib
@@ -61,6 +65,7 @@ install(FILES prediction_critics.xml
 pluginlib_export_plugin_description_file(nav2_mppi_controller prediction_critics.xml)
 
 ament_export_dependencies(
+  nav2_costmap_2d
   nav2_mppi_controller
   oracle_dynamic_nav_msgs
   pluginlib
@@ -75,6 +80,13 @@ if(BUILD_TESTING)
   target_include_directories(test_prediction_grid_sampler PRIVATE include)
   if(TARGET test_prediction_grid_sampler)
     target_compile_options(test_prediction_grid_sampler PRIVATE -Wall -Wextra -Wpedantic)
+  endif()
+  ament_add_gtest(test_footprint_sampling
+    test/footprint_sampling_test.cpp)
+  target_include_directories(test_footprint_sampling PRIVATE include)
+  if(TARGET test_footprint_sampling)
+    ament_target_dependencies(test_footprint_sampling geometry_msgs)
+    target_compile_options(test_footprint_sampling PRIVATE -Wall -Wextra -Wpedantic)
   endif()
 endif()
 

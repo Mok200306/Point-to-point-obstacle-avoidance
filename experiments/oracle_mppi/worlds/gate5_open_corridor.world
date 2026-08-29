@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <world name="gate5_open_corridor">
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+    <include>
+      <uri>model://sun</uri>
+    </include>
+
+    <scene>
+      <ambient>0.65 0.65 0.65 1</ambient>
+      <background>0.82 0.86 0.90 1</background>
+      <shadows>true</shadows>
+      <grid>false</grid>
+    </scene>
+
+    <physics type="ode">
+      <real_time_update_rate>1000.0</real_time_update_rate>
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1</real_time_factor>
+      <ode>
+        <solver>
+          <type>quick</type>
+          <iters>150</iters>
+          <sor>1.4</sor>
+        </solver>
+        <constraints>
+          <cfm>0.00001</cfm>
+          <erp>0.2</erp>
+          <contact_max_correcting_vel>2000</contact_max_correcting_vel>
+          <contact_surface_layer>0.01</contact_surface_layer>
+        </constraints>
+      </ode>
+    </physics>
+
+    <!-- Observation-only Gazebo state source used by the Gate 5 evidence
+         collector. Navigation still uses RGB-D, RTAB-Map and odometry. -->
+    <plugin name="gazebo_ros_state" filename="libgazebo_ros_state.so">
+      <ros>
+        <namespace>/gazebo</namespace>
+        <remapping>model_states:=model_states</remapping>
+      </ros>
+      <update_rate>30.0</update_rate>
+    </plugin>
+
+    <!-- A wide, otherwise empty indoor corridor. The only object that can
+         enter the center line is the collidable proxy spawned by the Gate 5
+         runner. This isolates the value of short-horizon future information
+         from the static obstacle layout used by Gate 2. -->
+    <model name="wall_north">
+      <static>true</static>
+      <pose>0 3.5 0.8 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>20.2 0.2 1.6</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>20.2 0.2 1.6</size></box></geometry>
+          <material><ambient>0.55 0.58 0.62 1</ambient><diffuse>0.62 0.65 0.70 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="wall_south">
+      <static>true</static>
+      <pose>0 -3.5 0.8 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>20.2 0.2 1.6</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>20.2 0.2 1.6</size></box></geometry>
+          <material><ambient>0.55 0.58 0.62 1</ambient><diffuse>0.62 0.65 0.70 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="wall_east">
+      <static>true</static>
+      <pose>10.0 0 0.8 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>0.2 7.2 1.6</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>0.2 7.2 1.6</size></box></geometry>
+          <material><ambient>0.55 0.58 0.62 1</ambient><diffuse>0.62 0.65 0.70 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="wall_west">
+      <static>true</static>
+      <pose>-10.0 0 0.8 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>0.2 7.2 1.6</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>0.2 7.2 1.6</size></box></geometry>
+          <material><ambient>0.55 0.58 0.62 1</ambient><diffuse>0.62 0.65 0.70 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <!-- Non-colliding flat markers make the start and goal explicit in
+         Gazebo screenshots without changing the free-space geometry. -->
+    <model name="start_marker">
+      <static>true</static><pose>-8.5 0.0 0.006 0 0 0</pose>
+      <link name="link"><visual name="visual"><geometry><cylinder><radius>0.36</radius><length>0.012</length></cylinder></geometry>
+        <material><ambient>0.05 0.75 0.25 1</ambient><diffuse>0.05 0.90 0.30 1</diffuse></material></visual></link>
+    </model>
+    <model name="goal_marker">
+      <static>true</static><pose>8.5 0.0 0.007 0 0 0</pose>
+      <link name="link"><visual name="visual"><geometry><cylinder><radius>0.36</radius><length>0.014</length></cylinder></geometry>
+        <material><ambient>0.90 0.08 0.08 1</ambient><diffuse>1.0 0.12 0.12 1</diffuse></material></visual></link>
+    </model>
+
+    <gui fullscreen="0">
+      <camera name="user_camera">
+        <pose>0 0 14.0 0 1.5708 0</pose>
+        <view_controller>orbit</view_controller>
+        <projection_type>perspective</projection_type>
+      </camera>
+    </gui>
+  </world>
+</sdf>

@@ -14,11 +14,18 @@ import time
 import rclpy
 from geometry_msgs.msg import Twist
 from rclpy.node import Node
+from rclpy.parameter import Parameter
 
 
 class CmdVelRecorder(Node):
     def __init__(self, topic, output_path):
-        super().__init__('oracle_cmd_vel_recorder')
+        # The recorder is part of the simulation evidence pipeline.  Without
+        # this override its clock defaults to wall time even when /cmd_vel and
+        # Gazebo ground truth are stamped in the ROS simulation-time domain.
+        super().__init__(
+            'oracle_cmd_vel_recorder',
+            parameter_overrides=[
+                Parameter('use_sim_time', Parameter.Type.BOOL, True)])
         self._stream = open(output_path, 'w', newline='', buffering=1)
         self._writer = csv.writer(self._stream)
         self._writer.writerow([

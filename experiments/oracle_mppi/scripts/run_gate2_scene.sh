@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-# Run one Gate 2 Reactive MPPI dynamic-scene experiment.  The dynamic object
-# is spawned after Gazebo starts and is driven by a deterministic schedule;
-# this runner does not publish any future occupancy to Nav2.
+# Run one dynamic-scene experiment.  With no Oracle arguments this preserves
+# the original Gate 2 Reactive-only behavior.  Gate 5 supplies an Oracle
+# scenario and publisher config, in which case the same world/controller is
+# used and the real future-occupancy publisher is started as an additional
+# process.  The runner never overwrites a non-empty evidence directory.
 
 cd "$(dirname "${BASH_SOURCE[0]}")/../../.."
 repo_root="$PWD"
@@ -20,6 +22,8 @@ startup_timeout='90'
 dynamic_startup_timeout='12'
 contact_timeout='420'
 expected_control_period='0.1'
+oracle_scenario=''
+oracle_publisher_config=''
 
 usage() {
   cat <<'EOF'
@@ -31,7 +35,8 @@ Usage:
     [--profile NAME] [--nav2-params PATH] [--world-file PATH] \
     [--obstacle-model PATH] [--expected-control-period SEC] \
     [--settle-seconds SEC] [--startup-timeout SEC] \
-    [--dynamic-startup-timeout SEC] [--contact-timeout SEC]
+    [--dynamic-startup-timeout SEC] [--contact-timeout SEC] \
+    [--oracle-scenario PATH] [--oracle-publisher-config PATH]
 EOF
 }
 
@@ -49,6 +54,8 @@ while [[ $# -gt 0 ]]; do
     --startup-timeout) startup_timeout="$2"; shift 2 ;;
     --dynamic-startup-timeout) dynamic_startup_timeout="$2"; shift 2 ;;
     --contact-timeout) contact_timeout="$2"; shift 2 ;;
+    --oracle-scenario) oracle_scenario="$2"; shift 2 ;;
+    --oracle-publisher-config) oracle_publisher_config="$2"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *) printf 'Unknown argument: %s\n' "$1" >&2; usage >&2; exit 2 ;;
   esac
@@ -58,9 +65,26 @@ if [[ -z "$label" ]]; then
   usage >&2
   exit 2
 fi
-if [[ "$label" != experiments/oracle_mppi/gate2/* || "$label" == *..* ]]; then
-  printf 'Unsafe Gate 2 label: %s\n' "$label" >&2
+if [[ ("$label" != experiments/oracle_mppi/gate2/* &&
+       "$label" != experiments/oracle_mppi/gate5/*) || "$label" == *..* ]]; then
+  printf 'Unsafe dynamic-scene label: %s\n' "$label" >&2
   exit 2
+fi
+if [[ -n "$oracle_scenario" && -z "$oracle_publisher_config" ]] ||
+   [[ -z "$oracle_scenario" && -n "$oracle_publisher_config" ]]; then
+  printf '%s\n' '--oracle-scenario and --oracle-publisher-config must be supplied together' >&2
+  exit 2
+fi
+
+# Gazebo is reset by every run, so two dynamic-scene runners cannot safely
+# share the compose project at the same time.  Serialize all such runs before
+# the first compose_down/compose_up call.  This also protects the evidence
+# labels from accidental duplicate invocations by a batch driver.
+runner_lock_path="/tmp/rtabmap_tb3_dynamic_scene_runner.lock"
+exec 9>"$runner_lock_path"
+if ! flock -n 9; then
+  printf 'Another dynamic-scene runner is active; refusing concurrent run\n' >&2
+  exit 3
 fi
 
 resolve_repo_file() {
@@ -87,6 +111,17 @@ nav2_params_host="${nav2_file[1]}"
 mapfile -t model_file < <(resolve_repo_file "$obstacle_model" 'Obstacle model')
 obstacle_model="${model_file[0]}"
 obstacle_model_host="${model_file[1]}"
+
+oracle_enabled=false
+if [[ -n "$oracle_scenario" ]]; then
+  mapfile -t oracle_scenario_file < <(resolve_repo_file "$oracle_scenario" 'Oracle scenario')
+  oracle_scenario="${oracle_scenario_file[0]}"
+  oracle_scenario_host="${oracle_scenario_file[1]}"
+  mapfile -t oracle_config_file < <(resolve_repo_file "$oracle_publisher_config" 'Oracle publisher config')
+  oracle_publisher_config="${oracle_config_file[0]}"
+  oracle_publisher_config_host="${oracle_config_file[1]}"
+  oracle_enabled=true
+fi
 
 if [[ -z "$world_file" ]]; then
   world_file="$(python3 - "$scenario_host" <<'PY'
@@ -200,6 +235,24 @@ nav2_params_container="/workspaces/rtabmap_tb3_nav/$nav2_params"
 model_container="/workspaces/rtabmap_tb3_nav/$obstacle_model"
 commit="$(git rev-parse HEAD)"
 nav2_params_snapshot="$(basename "$nav2_params")"
+oracle_scenario_container="/workspaces/rtabmap_tb3_nav/$oracle_scenario"
+oracle_publisher_config_container="/workspaces/rtabmap_tb3_nav/$oracle_publisher_config"
+prediction_cost_weight="$(python3 - "$nav2_params_host" <<'PY'
+import sys
+import yaml
+
+with open(sys.argv[1], encoding='utf-8') as stream:
+    data = yaml.safe_load(stream) or {}
+value = (
+    data.get('controller_server', {})
+        .get('ros__parameters', {})
+        .get('FollowPath', {})
+        .get('PredictionCritic', {})
+        .get('cost_weight')
+)
+print('' if value is None else value)
+PY
+)"
 
 cp "$scenario_host" "$artifact_dir/scenario.yaml"
 cp "$nav2_params_host" "$artifact_dir/$nav2_params_snapshot"
@@ -210,6 +263,10 @@ cp src/rtabmap_tb3_nav/src/goal_line_smac_planner.cpp \
   "$artifact_dir/goal_line_smac_planner.cpp"
 cp "$world_host" "$artifact_dir/world.sdf"
 cp "$obstacle_model_host" "$artifact_dir/oracle_dynamic_obstacle.sdf"
+if [[ "$oracle_enabled" == true ]]; then
+  cp "$oracle_scenario_host" "$artifact_dir/oracle_scenario.yaml"
+  cp "$oracle_publisher_config_host" "$artifact_dir/oracle_publisher_gate3.yaml"
+fi
 
 printf '%s\n' \
   "scenario_id=$scenario_id" \
@@ -221,13 +278,31 @@ printf '%s\n' \
   "start_x=$start_x" "start_y=$start_y" \
   "goal_x=$goal_x" "goal_y=$goal_y" "goal_yaw=$goal_yaw" \
   "profile=$profile" "nav2_params=$nav2_params" \
+  "prediction_cost_weight=$prediction_cost_weight" \
   "expected_control_period=$expected_control_period" \
+  "oracle_enabled=$oracle_enabled" \
   "scenario_update_period=$scenario_update_period" \
   "online=true" "localization=false" "reset_db=true" \
   "use_sim_time=true" "rviz=false" "gazebo_gui=false" "rtabmap_viz=false" \
   >"$artifact_dir/launch_arguments.txt"
 
-cat >"$artifact_dir/reproduce_command.sh" <<EOF
+if [[ "$oracle_enabled" == true ]]; then
+  cat >"$artifact_dir/reproduce_command.sh" <<EOF
+#!/usr/bin/env bash
+set -Eeuo pipefail
+cd "$repo_root"
+./experiments/oracle_mppi/scripts/run_gate2_scene.sh \\
+  --scenario "$scenario" --difficulty "$difficulty" \\
+  --profile "$profile" --nav2-params "$nav2_params" \\
+  --expected-control-period "$expected_control_period" \\
+  --settle-seconds "$settle_seconds" --startup-timeout "$startup_timeout" \\
+  --contact-timeout "$contact_timeout" \\
+  --label "$label" \\
+  --oracle-scenario "$oracle_scenario" \\
+  --oracle-publisher-config "$oracle_publisher_config"
+EOF
+else
+  cat >"$artifact_dir/reproduce_command.sh" <<EOF
 #!/usr/bin/env bash
 set -Eeuo pipefail
 cd "$repo_root"
@@ -239,6 +314,7 @@ cd "$repo_root"
   --contact-timeout "$contact_timeout" \\
   --label "$label"
 EOF
+fi
 chmod +x "$artifact_dir/reproduce_command.sh"
 
 {
@@ -253,17 +329,24 @@ chmod +x "$artifact_dir/reproduce_command.sh"
   printf 'start_x_m: %s\nstart_y_m: %s\n' "$start_x" "$start_y"
   printf 'goal_x_m: %s\ngoal_y_m: %s\ngoal_yaw_rad: %s\n' "$goal_x" "$goal_y" "$goal_yaw"
   printf 'profile: %s\nnav2_params: %s\n' "$profile" "$nav2_params"
+  printf 'prediction_cost_weight: %s\n' "$prediction_cost_weight"
   printf 'online: true\nlocalization: false\nreset_db: true\nuse_sim_time: true\n'
   printf 'seed: deterministic waypoint schedule; no randomization\n'
   printf 'difficulty_time_scale: %s\nstart_delay_s: %s\n' 'from scenario profile' 'from scenario profile'
   printf 'scenario_update_period_s: %s\n' "$scenario_update_period"
   printf 'expected_control_period_s: %s\n' "$expected_control_period"
+  printf 'oracle_enabled: %s\n' "$oracle_enabled"
   printf 'dynamic_startup_timeout_s: %s\n' "$dynamic_startup_timeout"
   printf 'evidence_time_basis: sim message timestamps; wall time only for process duration\n'
 } >"$artifact_dir/experiment.yaml"
+if [[ "$oracle_enabled" == true ]]; then
+  printf 'oracle_scenario: %s\noracle_publisher_config: %s\n' \
+    "$oracle_scenario" "$oracle_publisher_config" >>"$artifact_dir/experiment.yaml"
+fi
 
 launch_pid=''
 dynamic_pid=''
+oracle_pid=''
 contact_pid=''
 bag_pid=''
 control_pid=''
@@ -276,6 +359,16 @@ stop_dynamic() {
     kill -TERM "$dynamic_pid" 2>/dev/null || true
     wait "$dynamic_pid" 2>/dev/null || true
     dynamic_pid=''
+  fi
+}
+
+stop_oracle() {
+  if [[ -n "$oracle_pid" ]]; then
+    compose_exec 'pkill -TERM -f "[o]racle_prediction_publisher" || true' \
+      >/dev/null 2>&1 || true
+    kill -TERM "$oracle_pid" 2>/dev/null || true
+    wait "$oracle_pid" 2>/dev/null || true
+    oracle_pid=''
   fi
 }
 
@@ -321,6 +414,7 @@ stop_launch() {
 
 cleanup() {
   stop_dynamic
+  stop_oracle
   stop_control
   stop_bag
   stop_contact
@@ -450,11 +544,30 @@ fi
 
 groundtruth_container="/workspaces/rtabmap_tb3_nav/${label}/dynamic_groundtruth.csv"
 dynamic_summary_container="/workspaces/rtabmap_tb3_nav/${label}/dynamic_summary.yaml"
+# For a paired Oracle run, choose one absolute Gazebo-clock reference before
+# either schedule process starts.  Both the dynamic object driver and the
+# publisher then evaluate the same YAML schedule at the same simulation time.
+oracle_reference_sim_time=''
+if [[ "$oracle_enabled" == true ]]; then
+  clock_sample="$(compose_exec 'source /opt/ros/humble/setup.bash; timeout 8s ros2 topic echo /clock --once' 2>/dev/null || true)"
+  oracle_clock_sec="$(printf '%s\n' "$clock_sample" | awk '$1 == "sec:" {print $2}' | head -1)"
+  oracle_clock_nanosec="$(printf '%s\n' "$clock_sample" | awk '$1 == "nanosec:" {print $2}' | head -1)"
+  if [[ -z "$oracle_clock_sec" || -z "$oracle_clock_nanosec" ]]; then
+    printf 'Unable to determine shared Oracle simulation-time reference\n' >&2
+    printf 'oracle_startup_failure: true\n' >>"$artifact_dir/experiment.yaml"
+    exit 6
+  fi
+  oracle_reference_sim_time="$(awk -v sec="$oracle_clock_sec" -v nanosec="$oracle_clock_nanosec" \
+    'BEGIN {printf "%.9f", sec + nanosec / 1000000000.0}')"
+fi
 # The controller declares use_sim_time with a true default.  Do not append
 # ROS 2 CLI arguments here: this executable uses argparse and would reject
 # them before rclpy can initialize.  Keeping the default in the node also
 # makes this command independent of the shell's ROS argument quoting.
 dynamic_command="source /opt/ros/humble/setup.bash; python3 /workspaces/rtabmap_tb3_nav/experiments/oracle_mppi/scripts/dynamic_obstacle_controller.py --scenario ${scenario_container} --difficulty ${difficulty} --output ${groundtruth_container} --summary ${dynamic_summary_container} --robot-name waffle"
+if [[ "$oracle_enabled" == true ]]; then
+  dynamic_command="${dynamic_command} --scenario-start-sim-time ${oracle_reference_sim_time}"
+fi
 (compose_exec "$dynamic_command" >"$artifact_dir/dynamic_controller.log" 2>&1) &
 dynamic_pid=$!
 dynamic_ready=false
@@ -481,6 +594,40 @@ if [[ "$dynamic_ready" != true ]]; then
 fi
 printf 'dynamic_controller_startup_failure: false\n' >>"$artifact_dir/experiment.yaml"
 
+oracle_validation_exit=0
+if [[ "$oracle_enabled" == true ]]; then
+  # The dynamic controller was started with this same absolute Gazebo-clock
+  # reference, so publisher and physics object remain phase aligned.
+  oracle_command="source /opt/ros/humble/setup.bash && source /workspaces/rtabmap_tb3_nav/install/setup.bash && ros2 run oracle_prediction_publisher oracle_prediction_publisher --ros-args --params-file $oracle_publisher_config_container -p scenario_file:=$oracle_scenario_container -p nav2_params_file:=$nav2_params_container -p scenario_start_sim_time:=$oracle_reference_sim_time"
+  printf 'Starting Oracle publisher with shared reference t0=%s\n' \
+    "$oracle_reference_sim_time"
+  (compose_exec "$oracle_command" >"$artifact_dir/oracle_publisher.log" 2>&1) &
+  oracle_pid=$!
+  sleep 2
+  if ! kill -0 "$oracle_pid" 2>/dev/null; then
+    printf 'Oracle publisher exited during startup; evidence kept at %s\n' \
+      "$artifact_dir" >&2
+    printf 'oracle_startup_failure: true\n' >>"$artifact_dir/experiment.yaml"
+    exit 6
+  fi
+  compose_exec 'source /opt/ros/humble/setup.bash; ros2 topic info /oracle/predicted_occupancy --verbose' \
+    >"$artifact_dir/oracle_topic_info.txt" 2>&1 || true
+  set +e
+  compose_exec "source /opt/ros/humble/setup.bash; source /workspaces/rtabmap_tb3_nav/install/setup.bash; timeout 20s python3 /workspaces/rtabmap_tb3_nav/experiments/oracle_mppi/scripts/validate_gate3_ros_message.py --topic /oracle/predicted_occupancy --expected-frame odom --expected-source oracle --expected-resolution 0.05 --expected-width 120 --expected-height 100 --expected-dt 0.10 --expected-steps 31" \
+    >"$artifact_dir/oracle_message_validation.txt" 2>&1
+  oracle_validation_exit=$?
+  set -e
+  printf 'oracle_message_validation_exit: %s\n' "$oracle_validation_exit" \
+    >>"$artifact_dir/experiment.yaml"
+  if [[ "$oracle_validation_exit" -ne 0 ]]; then
+    printf 'Oracle message validation failed; evidence kept at %s\n' \
+      "$artifact_dir" >&2
+    exit 6
+  fi
+  printf 'oracle_reference_sim_time_s: %s\n' "$oracle_reference_sim_time" \
+    >>"$artifact_dir/experiment.yaml"
+fi
+
 contact_command="timeout ${contact_timeout}s gz topic -e ${contacts_topic} -u"
 (compose_exec "$contact_command" >"$artifact_dir/gazebo_contacts.log" 2>&1) &
 contact_pid=$!
@@ -506,6 +653,7 @@ trial_exit=$?
 set -e
 
 stop_dynamic
+stop_oracle
 stop_control
 stop_bag
 stop_contact
@@ -544,6 +692,7 @@ fi
   printf 'nav2_params: %s\n' "$nav2_params"
   printf 'cmd_vel_topic: /cmd_vel\ncmd_vel_csv: cmd_vel.csv\n'
   printf 'trial_exit_code: %s\nspawn_exit_code: %s\n' "$trial_exit" "$spawn_exit"
+  printf 'oracle_message_validation_exit: %s\n' "$oracle_validation_exit"
   printf 'gazebo_contact_messages: %s\n' "$contact_count"
   printf 'dynamic_groundtruth_rows: %s\n' "$dynamic_rows"
   printf 'dynamic_service_updates: %s\ndynamic_service_failures: %s\n' \
@@ -574,10 +723,12 @@ if [[ -f "$artifact_dir/metrics.yaml" ]]; then
     printf 'difficulty: %s\n' "$difficulty"
     printf 'scenario: %s\n' "$scenario"
     printf 'obstacle_name: %s\n' "$obstacle_name"
+    printf 'prediction_cost_weight: %s\n' "$prediction_cost_weight"
     printf 'gazebo_contacts_topic: "%s"\n' "$contacts_topic"
     printf 'gazebo_contact_messages: %s\n' "$contact_count"
     printf 'wrapper_trial_exit: %s\n' "$trial_exit"
     printf 'spawn_exit_code: %s\n' "$spawn_exit"
+    printf 'oracle_message_validation_exit: %s\n' "$oracle_validation_exit"
     printf 'dynamic_groundtruth_rows: %s\n' "$dynamic_rows"
     printf 'dynamic_service_failures: %s\n' "$dynamic_service_failures"
     printf 'minimum_robot_obstacle_clearance_m: %s\n' "$dynamic_min_clearance"
@@ -594,6 +745,16 @@ if [[ -f "$artifact_dir/metrics.yaml" ]]; then
     else
       printf 'gazebo_robot_dynamic_contact: false\n'
       printf 'gazebo_robot_dynamic_contact_pairs: "(none)"\n'
+    fi
+    if [[ "$oracle_enabled" == true ]]; then
+      printf 'oracle_active_log_lines: %s\n' \
+        "$(grep -c 'PredictionCritic status=active' "$artifact_dir/launch.log" 2>/dev/null || true)"
+      printf 'oracle_stale_log_lines: %s\n' \
+        "$(grep -c 'PredictionCritic status=stale' "$artifact_dir/launch.log" 2>/dev/null || true)"
+      printf 'oracle_publisher_ready_log_lines: %s\n' \
+        "$(grep -c 'Gate 3 Oracle ready' "$artifact_dir/oracle_publisher.log" 2>/dev/null || true)"
+      printf 'oracle_first_message_log_lines: %s\n' \
+        "$(grep -c 'Published first Oracle grid' "$artifact_dir/oracle_publisher.log" 2>/dev/null || true)"
     fi
   } >>"$artifact_dir/metrics.yaml"
 fi
@@ -613,7 +774,8 @@ fi
 printf 'scenario_id=%s\ntrial_exit=%s\nspawn_exit=%s\ndynamic_groundtruth=%s\ncontacts_topic=%s\ncontact_messages=%s\nartifact=%s\n' \
   "$scenario_id" "$trial_exit" "$spawn_exit" "$groundtruth_ok" "$contacts_topic" "$contact_count" "$artifact_dir"
 
-if [[ "$trial_exit" -ne 0 || "$spawn_exit" -ne 0 || "$groundtruth_ok" != true || \
+if [[ "$trial_exit" -ne 0 || "$spawn_exit" -ne 0 || \
+      "$oracle_validation_exit" -ne 0 || "$groundtruth_ok" != true || \
       -n "$contact_pairs" || "$dynamic_service_failures" != '0' ]]; then
   exit 5
 fi

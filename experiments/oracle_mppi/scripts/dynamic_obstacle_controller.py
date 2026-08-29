@@ -129,7 +129,7 @@ def polygon_distance(first, second):
 
 class DynamicObstacleController(Node):
     def __init__(self, scenario, difficulty, output_path, summary_path,
-                 robot_name='waffle'):
+                 robot_name='waffle', scenario_start_sim_time=None):
         # rclpy already declares the standard use_sim_time parameter for a
         # node.  Override it at construction instead of declaring it again;
         # declaring it a second time raises ParameterAlreadyDeclaredException
@@ -176,7 +176,11 @@ class DynamicObstacleController(Node):
             'model_state_samples', 'service_updates', 'service_failures',
         ])
         self._summary_path = Path(summary_path)
-        self._start_sim_ns = None
+        self._start_sim_ns = (
+            None if scenario_start_sim_time is None else
+            int(round(float(scenario_start_sim_time) * 1.0e9)))
+        self._reference_sim_time_s = (
+            None if self._start_sim_ns is None else self._start_sim_ns / 1.0e9)
         self._last_obstacle = None
         self._last_robot = None
         self._model_state_samples = 0
@@ -245,8 +249,16 @@ class DynamicObstacleController(Node):
             return
         if self._start_sim_ns is None:
             self._start_sim_ns = now_ns
+            self._reference_sim_time_s = self._start_sim_ns / 1.0e9
         sim_time = now_ns / 1e9
         elapsed = (now_ns - self._start_sim_ns) / 1e9
+        # A Gate 5 paired run can provide one absolute simulation-time
+        # reference to both the dynamic controller and the Oracle publisher.
+        # Do not emit pre-reference samples or move the object before that
+        # instant; otherwise the two schedules would have a hidden phase
+        # offset even though they use the same YAML waypoints.
+        if elapsed < 0.0:
+            return
         x, y, yaw, vx, vy = self._trajectory_at(elapsed)
 
         if not self._state_client.service_is_ready():
@@ -313,6 +325,7 @@ class DynamicObstacleController(Node):
             'update_period_s': self.update_period,
             'time_scale': self.time_scale,
             'start_delay_s': self.start_delay,
+            'reference_sim_time_s': self._reference_sim_time_s,
             'sim_end_s': self._last_sim_s,
             'model_state_samples': self._model_state_samples,
             'service_updates': self._service_updates,
@@ -337,13 +350,17 @@ def main():
     parser.add_argument('--output', required=True)
     parser.add_argument('--summary', required=True)
     parser.add_argument('--robot-name', default='waffle')
+    parser.add_argument(
+        '--scenario-start-sim-time', type=float, default=None,
+        help='Optional absolute Gazebo-clock reference shared with the Oracle publisher.')
     args = parser.parse_args()
 
     with open(args.scenario, encoding='utf-8') as stream:
         scenario = yaml.safe_load(stream)
     rclpy.init()
     node = DynamicObstacleController(
-        scenario, args.difficulty, args.output, args.summary, args.robot_name)
+        scenario, args.difficulty, args.output, args.summary, args.robot_name,
+        args.scenario_start_sim_time)
 
     def stop_handler(signum, frame):  # noqa: ARG001
         raise KeyboardInterrupt

@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "nav2_mppi_controller/critic_function.hpp"
+#include "nav2_mppi_prediction_critic/footprint_sampling.hpp"
 #include "nav2_mppi_prediction_critic/prediction_grid_sampler.hpp"
 #include "oracle_dynamic_nav_msgs/msg/predicted_occupancy_grid.hpp"
 #include "rclcpp/rclcpp.hpp"
@@ -59,6 +60,9 @@ private:
   double stale_threshold_s_{0.30};
   double clock_skew_tolerance_s_{0.05};
   bool enabled_for_prediction_{true};
+  bool use_footprint_{true};
+  unsigned int footprint_edge_samples_{2U};
+  std::vector<FootprintSample> footprint_samples_;
   bool ignore_out_of_bounds_{true};
   bool ignore_out_of_horizon_{true};
   PredictionGridSampler sampler_;
