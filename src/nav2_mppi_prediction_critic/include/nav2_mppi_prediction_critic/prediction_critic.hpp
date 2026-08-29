@@ -36,6 +36,14 @@ private:
     float dt{0.0F};
     unsigned int steps{0};
     std::vector<float> data;
+    std::size_t occupied_cells{0};
+    std::size_t occupied_values{0};
+    float message_max_risk{0.0F};
+    bool has_occupied_extent{false};
+    float occupied_min_x{0.0F};
+    float occupied_max_x{0.0F};
+    float occupied_min_y{0.0F};
+    float occupied_max_y{0.0F};
   };
 
   using Message = oracle_dynamic_nav_msgs::msg::PredictedOccupancyGrid;
@@ -44,7 +52,16 @@ private:
   std::shared_ptr<const GridSnapshot> latestSnapshot() const;
   void logStatus(
     const char * status, double age_s, float max_risk, float max_cost,
-    std::size_t valid_samples, std::size_t out_of_horizon) const;
+    std::size_t valid_samples, std::size_t out_of_horizon,
+    std::size_t out_of_bounds, std::size_t risk_hits) const;
+  void logGeometry(
+    const GridSnapshot & grid, const CriticData & data,
+    std::size_t batch_size, std::size_t trajectory_steps,
+    float candidate_min_x, float candidate_max_x,
+    float candidate_min_y, float candidate_max_y,
+    std::size_t valid_samples, std::size_t risk_hits,
+    std::size_t out_of_bounds, std::size_t out_of_horizon,
+    double risk_hit_min_tau_s, double risk_hit_max_tau_s) const;
 
   rclcpp::Subscription<Message>::SharedPtr subscription_;
   rclcpp::Clock::SharedPtr clock_;
@@ -73,6 +90,10 @@ private:
   mutable std::atomic<std::uint64_t> stale_count_{0};
   mutable std::atomic<std::uint64_t> out_of_bounds_count_{0};
   mutable std::atomic<std::uint64_t> out_of_horizon_count_{0};
+  // Geometry summaries are diagnostic only.  Limit the full-grid scan in the
+  // subscription callback so diagnostics cannot consume the 10 Hz control
+  // budget.  The latest summary is copied to snapshots between scans.
+  mutable std::atomic<std::int64_t> last_summary_stamp_ns_{-1};
 };
 
 }  // namespace mppi::critics
