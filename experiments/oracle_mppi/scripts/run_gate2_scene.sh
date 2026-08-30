@@ -444,13 +444,17 @@ launch_pid=$!
 wait_for_nav2() {
   local states count collision_state
   for ((attempt = 1; attempt <= startup_timeout; attempt++)); do
-    states="$(compose_exec 'source /opt/ros/humble/setup.bash; for n in /controller_server /planner_server /collision_monitor; do timeout 4s ros2 lifecycle get "$n" 2>/dev/null || true; done' 2>/dev/null || true)"
+    # Nav2 is usable only after the controller, planner, BT navigator and
+    # collision monitor are all active.  Checking only three nodes can send a
+    # goal while bt_navigator is still unconfigured, which turns a lifecycle
+    # startup race into a misleading navigation failure.
+    states="$(compose_exec 'source /opt/ros/humble/setup.bash; for n in /controller_server /planner_server /bt_navigator /collision_monitor; do timeout 4s ros2 lifecycle get "$n" 2>/dev/null || true; done' 2>/dev/null || true)"
     count="$(printf '%s\n' "$states" | grep -c '^active \[3\]$' || true)"
-    [[ "$count" -eq 3 ]] && return 0
+    [[ "$count" -eq 4 ]] && return 0
 
     # On a cold Gazebo/DDS start the independently launched collision monitor
     # can remain inactive after its lifecycle manager times out.  Retry that
-    # one lifecycle transition once, while still requiring all three nodes to
+    # one lifecycle transition once, while still requiring all four nodes to
     # be active before a goal is sent.  This is orchestration recovery only:
     # it does not bypass the safety node or change any navigation parameter.
     if [[ "$startup_recovery_attempted" == false ]] && \
