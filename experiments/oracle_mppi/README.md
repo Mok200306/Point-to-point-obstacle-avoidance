@@ -1,6 +1,6 @@
 # Oracle 预测式导航实验
 
-本目录用于执行任务书《Oracle预测式导航生死实验_分阶段执行任务书_v1.docx》（2026-08-27）规定的逐 Gate 实验。Gate 4 已在独立分支 `exp/oracle-g4-critic-2026-08-28` 上完成硬验收；当前工作在独立分支 `exp/oracle-g5-closed-loop-2026-08-29` 上，Gate 5 正式闭环批次已完成但结论为 `BLOCKED`。现有 `main` 分支、历史正式结果和既有 RPP profile 不在本实验中直接修改。
+本目录用于执行任务书《Oracle预测式导航生死实验_分阶段执行任务书_v1.docx》（2026-08-27）规定的逐 Gate 实验。Gate 4 已在独立分支 `exp/oracle-g4-critic-2026-08-28` 上完成硬验收；当前工作在独立分支 `exp/oracle-g5-stability-2026-08-30` 上，Gate 5 正式闭环批次已完成但结论为 `BLOCKED`。本分支新增的启动编排修复已提交为 `a20b43c` 并推送。现有 `main` 分支、历史正式结果和既有 RPP profile 不在本实验中直接修改。
 
 ## 研究问题
 
@@ -159,7 +159,7 @@ Reactive、5 次 Oracle。完整的机器可读汇总为：
 - [Gate 5 参数扫频审查](reports/GATE5_PARAMETER_SWEEP_2026-08-30.md)
 - [Gate 5 阻塞报告](reports/GATE5_BLOCKER_REPORT_2026-08-30.md)
 
-当前硬验收结果：
+当前正式批次硬验收结果：
 
 ```text
 S1 Reactive: 5/5    S1 Oracle: 3/5
@@ -188,6 +188,28 @@ python3 experiments/oracle_mppi/scripts/summarize_gate5.py \
 参数扫频 `gate5/cost_sweep_20260829_01/` 只有每个权重一组配对、且使用旧
 commit 和诊断场景，只能作为诊断参考，不能据此冻结 `cost_weight=10` 或 `50`。
 正式下一步应在当前 commit、正式 S1/S2 场景上进行至少 3 次配对的单变量扫频。
+
+### 启动编排修复后的 smoke 复测
+
+本分支只增加了一个启动就绪条件：发送 Goal 前必须同时确认
+`/controller_server`、`/planner_server`、`/bt_navigator` 和
+`/collision_monitor` 均为 `active [3]`。修复提交为：
+
+```text
+a20b43cefce004ba6d0b25572c9cb9ed2035a72d
+```
+
+复测结果与解释见 [Gate 5 启动修复与 Smoke 复测报告](reports/GATE5启动修复与Smoke复测报告_2026-08-30.md)。
+
+当前两个独立 smoke 根目录为：
+
+```text
+gate5/stability_smoke_20260830_02/   # 4/4，父提交证据
+gate5/stability_smoke_20260830_03/   # 3/4，a20b43c 证据
+```
+
+`_03` 的唯一失败是 S1 Oracle 导航超时（无启动失败、无动态 contacts），
+所以启动稳定性问题与 Oracle 闭环控制收敛问题已经分离，但 Gate 5 仍不能通过。
 
 ## 证据命名
 
