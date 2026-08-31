@@ -17,8 +17,15 @@ contacts_topic=''
 contact_timeout='1200'
 startup_timeout='45'
 settle_seconds='5'
+dynamic_obstacle_model=''
 contact_pid=''
 contact_log=''
+contacts_archived='false'
+artifact_dir=''
+contact_count='0'
+contact_pairs=''
+contact_pairs_one_line=''
+contact_pairs_yaml=''
 
 usage() {
   cat <<'EOF'
@@ -28,7 +35,7 @@ Usage:
     [--start-name NAME] [--start-x X] [--start-y Y] [--label NAME]
     [--profile NAME] [--world-file PATH] [--contacts-topic TOPIC]
     [--contact-timeout SECONDS] [--startup-timeout SECONDS]
-    [--settle-seconds SECONDS]
+    [--settle-seconds SECONDS] [--dynamic-obstacle-model MODEL]
 
 The current container must already be running with demo.launch.py. Goals are
 sent sequentially without resetting Gazebo or the RTAB-Map database.
@@ -48,6 +55,7 @@ while [[ $# -gt 0 ]]; do
     --contact-timeout) contact_timeout="$2"; shift 2 ;;
     --startup-timeout) startup_timeout="$2"; shift 2 ;;
     --settle-seconds) settle_seconds="$2"; shift 2 ;;
+    --dynamic-obstacle-model) dynamic_obstacle_model="$2"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *) printf 'Unknown argument: %s\n' "$1" >&2; usage >&2; exit 2 ;;
   esac
@@ -115,6 +123,7 @@ stop_contact_listener() {
 
 cleanup() {
   stop_contact_listener
+  archive_contacts || true
   if [[ -n "$contact_log" ]]; then
     rm -f -- "$contact_log"
   fi
@@ -151,13 +160,66 @@ wait_for_nav2() {
 artifact_dir="results/${label}"
 mkdir -p "$artifact_dir"
 cp src/rtabmap_tb3_nav/config/nav2_rgbd_params.yaml \
-  "${artifact_dir}/导航参数.yaml"
+  "${artifact_dir}/导航参数_源码.yaml"
 cp src/rtabmap_tb3_nav/config/collision_monitor_rgbd_params.yaml \
-  "${artifact_dir}/碰撞监视参数.yaml"
+  "${artifact_dir}/碰撞监视参数_源码.yaml"
 cp "$world_file" "${artifact_dir}/世界文件.sdf"
+
+if [[ ! -f "${artifact_dir}/导航参数.yaml" ]]; then
+  cp src/rtabmap_tb3_nav/config/nav2_rgbd_params.yaml \
+    "${artifact_dir}/导航参数.yaml"
+fi
+if [[ ! -f "${artifact_dir}/碰撞监视参数.yaml" ]]; then
+  cp src/rtabmap_tb3_nav/config/collision_monitor_rgbd_params.yaml \
+    "${artifact_dir}/碰撞监视参数.yaml"
+fi
+
+snapshot_runtime_params() {
+  local node
+  local file_name
+  local dump
+  while IFS='|' read -r node file_name; do
+    if dump="$(compose_exec "source /opt/ros/humble/setup.bash && timeout 10s ros2 param dump ${node}" 2>/dev/null)"; then
+      printf '%s\n' "$dump" >"${artifact_dir}/${file_name}"
+    fi
+  done <<'EOF'
+/planner_server|运行时参数_planner_server.yaml
+/controller_server|运行时参数_controller_server.yaml
+/velocity_smoother|运行时参数_velocity_smoother.yaml
+/global_costmap/global_costmap|运行时参数_global_costmap.yaml
+/local_costmap/local_costmap|运行时参数_local_costmap.yaml
+/collision_monitor|运行时参数_collision_monitor.yaml
+EOF
+}
+
+archive_contacts() {
+  if [[ "$contacts_archived" == 'true' || -z "$contact_log" || \
+        ! -f "$contact_log" || -z "$artifact_dir" ]]; then
+    return 0
+  fi
+  contact_pairs="$(grep -oE 'collision1: "[^"]+" collision2: "[^"]+"' \
+    "$contact_log" | grep waffle | grep -v ground_plane | sort -u || true)"
+  contact_count="$(grep -o 'contact {' "$contact_log" | wc -l | tr -d ' ')"
+  contact_pairs_one_line="$(printf '%s' "$contact_pairs" | tr '\n' ';' | sed 's/;$//')"
+  contact_pairs_yaml="$(printf '%s' "$contact_pairs_one_line" | sed "s/'/''/g")"
+  gzip -c "$contact_log" >"${artifact_dir}/gazebo_contacts_raw.log.gz"
+  {
+    printf 'topic: "%s"\n' "$contacts_topic"
+    printf 'messages: %s\n' "$contact_count"
+    if [[ -n "$contact_pairs" ]]; then
+      printf 'non_ground_contact: true\n'
+      printf "pairs: '%s'\n" "$contact_pairs_yaml"
+    else
+      printf 'non_ground_contact: false\n'
+      printf 'pairs: "(none)"\n'
+    fi
+  } >"${artifact_dir}/gazebo_contacts_summary.yaml"
+  contacts_archived='true'
+}
 
 contact_label="${label//\//_}"
 wait_for_nav2
+snapshot_runtime_params
 
 # Start the Gazebo contacts subscriber only after Nav2 has completed its
 # lifecycle transition.  `gz topic -e` can be CPU-intensive on this host; if
@@ -178,6 +240,11 @@ printf -v quoted_start_name '%q' "$start_name"
 printf -v quoted_label '%q' "$label"
 printf -v quoted_profile '%q' "$profile"
 printf -v quoted_world_file '%q' "/workspaces/rtabmap_tb3_nav/${world_file}"
+printf -v quoted_dynamic_obstacle_model '%q' "$dynamic_obstacle_model"
+dynamic_obstacle_argument=''
+if [[ -n "$dynamic_obstacle_model" ]]; then
+  dynamic_obstacle_argument=" --dynamic-obstacle-model ${quoted_dynamic_obstacle_model}"
+fi
 
 trial_command="source /opt/ros/humble/setup.bash && \
 source /workspaces/rtabmap_tb3_nav/install/setup.bash && \
@@ -185,7 +252,7 @@ ros2 run rtabmap_tb3_nav multi_waypoint_trial.py${goal_arguments} \
 --start-name ${quoted_start_name} --start-x ${start_x} --start-y ${start_y} \
 --settle-seconds ${settle_seconds} --label ${quoted_label} \
 --profile ${quoted_profile} --output-dir /workspaces/rtabmap_tb3_nav/results \
---world-file ${quoted_world_file}"
+--world-file ${quoted_world_file}${dynamic_obstacle_argument}"
 
 set +e
 compose_exec "$trial_command"
@@ -193,18 +260,33 @@ trial_exit=$?
 set -e
 
 stop_contact_listener
-
-contact_pairs="$(grep -oE 'collision1: "[^"]+" collision2: "[^"]+"' \
-  "$contact_log" | grep waffle | grep -v ground_plane | sort -u || true)"
-contact_count="$(grep -o 'contact {' "$contact_log" | wc -l | tr -d ' ')"
-contact_pairs_one_line="$(printf '%s' "$contact_pairs" | tr '\n' ';' | sed 's/;$//')"
-contact_pairs_yaml="$(printf '%s' "$contact_pairs_one_line" | sed "s/'/''/g")"
+archive_contacts
 
 if [[ -f "${artifact_dir}/metrics.yaml" ]]; then
   {
     printf 'git_commit: %s\n' "$(git rev-parse HEAD 2>/dev/null || printf unknown)"
+    source_dirty='false'
+    if ! git diff --quiet --ignore-submodules -- . ':(exclude)results'; then
+      source_dirty='true'
+    elif [[ -n "$(git ls-files --others --exclude-standard -- . ':(exclude)results')" ]]; then
+      source_dirty='true'
+    fi
+    if [[ "$source_dirty" == 'false' ]]; then
+      printf 'git_dirty: false\n'
+    else
+      printf 'git_dirty: true\n'
+    fi
+    printf 'runtime_parameter_snapshot: true\n'
+    printf 'dynamic_obstacle_model: %s\n' "${dynamic_obstacle_model:-null}"
+    if [[ -n "$dynamic_obstacle_model" ]]; then
+      printf 'dynamic_obstacle_driver: dynamic_obstacle_driver.py\n'
+    else
+      printf 'dynamic_obstacle_driver: null\n'
+    fi
     printf 'gazebo_contacts_topic: "%s"\n' "$contacts_topic"
     printf 'gazebo_contact_messages: %s\n' "$contact_count"
+    printf 'gazebo_contacts_raw: gazebo_contacts_raw.log.gz\n'
+    printf 'gazebo_contacts_summary: gazebo_contacts_summary.yaml\n'
     if [[ -n "$contact_pairs" ]]; then
       printf 'gazebo_non_ground_contact: true\n'
       printf "gazebo_contact_pairs: '%s'\n" "$contact_pairs_yaml"

@@ -2,6 +2,7 @@
 """Bring up Gazebo, RTAB-Map RGB-D SLAM, Nav2 and optional GUIs."""
 
 import os
+import shutil
 import tempfile
 
 import yaml
@@ -1051,6 +1052,22 @@ def launch_setup(context, *args, **kwargs):
     collision_monitor_params = LaunchConfiguration(
         'collision_monitor_params').perform(context)
     navigation_profile = LaunchConfiguration('navigation_profile').perform(context)
+    runtime_snapshot_dir = LaunchConfiguration(
+        'runtime_snapshot_dir').perform(context).strip()
+    dynamic_obstacle_enabled = LaunchConfiguration(
+        'dynamic_obstacle').perform(context).lower() == 'true'
+    dynamic_obstacle_model = LaunchConfiguration(
+        'dynamic_obstacle_model').perform(context)
+    dynamic_obstacle_cmd_vel_topic = LaunchConfiguration(
+        'dynamic_obstacle_cmd_vel_topic').perform(context)
+    dynamic_obstacle_speed = float(LaunchConfiguration(
+        'dynamic_obstacle_speed_mps').perform(context))
+    dynamic_obstacle_min_y = float(LaunchConfiguration(
+        'dynamic_obstacle_min_y_m').perform(context))
+    dynamic_obstacle_max_y = float(LaunchConfiguration(
+        'dynamic_obstacle_max_y_m').perform(context))
+    dynamic_obstacle_start_delay = float(LaunchConfiguration(
+        'dynamic_obstacle_start_delay_s').perform(context))
 
     use_sim_time = LaunchConfiguration('use_sim_time')
     localization = LaunchConfiguration('localization')
@@ -1119,6 +1136,35 @@ def launch_setup(context, *args, **kwargs):
         nav2_params, package_share, online, navigation_profile)
     collision_monitor_params_file = collision_monitor_params_for_profile(
         collision_monitor_params, navigation_profile)
+
+    if runtime_snapshot_dir:
+        runtime_snapshot_dir = os.path.abspath(runtime_snapshot_dir)
+        os.makedirs(runtime_snapshot_dir, exist_ok=True)
+        shutil.copyfile(
+            nav2_params_file,
+            os.path.join(runtime_snapshot_dir, '导航参数.yaml'))
+        shutil.copyfile(
+            collision_monitor_params_file,
+            os.path.join(runtime_snapshot_dir, '碰撞监视参数.yaml'))
+        with open(os.path.join(runtime_snapshot_dir, '运行时元数据.yaml'),
+                  'w', encoding='utf-8') as stream:
+            yaml.safe_dump({
+                'navigation_profile': navigation_profile,
+                'world_file': custom_world,
+                'nav2_params_source': nav2_params,
+                'collision_monitor_params_source': collision_monitor_params,
+                'online': online,
+                'localization': LaunchConfiguration(
+                    'localization').perform(context).lower() == 'true',
+                'reset_db': reset_db,
+                'dynamic_obstacle_enabled': dynamic_obstacle_enabled,
+                'dynamic_obstacle_model': dynamic_obstacle_model,
+                'dynamic_obstacle_cmd_vel_topic': dynamic_obstacle_cmd_vel_topic,
+                'dynamic_obstacle_speed_mps': dynamic_obstacle_speed,
+                'dynamic_obstacle_min_y_m': dynamic_obstacle_min_y,
+                'dynamic_obstacle_max_y_m': dynamic_obstacle_max_y,
+                'dynamic_obstacle_start_delay_s': dynamic_obstacle_start_delay,
+            }, stream, allow_unicode=True, sort_keys=False)
 
     online_map_padder = []
     if online:
@@ -1305,6 +1351,26 @@ def launch_setup(context, *args, **kwargs):
                 actions=[collision_monitor_lifecycle_manager]),
         ])
 
+    dynamic_obstacle_driver = []
+    if dynamic_obstacle_enabled:
+        dynamic_obstacle_driver = [TimerAction(
+            period=max(dynamic_obstacle_start_delay, 0.0),
+            actions=[Node(
+                package='rtabmap_tb3_nav',
+                executable='dynamic_obstacle_driver.py',
+                name='dynamic_obstacle_driver',
+                output='screen',
+                parameters=[{
+                    'use_sim_time': use_sim_time,
+                    'model_name': dynamic_obstacle_model,
+                    'cmd_vel_topic': dynamic_obstacle_cmd_vel_topic,
+                    'speed_mps': dynamic_obstacle_speed,
+                    'min_y_m': dynamic_obstacle_min_y,
+                    'max_y_m': dynamic_obstacle_max_y,
+                }],
+            )],
+        )]
+
     return [
         SetEnvironmentVariable('TURTLEBOT3_MODEL', 'waffle'),
         *gazebo,
@@ -1312,6 +1378,7 @@ def launch_setup(context, *args, **kwargs):
         *online_map_padder,
         nav2,
         delayed_collision_monitor,
+        *dynamic_obstacle_driver,
         rviz,
     ]
 
@@ -1331,6 +1398,42 @@ def generate_launch_description():
             description=(
                 'Optional custom SDF filename under the package worlds directory '
                 'or an absolute SDF path. It takes precedence over world.')),
+        DeclareLaunchArgument(
+            'runtime_snapshot_dir',
+            default_value='',
+            description=(
+                'Optional directory for effective runtime parameter and launch '
+                'metadata snapshots. Pass the new experiment result directory.')),
+        DeclareLaunchArgument(
+            'dynamic_obstacle',
+            default_value='false',
+            description=(
+                'Start the repeatable driver for the dynamic_obstacle model. '
+                'The world file must contain that model.')),
+        DeclareLaunchArgument(
+            'dynamic_obstacle_model',
+            default_value='dynamic_obstacle',
+            description='Gazebo model name controlled by the dynamic driver.'),
+        DeclareLaunchArgument(
+            'dynamic_obstacle_cmd_vel_topic',
+            default_value='/dynamic_obstacle/cmd_vel',
+            description='Twist topic consumed by the dynamic obstacle plugin.'),
+        DeclareLaunchArgument(
+            'dynamic_obstacle_speed_mps',
+            default_value='0.18',
+            description='Absolute dynamic obstacle speed in m/s.'),
+        DeclareLaunchArgument(
+            'dynamic_obstacle_min_y_m',
+            default_value='-2.8',
+            description='Lower y bound for the dynamic obstacle.'),
+        DeclareLaunchArgument(
+            'dynamic_obstacle_max_y_m',
+            default_value='-1.0',
+            description='Upper y bound for the dynamic obstacle.'),
+        DeclareLaunchArgument(
+            'dynamic_obstacle_start_delay_s',
+            default_value='5.0',
+            description='Delay before the dynamic obstacle driver starts.'),
         DeclareLaunchArgument(
             'x_pose',
             default_value='-8.5',

@@ -40,6 +40,7 @@ install(
   PROGRAMS
     scripts/send_goal.py
     scripts/explore_demo.py
+    scripts/dynamic_obstacle_driver.py
     scripts/navigation_trial.py
     scripts/goal_line_visualizer.py
     scripts/multi_goal_trial.py

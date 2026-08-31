@@ -76,13 +76,20 @@ class MultiGoalEvidence:
              if trial.costmap_message is not None), None)
         self.path_segments = [trial.path for trial in trials]
         self.gazebo_segments = [trial.gazebo_path for trial in trials]
+        self.dynamic_obstacle_segments = [
+            trial.dynamic_obstacle_path for trial in trials]
         while len(self.path_segments) < len(stages):
             self.path_segments.append([])
         while len(self.gazebo_segments) < len(stages):
             self.gazebo_segments.append([])
+        while len(self.dynamic_obstacle_segments) < len(stages):
+            self.dynamic_obstacle_segments.append([])
         self.path = [sample for segment in self.path_segments for sample in segment]
         self.gazebo_path = [
             sample for segment in self.gazebo_segments for sample in segment]
+        self.dynamic_obstacle_path = [
+            sample for segment in self.dynamic_obstacle_segments
+            for sample in segment]
 
     def world_bounds(self):
         points = []
@@ -154,6 +161,8 @@ class MultiGoalEvidence:
             axis.add_patch(Polygon(
                 corners, closed=True, facecolor=obstacle['color'],
                 edgecolor='#263238', linewidth=1.0, alpha=0.88, zorder=3))
+            if obstacle.get('dynamic', False):
+                axis.patches[-1].set_hatch('//')
             if not obstacle['name'].startswith('wall'):
                 axis.text(obstacle['x'], obstacle['y'], obstacle['name'],
                           fontsize=6, ha='center', va='center', zorder=4)
@@ -234,6 +243,22 @@ class MultiGoalEvidence:
         axis.set_facecolor('#edf1f4')
         self.draw_obstacles(axis)
         self.draw_segmented_paths(axis, gazebo=True)
+        if self.dynamic_obstacle_path:
+            axis.plot(
+                [sample['x'] for sample in self.dynamic_obstacle_path],
+                [sample['y'] for sample in self.dynamic_obstacle_path],
+                color='#d946a6', linestyle=':', linewidth=2.0,
+                label='dynamic obstacle ground-truth trajectory', zorder=7)
+            axis.scatter(
+                self.dynamic_obstacle_path[0]['x'],
+                self.dynamic_obstacle_path[0]['y'],
+                color='#d946a6', marker='s', s=45,
+                label='dynamic obstacle recorded start', zorder=9)
+            axis.scatter(
+                self.dynamic_obstacle_path[-1]['x'],
+                self.dynamic_obstacle_path[-1]['y'],
+                facecolors='none', edgecolors='#d946a6', marker='s', s=70,
+                label='dynamic obstacle recorded end', zorder=9)
         self.set_axis_style(axis)
         axis.set_title('Gazebo top-down view + ground truth trajectory')
         axis.legend(loc='upper right', fontsize=8)
@@ -320,6 +345,18 @@ class MultiGoalEvidence:
                     writer.writerow({
                         'segment': index,
                         'segment_name': stage['name'],
+                        **{field: sample.get(field) for field in all_fields[2:]},
+                    })
+        with open(os.path.join(output_dir, '动态障碍轨迹.csv'), 'w',
+                  newline='', encoding='utf-8') as stream:
+            writer = csv.DictWriter(stream, fieldnames=all_fields)
+            writer.writeheader()
+            for index, samples in enumerate(
+                    self.dynamic_obstacle_segments, start=1):
+                for sample in samples:
+                    writer.writerow({
+                        'segment': index,
+                        'segment_name': self.stages[index - 1]['name'],
                         **{field: sample.get(field) for field in all_fields[2:]},
                     })
 

@@ -7,6 +7,7 @@ path, so each trial leaves a reviewable artifact without rosbag post-process.
 """
 
 import argparse
+import bisect
 import csv
 import math
 import os
@@ -99,11 +100,13 @@ def world_color(name):
         return '#3d9272'
     if name.startswith('pillar'):
         return '#565b66'
+    if name.startswith('dynamic'):
+        return '#d946a6'
     return '#9aa4ad'
 
 
 def load_world_objects(world_file):
-    """Extract static collision boxes from the Gazebo SDF for the left panel."""
+    """Extract collision boxes from the Gazebo SDF for the left panel."""
     objects = []
     markers = {}
     try:
@@ -134,8 +137,9 @@ def load_world_objects(world_file):
         if name in ('start_marker', 'goal_marker'):
             markers[name] = model_pose
 
-        if model.findtext('static', 'false').strip().lower() \
-                not in ('true', '1', 'yes'):
+        is_static = model.findtext('static', 'false').strip().lower() \
+            in ('true', '1', 'yes')
+        if not is_static and not name.startswith('dynamic'):
             continue
 
         for link in model.findall('link'):
@@ -152,6 +156,7 @@ def load_world_objects(world_file):
                     values = [float(value) for value in box_size.split()]
                     objects.append({
                         'name': name,
+                        'dynamic': not is_static,
                         'kind': 'box',
                         'x': x,
                         'y': y,
@@ -165,6 +170,7 @@ def load_world_objects(world_file):
                 if cylinder is not None and cylinder.findtext('radius'):
                     objects.append({
                         'name': name,
+                        'dynamic': not is_static,
                         'kind': 'circle',
                         'x': x,
                         'y': y,
@@ -202,6 +208,8 @@ class NavigationTrial:
                 Parameter('use_sim_time', Parameter.Type.BOOL, True)])
         self.world_objects, self.world_markers = load_world_objects(
             self.args.world_file)
+        self.dynamic_obstacle_model = getattr(
+            self.args, 'dynamic_obstacle_model', '')
         self.tf_buffer = Buffer(cache_time=Duration(seconds=30.0))
         self.tf_listener = TransformListener(
             self.tf_buffer, self.node, spin_thread=False)
@@ -235,6 +243,7 @@ class NavigationTrial:
             PoseStamped, '/goal_line_request', goal_line_qos)
         self.path = []
         self.gazebo_path = []
+        self.dynamic_obstacle_path = []
         self.map_message = None
         self.costmap_message = None
         self.last_feedback_distance = None
@@ -256,22 +265,43 @@ class NavigationTrial:
 
     def gazebo_callback(self, message):
         """Record Gazebo ground-truth pose for the left comparison panel."""
-        if self.wall_start_mono is None or 'waffle' not in message.name:
+        if self.wall_start_mono is None:
             return
-        index = message.name.index('waffle')
-        pose = message.pose[index]
-        sample = {
-            'wall_time': time.time(),
-            'wall_elapsed_s': time.monotonic() - self.wall_start_mono,
-            'sim_time': stamp_seconds(self.node.get_clock().now().to_msg()),
-            'x': pose.position.x,
-            'y': pose.position.y,
-            'yaw': yaw_from_quaternion(pose.orientation),
-        }
-        if not self.gazebo_path or math.hypot(
-                sample['x'] - self.gazebo_path[-1]['x'],
-                sample['y'] - self.gazebo_path[-1]['y']) >= 0.01:
-            self.gazebo_path.append(sample)
+        wall_time = time.time()
+        wall_elapsed = time.monotonic() - self.wall_start_mono
+        sim_time = stamp_seconds(self.node.get_clock().now().to_msg())
+        if 'waffle' in message.name:
+            index = message.name.index('waffle')
+            pose = message.pose[index]
+            sample = {
+                'wall_time': wall_time,
+                'wall_elapsed_s': wall_elapsed,
+                'sim_time': sim_time,
+                'x': pose.position.x,
+                'y': pose.position.y,
+                'yaw': yaw_from_quaternion(pose.orientation),
+            }
+            if not self.gazebo_path or math.hypot(
+                    sample['x'] - self.gazebo_path[-1]['x'],
+                    sample['y'] - self.gazebo_path[-1]['y']) >= 0.01:
+                self.gazebo_path.append(sample)
+
+        if (self.dynamic_obstacle_model and
+                self.dynamic_obstacle_model in message.name):
+            index = message.name.index(self.dynamic_obstacle_model)
+            pose = message.pose[index]
+            sample = {
+                'wall_time': wall_time,
+                'wall_elapsed_s': wall_elapsed,
+                'sim_time': sim_time,
+                'x': pose.position.x,
+                'y': pose.position.y,
+                'yaw': yaw_from_quaternion(pose.orientation),
+            }
+            if not self.dynamic_obstacle_path or math.hypot(
+                    sample['x'] - self.dynamic_obstacle_path[-1]['x'],
+                    sample['y'] - self.dynamic_obstacle_path[-1]['y']) >= 0.01:
+                self.dynamic_obstacle_path.append(sample)
 
     def odom_callback(self, message):
         source_frame = message.header.frame_id or 'odom'
@@ -396,6 +426,8 @@ class NavigationTrial:
             clearances = []
             for sample in comparison_path:
                 for obstacle in self.world_objects:
+                    if obstacle.get('dynamic', False):
+                        continue
                     if obstacle['kind'] == 'box':
                         distance = point_to_box_distance(
                             sample['x'], sample['y'], obstacle)
@@ -405,6 +437,43 @@ class NavigationTrial:
                             sample['y'] - obstacle['y']) - obstacle['radius']
                     clearances.append(distance - robot_radius)
             minimum_clearance = min(clearances) if clearances else None
+        dynamic_minimum_clearance = None
+        dynamic_objects = [
+            obstacle for obstacle in self.world_objects
+            if obstacle.get('dynamic', False)
+        ]
+        if (self.gazebo_path and self.dynamic_obstacle_path and
+                dynamic_objects):
+            obstacle = dynamic_objects[0]
+            robot_times = [sample['wall_elapsed_s']
+                           for sample in self.gazebo_path]
+            for dynamic_sample in self.dynamic_obstacle_path:
+                index = bisect.bisect_left(
+                    robot_times, dynamic_sample['wall_elapsed_s'])
+                candidates = []
+                if index < len(self.gazebo_path):
+                    candidates.append(self.gazebo_path[index])
+                if index > 0:
+                    candidates.append(self.gazebo_path[index - 1])
+                if not candidates:
+                    continue
+                robot_sample = min(
+                    candidates,
+                    key=lambda candidate: abs(
+                        candidate['wall_elapsed_s'] -
+                        dynamic_sample['wall_elapsed_s']))
+                dynamic_box = {
+                    **obstacle,
+                    'x': dynamic_sample['x'],
+                    'y': dynamic_sample['y'],
+                    'yaw': dynamic_sample['yaw'],
+                }
+                clearance = point_to_box_distance(
+                    robot_sample['x'], robot_sample['y'], dynamic_box)
+                clearance -= robot_radius
+                if (dynamic_minimum_clearance is None or
+                        clearance < dynamic_minimum_clearance):
+                    dynamic_minimum_clearance = clearance
         return {
             'label': self.args.label,
             'goal_frame': self.args.frame,
@@ -425,6 +494,12 @@ class NavigationTrial:
             'gazebo_trajectory_length_m': path_length(self.gazebo_path),
             'gazebo_ground_truth_received': bool(self.gazebo_path),
             'minimum_approx_clearance_m': minimum_clearance,
+            'dynamic_obstacle_model': self.dynamic_obstacle_model or None,
+            'dynamic_obstacle_samples': len(self.dynamic_obstacle_path),
+            'dynamic_obstacle_trajectory_length_m': path_length(
+                self.dynamic_obstacle_path),
+            'dynamic_obstacle_min_approx_clearance_m': (
+                dynamic_minimum_clearance),
             'gazebo_world_file': self.args.world_file,
             'final_x_m': final['x'] if final else None,
             'final_y_m': final['y'] if final else None,
@@ -447,6 +522,9 @@ class NavigationTrial:
 
     def write_gazebo_csv(self, path):
         self.write_path_csv(path, self.gazebo_path)
+
+    def write_dynamic_obstacle_csv(self, path):
+        self.write_path_csv(path, self.dynamic_obstacle_path)
 
     @staticmethod
     def draw_grid(axis, message, alpha, label):
@@ -568,6 +646,8 @@ class NavigationTrial:
             axis.add_patch(Polygon(
                 corners, closed=True, facecolor=obstacle['color'],
                 edgecolor='#263238', linewidth=1.0, alpha=0.88, zorder=3))
+            if obstacle.get('dynamic', False):
+                axis.patches[-1].set_hatch('//')
             if not obstacle['name'].startswith('wall'):
                 axis.text(obstacle['x'], obstacle['y'], obstacle['name'],
                           fontsize=6, ha='center', va='center', zorder=4)
@@ -579,6 +659,22 @@ class NavigationTrial:
         self.draw_path(axis, self.gazebo_path or self.path, self.args,
                        'Gazebo ground-truth trajectory' if self.gazebo_path
                        else 'map trajectory (fallback)')
+        if self.dynamic_obstacle_path:
+            axis.plot(
+                [sample['x'] for sample in self.dynamic_obstacle_path],
+                [sample['y'] for sample in self.dynamic_obstacle_path],
+                color='#d946a6', linestyle=':', linewidth=2.0,
+                label='dynamic obstacle ground-truth trajectory', zorder=7)
+            axis.scatter(
+                self.dynamic_obstacle_path[0]['x'],
+                self.dynamic_obstacle_path[0]['y'],
+                color='#d946a6', marker='s', s=45,
+                label='dynamic obstacle recorded start', zorder=9)
+            axis.scatter(
+                self.dynamic_obstacle_path[-1]['x'],
+                self.dynamic_obstacle_path[-1]['y'],
+                facecolors='none', edgecolors='#d946a6', marker='s', s=70,
+                label='dynamic obstacle recorded end', zorder=9)
         self.set_axis_style(axis)
         axis.set_title('Gazebo top-down world + ground truth')
         axis.legend(loc='upper right', fontsize=8)
@@ -649,6 +745,9 @@ def main():
         default='/workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/'
                 'indoor_obstacle_course_large.world',
         help='Gazebo SDF used to render the top-down scene panel.')
+    parser.add_argument(
+        '--dynamic-obstacle-model', default='',
+        help='Optional Gazebo model name whose ground-truth path is recorded.')
     args = parser.parse_args()
 
     output_dir = os.path.join(args.output_dir, args.label)
@@ -662,6 +761,8 @@ def main():
         trial.write_csv(os.path.join(output_dir, 'trajectory.csv'))
         trial.write_gazebo_csv(
             os.path.join(output_dir, 'gazebo_trajectory.csv'))
+        trial.write_dynamic_obstacle_csv(
+            os.path.join(output_dir, '动态障碍轨迹.csv'))
         trial.write_plot(os.path.join(output_dir, 'trajectory.png'))
         trial.write_comparison_plot(
             os.path.join(output_dir, 'trajectory_comparison.png'))

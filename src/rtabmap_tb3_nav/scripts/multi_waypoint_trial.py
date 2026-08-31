@@ -87,6 +87,9 @@ def main():
         default='/workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/'
                 'indoor_obstacle_course_large.world')
     parser.add_argument('--profile', default='adaptive_goal_line_045')
+    parser.add_argument(
+        '--dynamic-obstacle-model', default='',
+        help='Optional Gazebo model name whose ground-truth path is recorded.')
     args = parser.parse_args()
 
     if len(args.goal) < 1:
@@ -109,6 +112,7 @@ def main():
                 settle_seconds=args.settle_seconds,
                 label=f'{args.label}/segment_{index + 1}',
                 world_file=args.world_file,
+                dynamic_obstacle_model=args.dynamic_obstacle_model,
             )
             trial = NavigationTrial(trial_args)
             error = None
@@ -177,6 +181,7 @@ def main():
                     stage['name']: stage['color'] for stage in stages},
                 'black_reference': '每段实际起点到当前终点直线',
                 'mapping_mode': 'online RGB-D RTAB-Map SLAM',
+                'dynamic_obstacle_model': args.dynamic_obstacle_model or None,
             }, stream, allow_unicode=True, sort_keys=False)
         exit_code = 0 if overall_success else 5
         print(f'label={args.label}')
