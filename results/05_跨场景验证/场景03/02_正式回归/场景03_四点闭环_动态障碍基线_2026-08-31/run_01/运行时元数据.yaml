@@ -1,0 +1,14 @@
+navigation_profile: adaptive_goal_line_045
+world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_03_dynamic.world
+nav2_params_source: /workspaces/rtabmap_tb3_nav/install/rtabmap_tb3_nav/share/rtabmap_tb3_nav/config/nav2_rgbd_params.yaml
+collision_monitor_params_source: /workspaces/rtabmap_tb3_nav/install/rtabmap_tb3_nav/share/rtabmap_tb3_nav/config/collision_monitor_rgbd_params.yaml
+online: true
+localization: false
+reset_db: true
+dynamic_obstacle_enabled: true
+dynamic_obstacle_model: dynamic_obstacle
+dynamic_obstacle_cmd_vel_topic: /dynamic_obstacle/cmd_vel
+dynamic_obstacle_speed_mps: 0.18
+dynamic_obstacle_min_y_m: -2.8
+dynamic_obstacle_max_y_m: -1.0
+dynamic_obstacle_start_delay_s: 5.0

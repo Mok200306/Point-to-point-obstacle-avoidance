@@ -1,0 +1,62 @@
+/planner_server:
+  ros__parameters:
+    /bond_disable_heartbeat_timeout: true
+    GridBased:
+      allow_unknown: true
+      cost_travel_multiplier: 6.0
+      downsample_costmap: false
+      downsampling_factor: 1
+      goal_progress_bias_apply_to_unknown: false
+      goal_progress_bias_distance_scale: 1.0
+      goal_progress_bias_enabled: false
+      goal_progress_bias_exponent: 2.0
+      goal_progress_bias_max_cost: 0.0
+      line_bias_apply_to_unknown: false
+      line_bias_distance_scale: 2.0
+      line_bias_enabled: true
+      line_bias_exponent: 2.0
+      line_bias_max_cost: 60.0
+      max_iterations: 1000000
+      max_on_approach_iterations: 1000
+      max_planning_time: 1.0
+      plugin: rtabmap_tb3_nav/GoalLineSmacPlanner
+      side_bias_apply_to_unknown: false
+      side_bias_distance_scale: 0.9
+      side_bias_enabled: false
+      side_bias_exponent: 2.0
+      side_bias_max_cost: 45.0
+      side_bias_preferred_y_sign: 1
+      side_bias_reference_world_y: 0.0
+      side_bias_target_distance_scale: 0.75
+      side_bias_target_exponent: 2.0
+      side_bias_target_max_cost: 90.0
+      side_bias_target_offset: 0.95
+      side_bias_target_schedule_enabled: false
+      side_bias_target_schedule_x: []
+      side_bias_target_schedule_y: []
+      side_bias_target_world_y: 0.95
+      side_bias_target_world_y_enabled: false
+      side_bias_unknown_base_cost: 1.0
+      side_bias_world_x_max: -2.5
+      side_bias_world_x_min: -7.2
+      smoother:
+        do_refinement: true
+        max_iterations: 1000
+        tolerance: 1.0e-10
+        w_data: 0.2
+        w_smooth: 0.4
+      tolerance: 0.25
+      unknown_bias_cost: 0.0
+      unknown_bias_enabled: false
+      use_final_approach_orientation: false
+    expected_planner_frequency: 2.0
+    planner_plugins:
+    - GridBased
+    qos_overrides:
+      /clock:
+        subscription:
+          depth: 1
+          durability: volatile
+          history: keep_last
+          reliability: best_effort
+    use_sim_time: true

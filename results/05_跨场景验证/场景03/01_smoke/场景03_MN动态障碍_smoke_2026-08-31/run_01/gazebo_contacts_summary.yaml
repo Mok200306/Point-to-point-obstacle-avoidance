@@ -1,0 +1,4 @@
+topic: "/gazebo/indoor_obstacle_course_cross_scene_03_dynamic/physics/contacts"
+messages: 414940
+non_ground_contact: false
+pairs: "(none)"

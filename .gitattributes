@@ -1,0 +1,4 @@
+# Raw Gazebo contact streams are retained as evidence but are too large for
+# ordinary Git blobs. Keep the compressed logs in Git LFS; summaries remain
+# normal text files for quick review.
+results/**/gazebo_contacts_raw.log.gz filter=lfs diff=lfs merge=lfs -text

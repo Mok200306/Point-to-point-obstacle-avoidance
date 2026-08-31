@@ -1,0 +1,4 @@
+topic: "/gazebo/indoor_obstacle_course_cross_scene_03_dynamic/physics/contacts"
+messages: 1341573
+non_ground_contact: true
+pairs: 'collision1: "waffle::base_link::base_collision" collision2: "dynamic_obstacle::link::collision";collision1: "waffle::wheel_left_link::wheel_left_collision" collision2: "dynamic_obstacle::link::collision"'

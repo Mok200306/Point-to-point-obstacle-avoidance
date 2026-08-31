@@ -1,0 +1,145 @@
+label: 05_跨场景验证/场景03/02_正式回归/场景03_四点闭环_动态障碍基线_2026-08-31/run_02
+profile: adaptive_goal_line_045
+world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_03_dynamic.world
+goal_frame: map
+overall_succeeded: true
+completed_segments: 4
+requested_segments: 4
+total_wall_duration_s: 569.0389761180268
+total_trajectory_length_m: 104.76741793991285
+segments:
+- name: M->N
+  label: 05_跨场景验证/场景03/02_正式回归/场景03_四点闭环_动态障碍基线_2026-08-31/run_02/segment_1
+  goal_frame: map
+  goal_x_m: 8.5
+  goal_y_m: 0.0
+  goal_yaw_rad: 0.0
+  nav2_status: 4
+  succeeded: true
+  wall_start_unix_s: 1788164820.9467123
+  wall_end_unix_s: 1788164969.816931
+  wall_duration_s: 148.8702157480293
+  simulation_start_s: 300.2
+  simulation_end_s: 414.0
+  simulation_duration_s: 113.80000000000001
+  samples: 835
+  trajectory_length_m: 28.512339795469813
+  gazebo_samples: 1621
+  gazebo_trajectory_length_m: 28.510463456595488
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: -0.12713439425443995
+  dynamic_obstacle_model: dynamic_obstacle
+  dynamic_obstacle_samples: 1665
+  dynamic_obstacle_trajectory_length_m: 20.425319999996972
+  dynamic_obstacle_min_approx_clearance_m: 0.5255437513138248
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_03_dynamic.world
+  final_x_m: 8.415862502074038
+  final_y_m: 0.07233793413417702
+  final_xy_error_m: 0.11095898013248762
+  map_frame: map
+  map_received: true
+  global_costmap_received: true
+- name: N->X
+  label: 05_跨场景验证/场景03/02_正式回归/场景03_四点闭环_动态障碍基线_2026-08-31/run_02/segment_2
+  goal_frame: map
+  goal_x_m: -3.0
+  goal_y_m: -4.0
+  goal_yaw_rad: 0.0
+  nav2_status: 4
+  succeeded: true
+  wall_start_unix_s: 1788164975.045622
+  wall_end_unix_s: 1788165198.6428266
+  wall_duration_s: 223.59720491798362
+  simulation_start_s: 418.0
+  simulation_end_s: 587.9
+  simulation_duration_s: 169.89999999999998
+  samples: 1184
+  trajectory_length_m: 41.9156144245185
+  gazebo_samples: 2331
+  gazebo_trajectory_length_m: 41.91636290977016
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: -0.13219388468660787
+  dynamic_obstacle_model: dynamic_obstacle
+  dynamic_obstacle_samples: 2482
+  dynamic_obstacle_trajectory_length_m: 30.440879999997257
+  dynamic_obstacle_min_approx_clearance_m: 0.7403195249696171
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_03_dynamic.world
+  final_x_m: -2.984220698069933
+  final_y_m: -3.923374794215015
+  final_xy_error_m: 0.0782330398935866
+  map_frame: map
+  map_received: true
+  global_costmap_received: true
+- name: X->Y
+  label: 05_跨场景验证/场景03/02_正式回归/场景03_四点闭环_动态障碍基线_2026-08-31/run_02/segment_3
+  goal_frame: map
+  goal_x_m: 5.0
+  goal_y_m: 5.0
+  goal_yaw_rad: 0.0
+  nav2_status: 4
+  succeeded: true
+  wall_start_unix_s: 1788165203.8897285
+  wall_end_unix_s: 1788165299.7070487
+  wall_duration_s: 95.81732105102856
+  simulation_start_s: 591.8
+  simulation_end_s: 665.1
+  simulation_duration_s: 73.30000000000007
+  samples: 515
+  trajectory_length_m: 17.243867943533115
+  gazebo_samples: 999
+  gazebo_trajectory_length_m: 17.248954846935785
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: -0.17737887068160899
+  dynamic_obstacle_model: dynamic_obstacle
+  dynamic_obstacle_samples: 1070
+  dynamic_obstacle_trajectory_length_m: 13.109759999997323
+  dynamic_obstacle_min_approx_clearance_m: 0.7332541140168163
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_03_dynamic.world
+  final_x_m: 5.00775422488999
+  final_y_m: 4.860352356348281
+  final_xy_error_m: 0.139862762667988
+  map_frame: map
+  map_received: true
+  global_costmap_received: true
+- name: Y->M
+  label: 05_跨场景验证/场景03/02_正式回归/场景03_四点闭环_动态障碍基线_2026-08-31/run_02/segment_4
+  goal_frame: map
+  goal_x_m: -8.5
+  goal_y_m: 0.0
+  goal_yaw_rad: 0.0
+  nav2_status: 4
+  succeeded: true
+  wall_start_unix_s: 1788165304.840833
+  wall_end_unix_s: 1788165405.5950692
+  wall_duration_s: 100.7542344009853
+  simulation_start_s: 669.0
+  simulation_end_s: 744.4
+  simulation_duration_s: 75.39999999999998
+  samples: 442
+  trajectory_length_m: 17.095595776391406
+  gazebo_samples: 957
+  gazebo_trajectory_length_m: 17.09525471481207
+  gazebo_ground_truth_received: true
+  minimum_approx_clearance_m: -0.22323301164909942
+  dynamic_obstacle_model: dynamic_obstacle
+  dynamic_obstacle_samples: 1102
+  dynamic_obstacle_trajectory_length_m: 13.513679999997258
+  dynamic_obstacle_min_approx_clearance_m: 2.8111060261873284
+  gazebo_world_file: /workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_03_dynamic.world
+  final_x_m: -8.409759956117046
+  final_y_m: -0.018521164621292524
+  final_xy_error_m: 0.09212111082117089
+  map_frame: map
+  map_received: true
+  global_costmap_received: true
+git_commit: db1854c33c7945db5eeadfab10ede671d6f33c9b
+git_dirty: false
+runtime_parameter_snapshot: true
+dynamic_obstacle_model: dynamic_obstacle
+dynamic_obstacle_driver: dynamic_obstacle_driver.py
+gazebo_contacts_topic: "/gazebo/indoor_obstacle_course_cross_scene_03_dynamic/physics/contacts"
+gazebo_contact_messages: 1704993
+gazebo_contacts_raw: gazebo_contacts_raw.log.gz
+gazebo_contacts_summary: gazebo_contacts_summary.yaml
+gazebo_non_ground_contact: false
+gazebo_contact_pairs: "(none)"
