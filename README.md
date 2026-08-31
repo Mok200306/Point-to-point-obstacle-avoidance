@@ -1,6 +1,6 @@
 # RTAB-Map TurtleBot3 RGB-D + Nav2
 
-更新时间：2026-08-24
+更新时间：2026-08-31
 主机：Ubuntu 20.04 + RTX 4090
 容器：Ubuntu 22.04 + ROS 2 Humble
 
@@ -30,15 +30,25 @@
 - [全部实验索引](文档/00_项目总览/EXPERIMENT_ARCHIVE_INDEX.md)；
 - [结果归档](results/README.md)；
 - [文档目录](文档/README.md)。
+- [静态实车接入准备与动态场景重规划](文档/10_实车接入与动态场景重规划_2026-08-31/README.md)。
 
 ## 当前 profile
 
-### 通用跨场景基线
+### 当前工作基础：四点闭环 v13
 
-`adaptive_goal_line_045` 是当前通用基线：全局规划器为
+当前新实验和真实实车启动默认使用
+`adaptive_goal_line_050_recovery_v13_line_tiebreaker`。它是四点闭环研究后冻结的工作
+基础：全局规划器为
 `rtabmap_tb3_nav/GoalLineSmacPlanner`，底层为 SmacPlanner2D。每次规划调用根据当前
 起点、当前目标和实时 costmap 计算目标线软偏好；关闭 large 场景固定世界走廊和目标
-调度。全局/局部 inflation 为 `0.45 m`，目标速度约 `0.28 m/s`。
+调度。v13 的全局/局部 inflation 为 `0.50 m`，目标速度约 `0.28 m/s`，并使用周期
+重规划行为树。真实实车 launch 会在 v13 参数上额外施加保守的初始限速，不能把
+仿真速度直接带到 45 kg 底盘。
+
+### 通用对照 profile
+
+`adaptive_goal_line_045` 仍保留为通用跨场景对照和历史场景 01/场景 03 基线。它不是
+当前四点闭环工作的默认基础；历史结果、参数快照和结论不因此改写。
 
 ### 场景 02 最终 profile
 
@@ -86,7 +96,7 @@ cd /home/w417/RTAB-Map
 sg docker -c './scripts/launch_demo.sh \
   gazebo_gui:=true rviz:=true rtabmap_viz:=false \
   online:=true localization:=false reset_db:=true \
-  navigation_profile:=adaptive_goal_line_045'
+  navigation_profile:=adaptive_goal_line_050_recovery_v13_line_tiebreaker'
 ```
 
 ### 3. 发送单段目标

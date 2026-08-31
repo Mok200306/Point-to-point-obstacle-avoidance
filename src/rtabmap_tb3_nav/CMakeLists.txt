@@ -46,6 +46,8 @@ install(
     scripts/multi_goal_trial.py
     scripts/multi_waypoint_trial.py
     scripts/map_padder.py
+    scripts/real_robot_preflight.py
+    scripts/real_navigation_trial.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

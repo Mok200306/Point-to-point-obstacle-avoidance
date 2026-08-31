@@ -3,7 +3,7 @@
 <package format="3">
   <name>rtabmap_tb3_nav</name>
   <version>0.1.0</version>
-  <description>RGB-D-only TurtleBot3 simulation with RTAB-Map and Nav2.</description>
+  <description>RGB-D RTAB-Map and Nav2 navigation for simulation and physical robots.</description>
   <maintainer email="w417@example.com">w417</maintainer>
   <license>BSD-3-Clause</license>
 
@@ -22,16 +22,19 @@
   <exec_depend>nav_msgs</exec_depend>
   <exec_depend>nav2_bringup</exec_depend>
   <exec_depend>nav2_collision_monitor</exec_depend>
+  <exec_depend>nav2_lifecycle_manager</exec_depend>
   <exec_depend>nav2_core</exec_depend>
   <exec_depend>nav2_msgs</exec_depend>
   <exec_depend>nav2_regulated_pure_pursuit_controller</exec_depend>
   <exec_depend>nav2_smac_planner</exec_depend>
   <exec_depend>pluginlib</exec_depend>
   <exec_depend>rclpy</exec_depend>
+  <exec_depend>rcl_interfaces</exec_depend>
   <exec_depend>realsense2_camera</exec_depend>
   <exec_depend>rtabmap_slam</exec_depend>
   <exec_depend>rtabmap_util</exec_depend>
   <exec_depend>rtabmap_viz</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>tf2_ros</exec_depend>
   <exec_depend>turtlebot3_gazebo</exec_depend>
 

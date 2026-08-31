@@ -1493,10 +1493,11 @@ def generate_launch_description():
             description='Collision monitor parameter file.'),
         DeclareLaunchArgument(
             'navigation_profile',
-            default_value='adaptive_goal_line_045',
+            default_value='adaptive_goal_line_050_recovery_v13_line_tiebreaker',
             description=(
-                'Reproducible parameter profile: adaptive_goal_line_045 is the '
-                'current generic-goal default; '
+                'Reproducible parameter profile: adaptive_goal_line_050_recovery_v13_line_tiebreaker '
+                'is the current four-point-loop working default; '
+                'adaptive_goal_line_045 is retained as the generic comparison; '
                 'fast_north_045_v3 is the historical fixed-corridor baseline; '
                 'fast_north_045_v2 restores the previous fixed-west-window baseline; '
                 'fast_goalline_045_v1 tests a segmented return-to-goal corridor; '

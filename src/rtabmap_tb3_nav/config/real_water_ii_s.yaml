@@ -1,0 +1,78 @@
+# WATER II-S real-robot interface record.
+# Values marked provisional must be confirmed against the installed firmware,
+# measured chassis, and the vendor ROS driver before any powered test.
+
+platform:
+  model: WATER II-S
+  drive_type: differential
+  diameter_m: 0.505
+  height_m: 0.280
+  mass_kg: 45.0
+  rated_payload_kg: 50.0
+  wheel_count_drive: 2
+  caster_count: 4
+  auxiliary_wheel_count: 2
+  nominal_turning_radius_m: 0.2525
+  odometry_source: wheel_encoder_required
+  imu: six_axis_vendor_imu
+
+network:
+  default_chassis_ip: 192.168.10.10
+  ethernet: 100M
+  wifi: 2.4GHz
+  vendor_api_transport: tcp_client
+  vendor_api_port: 31001
+  credentials_in_repository: false
+
+vendor_api:
+  # These command paths are documented for later driver integration. This
+  # package does not call them automatically.
+  direct_control_path: /api/joy_control
+  estop_path: /api/estop
+  status_path: /api/robot_status
+  data_path: /api/request_data
+  cancel_path: /api/move/cancel
+  parameter_get_path: /api/get_params
+  parameter_set_path: /api/set_params
+  direct_control_linear_range_mps: [-0.5, 0.5]
+  direct_control_angular_range_radps: [-1.0, 1.0]
+  direct_control_command_duration_s: 0.5
+  direct_control_required_rate_hz: 2.0
+  estop_requires_human_confirmation: true
+  robot_status_is_not_ros_odom: true
+
+ros_contract:
+  use_sim_time: false
+  odom_topic: /odom
+  odom_frame: odom
+  base_frame: base_link
+  camera_frame: camera_link
+  map_frame: map
+  nav2_cmd_vel_topic: /cmd_vel
+  collision_monitor_input_topic: /cmd_vel
+  collision_monitor_output_topic: /cmd_vel_safe
+  chassis_driver_must_subscribe: /cmd_vel_safe
+  chassis_driver_must_publish: [/odom, /tf]
+  forbidden_shortcut: /cmd_vel
+
+initial_limits:
+  # Conservative first-boot values used by real_d435i_nav.launch.py.
+  max_linear_velocity_mps: 0.12
+  max_angular_velocity_radps: 0.35
+  linear_acceleration_mps2: 0.15
+  linear_deceleration_mps2: 0.20
+  angular_acceleration_radps2: 0.50
+  angular_deceleration_radps2: 0.70
+  replace_after_vendor_driver_and_empty_floor_test: true
+
+camera:
+  model: Intel RealSense D435i
+  color_profile: 640x480x30
+  depth_profile: 640x480x30
+  aligned_depth: true
+  maximum_processing_depth_m: 3.5
+  cloud_decimation: 4
+  cloud_voxel_size_m: 0.04
+  mount_transform_is_provisional: true
+  provisional_mount_xyz_m: [0.18, 0.0, 0.28]
+  provisional_mount_rpy_rad: [0.0, 0.0, 0.0]

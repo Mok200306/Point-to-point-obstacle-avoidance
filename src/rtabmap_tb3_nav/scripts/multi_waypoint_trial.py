@@ -86,7 +86,9 @@ def main():
         '--world-file',
         default='/workspaces/rtabmap_tb3_nav/src/rtabmap_tb3_nav/worlds/'
                 'indoor_obstacle_course_large.world')
-    parser.add_argument('--profile', default='adaptive_goal_line_045')
+    parser.add_argument(
+        '--profile',
+        default='adaptive_goal_line_050_recovery_v13_line_tiebreaker')
     parser.add_argument(
         '--dynamic-obstacle-model', default='',
         help='Optional Gazebo model name whose ground-truth path is recorded.')

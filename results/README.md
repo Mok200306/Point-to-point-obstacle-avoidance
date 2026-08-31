@@ -20,7 +20,7 @@ Gazebo contacts。阶段分析正文位于 `文档/`。当前场景 02 已按“
 
 世界文件：`src/rtabmap_tb3_nav/worlds/indoor_obstacle_course_cross_scene_03_dynamic.world`
 
-场景 03 使用通用 profile `adaptive_goal_line_045`，在场景 02 复制世界上只增加一个
+旧场景 03 历史回归使用通用对照 profile `adaptive_goal_line_045`，在场景 02 复制世界上只增加一个
 往返动态箱体。smoke 为 `1/1` 段、0 contacts；三次正式四点闭环为 `3/3` 个 run、
 `12/12` 段 Nav2 成功，但严格无碰撞通过率为 `2/3`，`run_03` 在 `M→N` 段发生箱体
 接触，不能混入无碰撞成功统计。
@@ -82,6 +82,11 @@ find results/05_跨场景验证/场景02/01_正式验收/场景02_四点闭环_�
 ```
 
 ## 新实验保存规则
+
+当前新实验默认基础 profile 为
+`adaptive_goal_line_050_recovery_v13_line_tiebreaker`。如果使用
+`adaptive_goal_line_045`，必须在实验参数和阶段文档中明确标注为对照或历史复现；不
+得把旧场景03的 045 结果改写成 v13 结果。
 
 新实验必须使用新的 label，不能复用正式的 `run_01`、`run_02`、`run_03`：
 
