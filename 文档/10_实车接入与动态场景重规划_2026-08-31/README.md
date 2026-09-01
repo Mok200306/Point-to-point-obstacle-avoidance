@@ -12,6 +12,7 @@
 关联文件：
 
 - [阶段4总结](阶段4_静态实车接入准备与场景03重规划总结_2026-08-31.md)
+- [实车接入现场操作手册](实车接入现场操作手册_2026-09-01.md)
 - [实车启动文件](../../src/rtabmap_tb3_nav/launch/real_d435i_nav.launch.py)
 - [实车底盘接口配置](../../src/rtabmap_tb3_nav/config/real_water_ii_s.yaml)
 - [只读预检程序](../../src/rtabmap_tb3_nav/scripts/real_robot_preflight.py)
