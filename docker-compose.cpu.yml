@@ -1,0 +1,12 @@
+# CPU-only override for a mobile laptop without an NVIDIA Container Toolkit.
+# Use together with docker-compose.yml:
+#   docker compose -f docker-compose.yml -f docker-compose.cpu.yml up -d
+#
+# The real-robot bridge, Nav2 and the D435i ROS driver do not require a GPU.
+# RTAB-Map/RViz performance may be lower than on the RTX workstation.
+services:
+  ros2:
+    gpus: []
+    environment:
+      NVIDIA_VISIBLE_DEVICES: ""
+      NVIDIA_DRIVER_CAPABILITIES: ""

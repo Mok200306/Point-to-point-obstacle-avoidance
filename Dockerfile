@@ -13,6 +13,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     python3-colcon-common-extensions \
+    python3-pip \
     python3-rosdep \
     ros-humble-gazebo-ros-pkgs \
     ros-humble-nav2-bringup \
@@ -29,6 +30,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     mesa-utils \
     x11-xserver-utils \
     && rm -rf /var/lib/apt/lists/*
+
+# The WATER V5.1 SDK is a Python SDK with a local Gateway.  Install its
+# runtime dependencies in the same image as ROS 2 so the ROS bridge can own
+# one Gateway process on the mobile computer.
+COPY water_chassis_sdk_v5_1_cn_complete/water_chassis_sdk_cn_v5_1/requirements.txt /tmp/water_sdk_requirements.txt
+RUN python3 -m pip install --no-cache-dir -r /tmp/water_sdk_requirements.txt \
+    && rm -f /tmp/water_sdk_requirements.txt
 
 # Compose runs the container with the host UID. Keep a passwd entry for the
 # common Ubuntu desktop UID so Gazebo can resolve the runtime username.

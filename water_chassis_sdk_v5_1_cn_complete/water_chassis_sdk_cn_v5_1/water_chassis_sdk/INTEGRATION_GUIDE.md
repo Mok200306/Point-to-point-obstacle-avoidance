@@ -1,0 +1,87 @@
+# WATER SDK 项目集成说明
+
+## 推荐方式：直接复制 package
+
+把整个：
+
+```text
+water_chassis_sdk/
+```
+
+复制到你的 Python 项目根目录。
+
+然后：
+
+```python
+from water_chassis_sdk import WaterChassis
+```
+
+即可。
+
+## 视觉/规划项目建议结构
+
+```text
+project/
+├─ main.py
+├─ vision/
+├─ planning/
+├─ control/
+└─ water_chassis_sdk/
+```
+
+## 推荐职责边界
+
+```text
+vision       -> 感知结果
+planning     -> heading+distance 或 v+w
+water SDK    -> 底盘控制 + 状态反馈 + 安全保护 + 厂家协议
+```
+
+## 如果规划器输出航向角和距离
+
+```python
+heading_deg, distance_m = planner(...)
+robot.move_relative(heading_deg, distance_m)
+```
+
+## 如果规划器输出实时速度
+
+```python
+v, w = planner(...)
+robot.set_velocity(v, w)
+```
+
+建议 10 Hz 左右刷新。
+
+## 如果项目需要动作进度
+
+```python
+def callback(event):
+    progress = event.get("progress")
+    pose = event.get("pose")
+    # 更新 UI / 状态机 / ROS topic / 日志
+
+with WaterChassis(feedback=False, feedback_callback=callback) as robot:
+    ...
+```
+
+## 多线程时
+
+- 建议只创建一个 `WaterChassis` 实例并共享。
+- 不建议每个线程各自创建一个 Gateway。
+- 一个时刻最好只有一个模块拥有运动控制权。
+- `stop()` / `estop()` 应当拥有最高优先级。
+
+## 实时规划器安全建议
+
+```python
+try:
+    while True:
+        v, w = planner()
+        robot.set_velocity(v, w)
+        time.sleep(0.1)
+finally:
+    robot.stop()
+```
+
+SDK 还有 watchdog，但业务代码仍然应该在退出时显式停车。

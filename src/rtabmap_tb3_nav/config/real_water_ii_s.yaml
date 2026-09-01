@@ -55,6 +55,27 @@ ros_contract:
   chassis_driver_must_publish: [/odom, /tf]
   forbidden_shortcut: /cmd_vel
 
+water_sdk_bridge:
+  # The bridge is intentionally opt-in. It connects to the SDK for status
+  # diagnostics by default, but cannot take control unless motion is enabled.
+  package: rtabmap_tb3_nav
+  executable: water_chassis_ros_bridge.py
+  standalone_launch: water_chassis_bridge.launch.py
+  safe_command_topic: /cmd_vel_safe
+  status_topic: /water_chassis/status
+  default_enable_motion: false
+  default_allow_provisional_odom: false
+  provisional_odom_source: sdk_robot_velocity_integrated
+  provisional_odom_is_formal: false
+  real_mode_requirement: >-
+    Use only when an external vendor driver already publishes encoder /odom and
+    odom->base_link, or provide that encoder source separately. Never use the
+    provisional SDK velocity integration for final physical-robot metrics.
+  single_motion_owner_required: true
+  forbidden_parallel_vendor_motion_controller: true
+  gateway_default_port: 8080
+  gateway_log_fallback: ROS_HOME_or_tmp
+
 initial_limits:
   # Conservative first-boot values used by real_d435i_nav.launch.py.
   max_linear_velocity_mps: 0.12

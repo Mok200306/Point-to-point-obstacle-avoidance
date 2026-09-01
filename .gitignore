@@ -12,6 +12,7 @@ log/
 # Python caches
 __pycache__/
 *.py[cod]
+water_gateway.log
 
 # Generated navigation trials
 results/*

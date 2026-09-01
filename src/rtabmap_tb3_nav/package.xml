@@ -35,6 +35,7 @@
   <exec_depend>rtabmap_util</exec_depend>
   <exec_depend>rtabmap_viz</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
   <exec_depend>tf2_ros</exec_depend>
   <exec_depend>turtlebot3_gazebo</exec_depend>
 

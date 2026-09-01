@@ -1,0 +1,27 @@
+WATER Chassis SDK V5.1 中文版完整交付包
+
+根目录：
+- README_先看这里.md          第一次使用先读
+- main.py                    最小安全示例，默认不动车
+- requirements.txt           Python 依赖
+- install_requirements.bat   Windows 一键安装依赖
+- VERSION.txt                版本号
+
+water_chassis_sdk/            可直接复制进别人项目的完整 Python package
+- __init__.py
+- config.json
+- water_chassis.py            高层主 API
+- water_api_client.py         HTTP 客户端层
+- water_config.py             配置加载
+- run_gateway.py              自动 Gateway 启动入口
+- app/                        完整 Gateway / 厂家 TCP / 数据模型源码
+- README.md
+- WATER底盘SDK使用手册.md
+- API_QUICK_REFERENCE.md
+- CONFIG_REFERENCE.md
+- INTEGRATION_GUIDE.md
+- requirements.txt
+
+examples/                     8 个可直接运行/修改的示例
+docs/                         完整中文文档
+tools/                        Mock 与开发自测工具

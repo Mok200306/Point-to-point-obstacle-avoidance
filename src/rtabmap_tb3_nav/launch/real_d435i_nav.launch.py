@@ -264,6 +264,35 @@ def launch_setup(context, *args, **kwargs):
     obstacles_topic = LaunchConfiguration(
         'obstacles_topic').perform(context)
     ground_topic = LaunchConfiguration('ground_topic').perform(context)
+    use_water_bridge = LaunchConfiguration(
+        'use_water_bridge').perform(context).lower() == 'true'
+    water_sdk_root = LaunchConfiguration('water_sdk_root').perform(context)
+    water_config_path = LaunchConfiguration(
+        'water_config_path').perform(context)
+    water_robot_host = LaunchConfiguration(
+        'water_robot_host').perform(context)
+    water_robot_port = int(LaunchConfiguration(
+        'water_robot_port').perform(context))
+    water_gateway_port = int(LaunchConfiguration(
+        'water_gateway_port').perform(context))
+    water_connect_timeout = float(LaunchConfiguration(
+        'water_connect_timeout_s').perform(context))
+    water_command_rate = float(LaunchConfiguration(
+        'water_command_rate_hz').perform(context))
+    water_state_rate = float(LaunchConfiguration(
+        'water_state_rate_hz').perform(context))
+    water_odom_rate = float(LaunchConfiguration(
+        'water_odom_rate_hz').perform(context))
+    water_command_timeout = float(LaunchConfiguration(
+        'water_command_timeout_s').perform(context))
+    water_state_timeout = float(LaunchConfiguration(
+        'water_state_timeout_s').perform(context))
+    water_auto_start_gateway = LaunchConfiguration(
+        'water_auto_start_gateway').perform(context).lower() == 'true'
+    water_enable_motion = LaunchConfiguration(
+        'water_enable_motion').perform(context).lower() == 'true'
+    water_allow_provisional_odom = LaunchConfiguration(
+        'water_allow_provisional_odom').perform(context).lower() == 'true'
 
     if not odom_frame or not map_frame:
         raise RuntimeError('odom_frame and map_frame must be non-empty')
@@ -412,6 +441,17 @@ def launch_setup(context, *args, **kwargs):
             'collision_slowdown_ratio': slowdown_ratio,
             'base_driver_external': True,
             'base_driver_required_topics': [odom_topic, '/tf', cmd_vel_safe_topic],
+            'water_bridge_enabled': use_water_bridge,
+            'water_bridge_motion_enabled': (
+                use_water_bridge and water_enable_motion),
+            'water_bridge_odom_source': (
+                'sdk_velocity_integrated_provisional'
+                if use_water_bridge and water_allow_provisional_odom
+                else 'external_vendor_driver'),
+            'water_sdk_root': water_sdk_root,
+            'water_robot_host': water_robot_host,
+            'water_robot_port': water_robot_port,
+            'water_gateway_port': water_gateway_port,
             'cmd_vel_in_topic': cmd_vel_in_topic,
             'cmd_vel_safe_topic': cmd_vel_safe_topic,
             'color_image_topic': color_image_topic,
@@ -542,6 +582,39 @@ def launch_setup(context, *args, **kwargs):
                 period=2.0,
                 actions=[collision_monitor_lifecycle_manager]),
         ])
+
+    water_bridge = Node(
+        condition=IfCondition(LaunchConfiguration('use_water_bridge')),
+        package='rtabmap_tb3_nav',
+        executable='water_chassis_ros_bridge.py',
+        name='water_chassis_ros_bridge',
+        output='screen',
+        parameters=[{
+            'use_sim_time': False,
+            'sdk_root': water_sdk_root,
+            'config_path': water_config_path,
+            'robot_host': water_robot_host,
+            'robot_port': water_robot_port,
+            'gateway_port': water_gateway_port,
+            'connect_timeout_s': water_connect_timeout,
+            'auto_start_gateway': water_auto_start_gateway,
+            'enable_motion': water_enable_motion,
+            'cmd_vel_topic': cmd_vel_safe_topic,
+            'odom_topic': odom_topic,
+            'odom_frame': odom_frame,
+            'base_frame': base_frame,
+            'command_rate_hz': water_command_rate,
+            'state_rate_hz': water_state_rate,
+            'odom_rate_hz': water_odom_rate,
+            'command_timeout_s': water_command_timeout,
+            'state_timeout_s': water_state_timeout,
+            'max_linear_velocity': max_linear,
+            'max_angular_velocity': max_angular,
+            'publish_tf': True,
+            'allow_provisional_odom': water_allow_provisional_odom,
+            'status_topic': '/water_chassis/status',
+        }],
+    )
 
     # D435i publishes color/* and aligned_depth_to_color/* topics. Approximate
     # synchronization is important because the two USB streams are not locked
@@ -674,6 +747,7 @@ def launch_setup(context, *args, **kwargs):
     )
 
     return [
+        water_bridge,
         realsense,
         camera_tf,
         rtabmap_node,
@@ -819,6 +893,60 @@ def generate_launch_description():
             'obstacles_topic', default_value='/camera/obstacles'),
         DeclareLaunchArgument(
             'ground_topic', default_value='/camera/ground'),
+        DeclareLaunchArgument(
+            'use_water_bridge', default_value='false',
+            description=(
+                'Start the local WATER SDK ROS bridge. Set false only when a '
+                'separate vendor ROS driver provides /odom, odom->base_link '
+                'and subscribes to /cmd_vel_safe.')),
+        DeclareLaunchArgument(
+            'water_sdk_root',
+            default_value=os.path.join(
+                package_share, 'water_chassis_sdk_cn_v5_1'),
+            description='Installed/source root containing water_chassis_sdk/.'),
+        DeclareLaunchArgument(
+            'water_config_path', default_value='',
+            description='Optional WATER SDK config.json override.'),
+        DeclareLaunchArgument(
+            'water_robot_host', default_value='192.168.10.10',
+            description='WATER chassis IP; confirm on site.'),
+        DeclareLaunchArgument(
+            'water_robot_port', default_value='31001',
+            description='WATER vendor TCP port; confirm on site.'),
+        DeclareLaunchArgument(
+            'water_gateway_port', default_value='8080',
+            description='Local SDK Gateway HTTP port.'),
+        DeclareLaunchArgument(
+            'water_connect_timeout_s', default_value='12.0'),
+        DeclareLaunchArgument(
+            'water_command_rate_hz', default_value='10.0',
+            description='Safe velocity forwarding rate.'),
+        DeclareLaunchArgument(
+            'water_state_rate_hz', default_value='5.0',
+            description='SDK status polling rate.'),
+        DeclareLaunchArgument(
+            'water_odom_rate_hz', default_value='20.0',
+            description='Provisional integrated odom publication rate.'),
+        DeclareLaunchArgument(
+            'water_command_timeout_s', default_value='0.25',
+            description='Stop if no fresh /cmd_vel_safe arrives.'),
+        DeclareLaunchArgument(
+            'water_state_timeout_s', default_value='1.2',
+            description='Stop if SDK status becomes stale.'),
+        DeclareLaunchArgument(
+            'water_auto_start_gateway', default_value='true',
+            description='Let the bridge own one local SDK Gateway process.'),
+        DeclareLaunchArgument(
+            'water_enable_motion', default_value='false',
+            description=(
+                'Explicitly allow the WATER bridge to forward /cmd_vel_safe. '
+                'Keep false for diagnostics-only startup.')),
+        DeclareLaunchArgument(
+            'water_allow_provisional_odom', default_value='false',
+            description=(
+                'Explicit software-integration mode: integrate SDK reported '
+                'velocity into a provisional /odom. Never use for final '
+                'physical-robot results; real encoder odom remains required.')),
         DeclareLaunchArgument(
             'camera_max_depth_m', default_value='3.5',
             description='Maximum depth used for RTAB-Map and the obstacle cloud.'),

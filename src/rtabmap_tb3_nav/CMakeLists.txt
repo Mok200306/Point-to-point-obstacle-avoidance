@@ -24,6 +24,24 @@ install(
   DESTINATION share/${PROJECT_NAME}
 )
 
+# Keep the vendor SDK beside the ROS package.  The bridge imports it through
+# this installed path, while the source tree remains usable on the host.
+set(WATER_SDK_SOURCE_DIR
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../water_chassis_sdk_v5_1_cn_complete/water_chassis_sdk_cn_v5_1")
+if(EXISTS "${WATER_SDK_SOURCE_DIR}")
+  install(
+    DIRECTORY "${WATER_SDK_SOURCE_DIR}/"
+    DESTINATION share/${PROJECT_NAME}/water_chassis_sdk_cn_v5_1
+    PATTERN "__pycache__" EXCLUDE
+    PATTERN "*.pyc" EXCLUDE
+    PATTERN "water_gateway.log" EXCLUDE
+  )
+else()
+  message(WARNING
+    "WATER SDK source directory not found: ${WATER_SDK_SOURCE_DIR}. "
+    "The physical bridge will not be usable until the SDK is present.")
+endif()
+
 install(
   DIRECTORY include/
   DESTINATION include
@@ -48,6 +66,7 @@ install(
     scripts/map_padder.py
     scripts/real_robot_preflight.py
     scripts/real_navigation_trial.py
+    scripts/water_chassis_ros_bridge.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

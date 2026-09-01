@@ -1,0 +1,2 @@
+WATER Chassis SDK 5.1.0-cn
+Based on V5 control architecture; Chinese documentation/output/package refinements.

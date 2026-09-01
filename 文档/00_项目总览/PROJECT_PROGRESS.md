@@ -1,6 +1,6 @@
 # 项目进度总结
 
-更新时间：2026-09-01（完成静态实车现场接入操作手册）
+更新时间：2026-09-01（完成 WATER SDK ROS 2 bridge 软件接入）
 
 ## 当前状态
 
@@ -23,7 +23,8 @@
 | 场景 03 动态障碍 | 3/3 个 run、12/12 段 Nav2 成功；2/3 个 run 无非地面 contacts；1 次 M→N 接触边界 |
 | 当前工作基础 profile | 四点闭环 `adaptive_goal_line_050_recovery_v13_line_tiebreaker`；045 保留为对照 |
 | 真实 D435i | 软件入口与只读预检准备，尚未实机验收 |
-| 真实 WATER II-S 底盘 | 接口/安全契约已整理，未接入 ROS 驱动，尚未运动验收 |
+| WATER V5.1 SDK ROS 2 bridge | 已接入并完成本机 mock 验证；默认诊断不控车，真实编码器 `/odom` 仍未解决 |
+| 真实 WATER II-S 底盘 | 接口/安全契约已整理，尚未接入真实设备，尚未运动验收 |
 
 ## 最新正式结果：场景02 v13
 
@@ -71,6 +72,9 @@ costmap重新规划；黑色起终点连线只用于可视化和目标线软偏�
    路由，不发布速度、不调用 WATER API、不切换急停；
 4. 整理 WATER II-S 的网络、端口、底盘尺寸、速度接口和 `/odom` 接口边界；
 5. 新增静态实车分级放行文档，并重规划独立动态场景03方案。
+6. 接入厂家 WATER V5.1 Python SDK 的 ROS 2 bridge，固定速度链为
+   `/cmd_vel_safe → bridge → Gateway → WATER TCP`；完成 Docker 依赖、ROS 安装、诊断模式和
+   mock 速度联调。bridge 的暂定积分 `/odom` 仅用于软件联调，不能替代真实编码器。
 
 本轮没有真实设备在线，因此没有产生实车成功率、耗时、轨迹或 contacts 结果。
 
@@ -79,7 +83,7 @@ costmap重新规划；黑色起终点连线只用于可视化和目标线软偏�
 ## 下一步
 
 1. 针对场景 03 `run_03` 的 M→N 接触窗口，补做点云、costmap、TF 和速度链路诊断；
-2. 接入厂商底盘 ROS 驱动或 SDK，先验收 `/odom`、`odom→base_link`、急停和
-   `/cmd_vel_safe`；
+2. 现场用 bridge 做只读 WATER 状态连接验收；同时接入/确认厂商底盘 ROS 驱动，先验收
+   `/odom`、`odom→base_link`、急停和 `/cmd_vel_safe`；
 3. 完成 D435i 安装外参实测与静态点云验证；
 4. 动态安全边界明确后，再进入真实 D435i 的低速静态导航和动态安全停车验证。
